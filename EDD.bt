@@ -1,0 +1,219 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: EDD.bt
+//   Authors: TKGP
+//   Version: 1.01
+//   Purpose: DS2 EDD :thinking:
+//  Category: Dark Souls
+// File Mask: *.edd
+//  ID Bytes: 66 53 53 4C 01 00 00 00 01 00 00 00 01 00 00 00 7C 00 00 00
+//   History: 
+//------------------------------------------------
+
+struct Header {
+    char magic[4]; Assert(magic == "fSSL");
+    int unk04; Assert(unk04 == 1);
+    int unk08; Assert(unk08 == 1);
+    int unk0C; Assert(unk0C == 1);
+    int unk10; Assert(unk10 == 0x7C);
+    int dataSize;
+    int blockCount; Assert(blockCount == 0xB);
+
+    int dataHeaderSize; Assert(dataHeaderSize == 0x34);
+    int dataHeaderCount; Assert(dataHeaderCount == 1);
+    int stringHeaderSize; Assert(stringHeaderSize == 8);
+    int stringCount;
+    int unk2C; Assert(unk2C == 4);
+    int unk30; Assert(unk30 == 0);
+    int block4Size; Assert(block4Size == 8);
+    int block4Count;
+    int conditionSize; Assert(conditionSize == 8);
+    int conditionCount;
+    int unk44; Assert(unk44 == 8);
+    int unk48; Assert(unk48 == 0);
+    int block7Size; Assert(block7Size == 0x10);
+    int block7Count;
+    int commandSize; Assert(commandSize == 4);
+    int commandCount;
+    int block9Size; Assert(block9Size == 8);
+    int block9Count;
+    int stateSize; Assert(stateSize == 0x3C);
+    int stateCount;
+    int stateGroupSize; Assert(stateGroupSize == 0x30);
+    int stateGroupCount;
+
+    int stringsOffset1;
+    int unk78; Assert(unk78 == 0);
+    int stringsOffset2; Assert(stringsOffset2 == stringsOffset1);
+    int unk80;
+    int unkOffset84; Assert(unkOffset84 == dataSize);
+    int unk88; Assert(unk88 == 0);
+    int unkOffset8C; Assert(unkOffset8C == dataSize);
+    int unk90; Assert(unk90 == 0);
+} header <bgcolor=cRed>;
+
+local quad dataStart <hidden=true> = FTell();
+
+struct DataHeader {
+    int unk94; Assert(unk94 == 0);
+    int block7Offset;
+    int block7Count; Assert(block7Count == header.block7Count);
+    int block4Offset;
+    int block4Count; Assert(block4Count == header.block4Count);
+    int stateGroupsOffset;
+    int stateGroupCount; Assert(stateGroupCount == header.stateGroupCount);
+    int unkB0[4] <bgcolor=cBlack, fgcolor=cWhite>;
+    int stringHeadersOffset; Assert(stringHeadersOffset == 0x34);
+    int stringCount; Assert(stringCount == header.stringCount);
+} dataHeader <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int stringOffset;
+    int charCount;
+    
+    local quad pos = FTell();
+    FSeek(dataStart + stringOffset);
+    wstring str;
+    Assert(FTell() == dataStart + stringOffset + charCount * 2);
+    FSeek(pos);
+} StringHeader <read=ReadStringHeader>;
+
+wstring ReadStringHeader(StringHeader& stringHeader) {
+    return stringHeader.str;
+}
+
+struct Strings {
+    StringHeader stringHeaders[header.stringCount] <optimize=false>;
+} strings <bgcolor=cLtGreen>;
+
+
+typedef struct {
+    int unk00;
+    short nameIndex;
+    byte unk06;
+    byte unk07;
+    
+    local wstring name = strings.stringHeaders[nameIndex].str;
+} Block4 <read=ReadBlock4>;
+
+wstring ReadBlock4(Block4& block) {
+    return block.name;
+}
+
+struct Block4Group {
+    Block4 block4s[header.block4Count] <optimize=false>;
+} block4Group <bgcolor=cGreen>;
+
+
+if (header.conditionCount > 0) {
+struct Conditions {
+struct Condition {
+    int unk00; Assert(unk00 == -1);
+    int unk04; Assert(unk04 == 0);
+} conditions[header.conditionCount] <optimize=false>;
+} conditions <bgcolor=cDkGreen>;
+}
+
+
+struct Block7Group {
+struct Block7 {
+    int unk00;
+    int unk04; Assert(unk04 == -1);
+    int unk08; Assert(unk08 == 0);
+    short unk0C;
+    short unk0E;
+} block7s[header.block7Count] <optimize=false>;
+} block7Group <bgcolor=cAqua>;
+
+
+typedef struct {
+    short nameIndex;
+    byte unk02; Assert(unk02 == 1);
+    byte unk03; Assert(unk03 == -1);
+    
+    local wstring name = strings.stringHeaders[nameIndex].str;
+} Command <read=ReadCommand>;
+
+wstring ReadCommand(Command& command) {
+    return command.name;
+}
+
+if (header.commandCount > 0) {
+struct Commands {
+    Command commands[header.commandCount] <optimize=false>;
+} commands <bgcolor=cDkAqua>;
+}
+
+
+if (header.block9Count > 0) {
+struct Block9Group {
+struct Block9 {
+    int commandsOffset <format=hex>;
+    int commandCount;
+} block9s[header.block9Count] <optimize=false>;
+} block9Group <bgcolor=cLtBlue>;
+}
+
+
+typedef struct {
+    int stateID;
+    int nameIndexOffset <format=hex>;
+    int nameCount; Assert(nameCount == 1);
+    int entryCommandsOffset <format=hex>;
+    int entryCommandCount;
+    int exitCommandsOffset <format=hex>;
+    int exitCommandCount;
+    int whileCommandsOffset <format=hex>;
+    int whileCommandCount;
+    int block9Offset <format=hex>;
+    int block9Count;
+    int conditionsOffset <format=hex>;
+    int conditionCount;
+    int unk34; Assert(unk34 == -1);
+    int unk38; Assert(unk38 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(dataStart + nameIndexOffset);
+    short nameIndex;
+    local wstring name = strings.stringHeaders[nameIndex].str;
+    FSeek(pos);
+} State <read=ReadState>;
+
+wstring ReadState(State& state) {
+    return state.name;
+}
+
+if (header.stateCount > 0) {
+struct States {
+    State states[header.stateCount] <optimize=false>;
+} states <bgcolor=cPurple>;
+}
+
+
+typedef struct {
+    int stateGroupID;
+    short nameIndex;
+    short unk06;
+    // More string indices, I think. -1 for none
+    short unk08[8];
+    int unk18; Assert(unk18 == -1);
+    int unk1C; Assert(unk1C == 0);
+    int unk20; Assert(unk20 == -1);
+    int unk24; Assert(unk24 == 0);
+    int statesOffset <format=hex>;
+    int stateCount;
+    
+    local wstring name = strings.stringHeaders[nameIndex].str;
+} StateGroup <read=ReadStateGroup>;
+
+wstring ReadStateGroup(StateGroup& group) {
+    return group.name;
+}
+
+if (header.stateGroupCount > 0) {
+struct StateGroups {
+    StateGroup stateGroups[header.stateGroupCount] <optimize=false>;
+} stateGroups <bgcolor=cDkPurple>;
+}

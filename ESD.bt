@@ -1,0 +1,216 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: ESD.bt
+//   Authors: TKGP
+//   Version: 1.03
+//   Purpose: EzState
+//  Category: Dark Souls
+// File Mask: *.esd
+//  ID Bytes: 66 [+1] 53 4C 01 00 00 00 [+8] 54 00 00 00
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+
+local int wide = 0;
+
+typedef struct {
+    if (wide)
+        quad value;
+    else
+        int value;
+} Varint <read=readVarint>;
+
+string readVarint(Varint& v) {
+    string s;
+    SPrintf(s, "%Xh", v.value);
+    return s;
+}
+
+struct Header {
+    char magic[4]; Assert(magic == "fSSL" || magic == "fsSL");
+    wide = magic == "fsSL";
+
+    int unk04; Assert(unk04 == 1);
+    int numberOfDarkSoulses1;
+        Assert(numberOfDarkSoulses1 == 1 || numberOfDarkSoulses1 == 2 || numberOfDarkSoulses1 == 3);
+    int numberOfDarkSoulses2;
+        Assert(numberOfDarkSoulses2 == numberOfDarkSoulses1);
+    int unk10 <format=hex>; Assert(unk10 == 0x54);
+    int dataSize;
+    int unk18; Assert(unk18 == 6);
+    int dataHeaderSize <format=hex>; Assert(dataHeaderSize == (wide ? 0x48 : 0x2C));
+    int unk20; Assert(unk20 == 1);
+    int stateGroupSize <format=hex>; Assert(stateGroupSize == (wide ? 0x20 : 0x10));
+    int stateGroupCount;
+    int stateSize <format=hex>; Assert(stateSize == (wide ? 0x48 : 0x24));
+    int stateCount;
+    int conditionSize <format=hex>; Assert(conditionSize == (wide ? 0x38 : 0x1C));
+    int conditionCount;
+    int commandCallSize <format=hex>; Assert(commandCallSize == (wide ? 0x18 : 0x10));
+    int commandCallCount;
+    int commandArgSize <format=hex>; Assert(commandArgSize == (wide ? 0x10 : 0x8));
+    int commandArgCount;
+    int conditionOffsetsOffset <format=hex>;
+    int conditionOffsetCount;
+    // Please note that this is not actually the name offset, it's the end of the
+    // bytecode block, which may be off by a byte due to padding for UTF-16
+    int nameBlockOffset <format=hex>;
+    int nameLength;
+    // These are never used
+    int unkDataOffset2 <format=hex>;
+    int unkDataCount2; Assert(unkDataCount2 == 0);
+    int unkDataOffset3 <format=hex>;
+    int unkDataCount3; Assert(unkDataCount3 == 0);
+} header <bgcolor=cRed>;
+
+// 0x6C
+local quad dataStart = FTell();
+
+struct DataHeader {
+    int unk6C; Assert(unk6C == 1);
+    int unk70 <format=hex>;
+    int unk74 <format=hex>;
+    int unk78 <format=hex>;
+    int unk7C <format=hex>;
+    if (wide) {
+        int unk80; Assert(unk80 == 0);
+    }
+        
+    Varint dataHeaderSize; Assert(dataHeaderSize.value == (wide ? 0x48 : 0x2C));
+    Varint stateGroupCount; Assert(stateGroupCount.value == header.stateGroupCount);
+    Varint nameOffset;
+    Varint nameLength;
+    Varint unkNull1; Assert(unkNull1.value == 0 || unkNull1.value == -1);
+    Varint unkNull2; Assert(unkNull2.value == unkNull1.value);
+
+    if (nameLength.value > 0) {
+        local quad pos = FTell();
+        FSeek(0x6C + nameOffset.value);
+        wchar_t name[nameLength.value];
+        FSeek(pos);
+    }
+} dataHeader <bgcolor=cLtRed>;
+
+struct CommandArg {
+    // Bytecode expression returning a value
+    Varint dataOffset;
+    Varint dataSize;
+    
+    if (dataSize.value > 0) {
+        local quad pos = FTell();
+        FSeek(dataStart + dataOffset.value);
+        byte data[dataSize.value] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
+        FSeek(pos);
+    }
+};
+
+struct CommandCall {
+    // Only 1 in DS1
+    int unk00; Assert(unk00 == 1 || unk00 == 5 || unk00 == 6 || unk00 == 7);
+    // ID of the function to call
+    int commandID;
+    Varint commandArgsOffset;
+    Varint commandArgCount;
+
+    if (commandArgCount.value > 0) {
+        local quad pos = FTell();
+        FSeek(dataStart + commandArgsOffset.value);
+        CommandArg args[commandArgCount.value] <bgcolor=cAqua, optimize=false>;
+        FSeek(pos);
+    }
+};
+
+struct State {
+    Varint id;
+    // Conditions are checked each frame, state switches to
+    // the first one that passes (if any)
+    Varint conditionOffsetsOffset;
+    Varint conditionOffsetCount;
+    // On commands run when the state is entered
+    Varint onCommandsOffset;
+    Varint onCommandCount;
+    // Off commands run when the state is exited
+    Varint offCommandsOffset;
+    Varint offCommandCount;
+    // Not used in DS1; perhaps run every frame?
+    Varint unkCommandsOffset;
+    Varint unkCommandCount;
+    
+    local quad pos = FTell();
+    if (conditionOffsetCount.value > 0) {
+        FSeek(dataStart + conditionOffsetsOffset.value);
+        Varint conditionOffsets[conditionOffsetCount.value] <format=hex, bgcolor=cDkGreen, optimize=true>;
+    }
+    if (onCommandCount.value > 0) {
+        FSeek(dataStart + onCommandsOffset.value);
+        CommandCall onCommands[onCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    }
+    if (offCommandCount.value > 0) {
+        FSeek(dataStart + offCommandsOffset.value);
+        CommandCall offCommands[offCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    }
+    if (unkCommandCount.value > 0) {
+        FSeek(dataStart + unkCommandsOffset.value);
+        CommandCall unkCommands[unkCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    }
+    FSeek(pos);
+};
+
+struct StateGroup {
+    Varint id;
+    Varint unkOffset1;
+    Varint stateCount;
+    // One of these is probably "entry state" or something.
+    Varint unkOffset2; Assert(unkOffset2.value == unkOffset1.value);
+    
+    local quad pos = FTell();
+    FSeek(dataStart + unkOffset1.value);
+    struct StatesGroup {
+        State states[stateCount.value] <bgcolor=cGreen, optimize=false>;
+    } statesGroup;
+    State transitionState <bgcolor=cDkGreen>;
+    FSeek(pos);
+};
+
+struct StateGroupsGroup {
+    StateGroup stateGroups[dataHeader.stateGroupCount.value] <bgcolor=cSilver, optimize=false>;
+} stateGroupsGroup;
+
+struct Condition {
+    // State to enter if the condition passes
+    Varint stateOffset;
+    // Commands run when the condition passes
+    Varint commandsOffset;
+    Varint commandCount;
+    // If the condition passes, evaluation will continue to these conditions
+    Varint conditionOffsetsOffset;
+    Varint conditionOffsetCount;
+    // Bytecode that evaluates the condition
+    Varint dataOffset;
+    Varint dataSize;
+    
+    local quad pos = FTell();
+    if (commandCount.value > 0) {
+        FSeek(dataStart + commandsOffset.value);
+        CommandCall commands[commandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    }
+    if (conditionOffsetCount.value > 0) {
+        FSeek(dataStart + conditionOffsetsOffset.value);
+        Varint conditionOffsets[conditionOffsetCount.value] <format=hex, bgcolor=cDkGreen, optimize=true>;
+    }
+    if (dataSize.value > 0) {
+        FSeek(dataStart + dataOffset.value);
+        byte data[dataSize.value] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
+    }
+    FSeek(pos);
+};
+
+// Skip past all the states because we read them from their groups before
+FSeek(FTell() + header.stateCount * header.stateSize);
+struct ConditionsGroup {
+    Condition conditions[header.conditionCount] <bgcolor=cLtGreen, optimize=false>;
+} conditionsGroup;
+
+// In DS2, the file is padded with garbage to 0x10

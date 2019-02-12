@@ -1,0 +1,93 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: PARAMDEF.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dark Souls
+// File Mask: *.paramdef
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+
+struct EndianTest {
+    int fileSize;
+    if (fileSize != FileSize()) {
+        BigEndian();
+    }
+    FSeek(0);
+} endianTest <bgcolor=cWhite, hidden=true>;
+
+struct Header {
+    int fileSize; Assert(fileSize == FileSize());
+    short version; Assert(version == 0x30 || version == 0xFF);
+    short unk06;
+    short entryCount;
+    short entrySize;
+    if (version == 0x30)
+        Assert(entrySize == 0x6C || entrySize == 0xAC || entrySize == 0xB0);
+    else
+        Assert(entrySize == 0xD0);
+
+    char paramID[0x20] <bgcolor=cRed>;
+    byte unk2C;
+    byte unk2D;
+    short unk2E;
+    if (version == 0x30)
+        Assert(unk2E == 0x66 || 0x67 || 0x68);
+    else
+        Assert(unk2E == 0xC9);
+
+    if (version == 0xFF) {
+        quad entryStart; Assert(entryStart == 0x38);
+    }
+} header <bgcolor=cLtRed>;
+
+struct Entry {
+    if (header.version == 0x30)
+        char guiName[0x40] <bgcolor=cGreen>;
+    else
+        wchar_t guiName[0x20] <bgcolor=cGreen>;
+
+    char guiType[0x8] <bgcolor=cGreen>;
+    char guiFormat[0x8] <bgcolor=cGreen>;
+    float defaultValue;
+    float minValue;
+    float maxValue;
+    float increment;
+    int guiDisplayMode;
+    int guiByteCount;
+    
+    if (header.version == 0x30)
+        int descriptionOffset;
+    else
+        quad descriptionOffset;
+    
+    if (descriptionOffset != 0) {
+        local quad pos = FTell();
+        FSeek(descriptionOffset);
+        if (header.version == 0x30)
+            string description;
+        else
+            wstring description;
+        FSeek(pos);
+    }
+
+    char internalValue[0x20] <bgcolor=cGreen>;
+    char internalName[0x20] <bgcolor=cGreen>;
+    if (header.entrySize > 0xAC)
+        int id;
+
+    if (header.version == 0xFF) {
+        int unkB4; Assert(unkB4 == 0);
+        int unkB8; Assert(unkB8 == 0);
+        int unkBC; Assert(unkBC == 0);
+        int unkC0; Assert(unkC0 == 0);
+        int unkC4; Assert(unkC4 == 0);
+        int unkC8; Assert(unkC8 == 0);
+        int unkCC; Assert(unkCC == 0);
+    }
+} entries[header.entryCount] <bgcolor=cLtGreen, optimize=false>;

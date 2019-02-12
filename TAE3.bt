@@ -1,0 +1,999 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+
+int Pad(int align) {
+    local quad pos = FTell();
+    if (pos % align != 0)
+        return align - (pos % align);
+    else
+        return 0;
+}
+
+struct Header {
+    char magic[4];
+    byte unk04[4] <format=hex>;
+    int version <format=hex>;
+    int fileSize <format=hex>;
+    quad unk10 <format=hex>;
+    quad unk18 <format=hex>;
+    quad unk20 <format=hex>;
+    quad unk28 <format=hex>;
+    quad unk30 <format=hex>;
+    quad unk38 <format=hex>;
+    byte flags[8] <format=hex>;
+    quad unk48 <format=hex>;
+    int fileID;
+    int animCount;
+    quad animsOffset <format=hex, bgcolor=cLtBlue>;
+    quad groupsOffset <format=hex, bgcolor=cLtGreen>;
+    quad unk68 <format=hex>;
+    quad unk70 <format=hex>;
+    quad unk78 <format=hex>;
+    quad unk80 <format=hex>;
+    quad unk88 <format=hex>;
+    int fileID2;
+    int fileID3;
+    quad unk98 <format=hex>;
+    quad unkA0 <format=hex>;
+    quad unkA8 <format=hex>;
+    quad skeletonNameOffset <format=hex, bgcolor=cRed>;
+    quad sibNameOffset <format=hex, bgcolor=cRed>;
+    quad unkC0 <format=hex>;
+    quad unkC8 <format=hex>;
+
+    FSeek(skeletonNameOffset);
+    wstring skeletonName <bgcolor=cRed>;
+    byte pad1[Pad(0x10)] <bgcolor=cRed>;
+    FSeek(sibNameOffset);
+    wstring sibName <bgcolor=cRed>;
+    byte pad2[Pad(0x10)] <bgcolor=cRed>;
+} header <bgcolor=cLtRed>;
+
+struct EventData {
+    quad type;
+    quad offset <format=hex>;
+    local int color = GetBackColor();
+    SetBackColor(cDkGreen);
+    switch (type) {
+        case   0:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>;
+            byte pad[Pad(0x10)] <hidden=true>;
+            break;
+
+        case   1:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            byte pad[Pad(0x10)];
+            break;
+
+        case   2:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //0
+            short unk10 <format=hex>; //-1
+            short unk12 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case   5:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  16:
+            byte pad[Pad(0x10)];
+            break;
+
+        case  17:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  24:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //-1
+            byte pad[Pad(0x10)];
+            break;
+
+        case  32:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  33:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  34:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  35:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  64:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //0
+            break;
+        
+        case  65:
+            int unk00 <format=hex>;
+            short unk04 <format=hex>; //0
+            short unk06 <format=hex>; //-1
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            break;
+
+        case  66:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  67:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case  96:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            byte pad[Pad(0x10)];
+            break;
+
+        case 110:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 112:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 113:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 114:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            int unk10 <format=hex>;
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 115:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            int unk10 <format=hex>;
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 116:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>;
+            break;
+
+        case 117:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>;
+            break;
+
+        case 118:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //0
+            break;
+
+        case 119:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //0
+            break;
+
+        case 120:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            int unk10 <format=hex>;
+            int unk14 <format=hex>;
+            int unk18 <format=hex>;
+            int unk1C <format=hex>;
+            int unk20 <format=hex>;
+            int unk24 <format=hex>;
+            int unk28 <format=hex>;
+            int unk2C <format=hex>;
+            int unk30 <format=hex>;
+            int unk34 <format=hex>;
+            int unk38 <format=hex>; //0
+            int unk3C <format=hex>; //0
+            break;
+
+        case 121:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 128:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            byte pad[Pad(0x10)];
+            break;
+
+        case 129:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //-1
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 130:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>; //-1
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 131:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>; //0
+            break;
+
+        case 132:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 137:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 138:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 144:
+            int unk00 <format=hex>;
+            float unk04;
+            float unk08;
+            int unk0C <format=hex>; //0
+            break;
+
+        case 145:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 150:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 151:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 161:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 193:
+            float unk00;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 194:
+            float unk00;
+            int unk04 <format=hex>; //0
+            float unk08;
+            int unk0C <format=hex>; //0
+            break;
+        
+        case 224:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+        
+        case 225:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 226:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+        
+        case 227:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 228:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 229:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            break;
+
+        case 231:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 232:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 233:
+            int unk00 <format=hex>;
+            short unk04 <format=hex>; //0
+            short unk06 <format=hex>; //-1
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>; //-1
+            int unk10 <format=hex>; //-1
+            int unk14 <format=hex>; //-1
+            int unk18 <format=hex>; //-1
+            int unk1C <format=hex>; //-1
+            break;
+
+        case 236:
+            float unk00;
+            float unk04;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 237:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+        
+        case 300:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            float unk08;
+            int unk0C <format=hex>; //-1
+            byte pad[Pad(0x10)];
+            break;
+
+        case 301:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 302:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 303:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 304:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 307:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 308:
+            float unk00;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 310:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 311:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 312:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+        
+        case 320:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 330:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            break;
+
+        case 331:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 332:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 401:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 500:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 510:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 520:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 522:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 600:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 601:
+            int unk00 <format=hex>; //0
+            float unk04;
+            float unk08;
+            int unk0C <format=hex>; //0
+            break;
+
+        case 603:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 605:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            float unk08;
+            float unk0C;
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            byte pad[Pad(0x10)];
+            break;
+
+        case 606:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 700:
+            float unk00;
+            float unk04;
+            float unk08;
+            float unk0C;
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>;
+            float unk18;
+            float unk1C;
+            float unk20;
+            float unk24;
+            int unk28 <format=hex>; //0
+            int unk2C <format=hex>; //0
+            break;
+
+        case 703:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 705:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 707:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 710:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 711:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            int unk20 <format=hex>; //0
+            int unk24 <format=hex>; //0
+            break;
+
+        case 712:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>;
+            int unk0C <format=hex>;
+            int unk10 <format=hex>;
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 713:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 714:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 715:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 720:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 730:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 740:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 760:
+            int unk00 <format=hex>; //0
+            float unk04;
+            float unk08;
+            float unk0C;
+            int unk10 <format=hex>; //0
+            int unk14 <format=hex>; //0
+            int unk18 <format=hex>; //0
+            int unk1C <format=hex>; //0
+            break;
+
+        case 770:
+            int unk00 <format=hex>;
+            float unk04;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 771:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 772:
+            int unk00 <format=hex>;
+            float unk04;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 781:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 782:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 785:
+            float unk00;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 786:
+            float unk00;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 790:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 791:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 792:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>;
+            int unk08 <format=hex>; //-1
+            int unk0C <format=hex>;
+            break;
+
+        case 793:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            byte pad[Pad(0x10)];
+            break;
+
+        case 794:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 795:
+            int unk00 <format=hex>;
+            float unk04;
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 796:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 797:
+            int unk00 <format=hex>;
+            int unk04 <format=hex>; //0
+            break;
+
+        case 798:
+            float unk00;
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 799:
+            int unk00 <format=hex>; //0
+            int unk04 <format=hex>; //0
+            int unk08 <format=hex>; //0
+            int unk0C <format=hex>; //0
+            break;
+
+        case 800:
+            float unk00;
+            float unk04;
+            float unk08;
+            int unk0C <format=hex>; //0
+            break;
+
+        default:
+            Printf("0x%08x\n", FTell());
+            break;
+    }
+    SetBackColor(color);
+};
+
+FSeek(header.animsOffset);
+struct Animation {
+    quad id;
+    quad animOffset <format=hex, bgcolor=cPurple>;
+
+    local quad pos = FTell();
+    FSeek(animOffset);
+    struct Data {
+        quad eventHeadersOffset <format=hex>;
+        quad eventGroupsOffset <format=hex, bgcolor=cGray>;
+        quad timesOffset <format=hex, bgcolor=cAqua>;
+        quad animFileOffset <format=hex, bgcolor=cLtYellow>;
+        int eventCount;
+        int eventGroupCount;
+        int unk28 <format=hex>;
+        int zero <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
+        
+        if (eventHeadersOffset != 0) {
+            FSeek(eventHeadersOffset);
+            struct Event {
+                quad startTimeOffset <format=hex, bgcolor=cAqua>;
+                quad endTimeOffset <format=hex, bgcolor=cAqua>;
+                quad eventDataOffset <format=hex>;
+                
+                local quad pos = FTell();
+                FSeek(startTimeOffset);
+                float startTime <bgcolor=cAqua>;
+                FSeek(endTimeOffset);
+                float endTime <bgcolor=cAqua>;
+    
+                FSeek(eventDataOffset);
+                EventData data;
+                FSeek(pos);
+            } events[eventCount] <optimize=false>;
+        }
+        
+        if (eventGroupsOffset != 0) {
+            FSeek(eventGroupsOffset);
+            struct EventGroup {
+                quad count;
+                quad offsetsOffset;
+                quad groupOffset;
+                quad zero <bgcolor=cBlack, fgcolor=cWhite>;
+                
+                local quad pos = FTell();
+                FSeek(groupOffset);
+                quad eventType <bgcolor=cSilver>;
+                quad zero <bgcolor=cBlack, fgcolor=cWhite>;
+                if (count > 0)
+                    int eventOffsets[count] <bgcolor=cSilver>;
+                byte pad1[Pad(0x10)] <bgcolor=cSilver>;
+                FSeek(pos);
+            } eventGroups[eventGroupCount] <bgcolor=cGray, optimize=false>;
+        }
+        
+        FSeek(animFileOffset);
+        struct AnimFile {
+            quad reference <format=hex>;
+            quad fileNameOffsetOffset <format=hex>;
+            quad fileNameOffset <format=hex>;
+            int unk18 <format=hex>;
+            int unk20 <format=hex>; //0, -1
+            quad zero <bgcolor=cBlack, fgcolor=cWhite>;
+            quad zero <bgcolor=cBlack, fgcolor=cWhite>;
+            
+            FSeek(fileNameOffset);
+            wstring fileName;
+        } animFile <bgcolor=cLtYellow>;
+    } data <bgcolor=cPurple>;
+    FSeek(pos);
+} animations[header.animCount] <bgcolor=cLtBlue, optimize=false>;
+
+FSeek(header.groupsOffset);
+struct Groups {
+    quad groupCount;
+    quad groupsOffset <format=hex>;
+    
+    if (groupsOffset != 0)
+    {
+        FSeek(groupsOffset);
+        struct Group {
+            int startID;
+            int endID;
+            quad animOffset <format=hex>;
+        } group[groupCount];
+    }
+} groups <bgcolor=cLtGreen>;

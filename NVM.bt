@@ -1,0 +1,114 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: NVM.bt
+//   Authors: TKGP
+//   Version: 1.0
+//   Purpose: DeS/DS1 navmesh
+//  Category: Dark Souls
+// File Mask: *.nvm
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+if (ReadInt() == 0x1000000)
+    BigEndian();
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Header {
+    int unk00; Assert(unk00 == 1);
+    int vertexCount;
+    int vertexOffset; Assert(vertexOffset == 0x80);
+    int triCount;
+    int triOffset;
+    int rootRecPrismOffset;
+    int unk18; Assert(unk18 == 0);
+    int entityCount;
+    int entityOffset;
+
+    local int i;
+    for (i = 0; i < 23; i++) {
+        int zero <fgcolor=cLtRed, hidden=true>; Assert(zero == 0);
+    }
+} header <bgcolor=cLtRed>;
+
+FSeek(header.vertexOffset);
+struct Vertex {
+    Vector3 position;
+} vertices[header.vertexCount] <bgcolor=cLtBlue>;
+
+FSeek(header.triOffset);
+struct Triangle {
+    int vertexIndex1;
+    int vertexIndex2;
+    int vertexIndex3;
+    int v1v2EdgeIndex;
+    int v2v3EdgeIndex;
+    int v1v3EdgeIndex;
+    int obstacleCountAndFlags;
+    // Obstacle count = (obstacleCountAndFlags >> 2) & 0x3FFF
+    // Flags = obstacleCountAndFlags >> 16
+} triangles[header.triCount] <bgcolor=cLtGreen>;
+
+struct RecPrism {
+    Vector3 corner1;
+    int triCount;
+    Vector3 corner2;
+    int triOffset;
+    int prismOffset1;
+    int prismOffset2;
+    int prismOffset3;
+    int prismOffset4;
+    int unk30; Assert(unk30 == 0);
+    int unk34; Assert(unk34 == 0);
+    int unk38; Assert(unk38 == 0);
+    int unk3C; Assert(unk3C == 0);
+
+    if (triCount > 0) {
+        FSeek(triOffset);
+        int triangleIndices[triCount];
+    }
+    
+/* Recursive structures are a pain in 010 :fatcat:
+    if (prismOffset1 != 0) {
+        FSeek(prismOffset1);
+        RecPrism childPrism1;
+    }
+    if (prismOffset2 != 0) {
+        FSeek(prismOffset2);
+        RecPrism childPrism2;
+    }
+    if (prismOffset3 != 0) {
+        FSeek(prismOffset3);
+        RecPrism childPrism3;
+    }
+    if (prismOffset4 != 0) {
+        FSeek(prismOffset4);
+        RecPrism childPrism4;
+    }
+*/
+};
+
+FSeek(header.rootRecPrismOffset);
+RecPrism rootPrism <bgcolor=cSilver>;
+
+if (header.entityCount > 0) {
+FSeek(header.entityOffset);
+struct Entity {
+    int entityID;
+    int triangleIndexOffset;
+    int triangleIndexCount;
+    int unk0C; Assert(unk0C == 0);
+    
+    local quad pos = FTell();
+    FSeek(triangleIndexOffset);
+    int triangleIndices[triangleIndexCount] <bgcolor=cLtPurple>;
+    FSeek(pos);
+} entities[header.entityCount] <bgcolor=cPurple, optimize=false>;
+}

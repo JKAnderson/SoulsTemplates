@@ -1,0 +1,321 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: NVA.bt
+//   Authors: katalash, TKGP
+//   Version: 0.9
+//   Purpose: DS3/BB .nva
+//  Category: Dark Souls
+// File Mask: *.nva
+//  ID Bytes: 4E 56 4D 41 04 00 00 00 [+4] 09 00 00 00 00 00 00 00
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+} Vector3 <read=ReadVector3>;
+
+string ReadVector3(Vector3& vec) {
+    string str;
+    SPrintf(str, "<%7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z);
+    return str;
+}
+
+typedef struct {
+    char magic[4]; Assert(magic == "NVMA");
+    int unk04; Assert(unk04 == 4);
+    int fileSize <format=hex>;
+    int sectionCount; Assert(sectionCount == 9);
+} Header <read=ReadHeader>;
+
+string ReadHeader(Header& header) {
+    string str;
+    SPrintf(str, "%s %X", header.magic, header.fileSize);
+    return str;
+}
+
+typedef struct (int assertIndex) {
+    int index; Assert(index == assertIndex);
+    // 2 - DS3, 3 - BB
+    int unk04; Assert(index == 0 ? (unk04 == 2 || unk04 == 3) : (unk04 == 1));
+    int sectionSize <format=hex>;
+    int entryCount;
+} SectionHeader <read=ReadSectionHeader>;
+
+string ReadSectionHeader(SectionHeader& header) {
+    string str;
+    SPrintf(str, "%i[%5i] %i %5X",
+        header.index, header.entryCount, header.unk04, header.sectionSize);
+    return str;
+}
+
+
+typedef struct {
+    Vector3 unk00; // Usually 0,0,0
+    float unk0C; Assert(unk0C == 1);
+    int unk10; // These are not floats
+    int unk14;
+    int unk18;
+    int unk1C; Assert(unk1C == 0);
+    float unk20; Assert(unk20 == 1);
+    float unk24; // The only file where these two aren't 1 is m50_00,
+    float unk28; // where a couple entries have 1.000001 or 1.000002 like lel
+    int unk2C; Assert(unk2C == 0);
+    int mapSectionID; // i.e. 350000110 in int form
+    int unk34;
+    int unk38;
+    int unk3C; Assert(unk3C == 0);
+    int unk40;
+    int unkCount;
+    short unk48;
+    short unk4A;
+    int unk4C;
+    if (unkCount > 0) {
+    int mapSectionArray[unkCount]; // Each array entry seems to either be a section reference or -1
+    }
+
+    local int i;
+    for (i = 0; i < 16 - unkCount; i++) {
+        int null <fgcolor=cRed, hidden=true>; Assert(null == -1);
+    }
+} Entry0 <read=ReadEntry0>;
+
+string ReadEntry0(Entry0& entry) {
+    string str;
+    SPrintf(str, "");
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(0);
+    if (header.entryCount > 0) {
+        Entry0 entries[header.entryCount] <optimize=false>;
+    }
+} Section0 <read=ReadSection0>;
+
+string ReadSection0(Section0& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    int unk00 <fgcolor=cDkYellow>; Assert(unk00 == 0);
+    int unk04 <fgcolor=cDkYellow>; Assert(unk04 == 0);
+} Entry1 <read=ReadEntry1>;
+
+string ReadEntry1(Entry1& entry) {
+    string str;
+    SPrintf(str, "%i %i", unk00, unk04);
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(1);
+    if (header.entryCount > 0) {
+        Entry1 entries[header.entryCount] <optimize=false>;
+    }
+    
+    if (FTell() % 0x10 != 0) {
+        int pad1; Assert(pad1 == -1);
+        int pad2; Assert(pad2 == -1);
+    }
+} Section1 <read=ReadSection1>;
+
+string ReadSection1(Section1& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    int someIndex; // Smallish ints
+    int mapSectionID; // map section in int form
+} MapSectionReference;
+
+typedef struct {
+    int unk00; // Seems to increment for each entry
+    int referenceCount;
+    int unk08; // Another map number-y thing, always -1 in DS3, not always in BB
+    int unk0C; Assert(unk0C == 0);
+    MapSectionReference mapSect[referenceCount];
+    
+    local int i;
+    for (i = 0; i < 64 - referenceCount; i++) {
+        quad zero <fgcolor=cYellow, hidden=true>; Assert(zero == 0);
+    }
+} Entry2 <read=ReadEntry2>;
+
+string ReadEntry2(Entry2& entry) {
+    string str;
+    SPrintf(str, "");
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(2);
+    if (header.entryCount > 0) {
+        Entry2 entries[header.entryCount] <optimize=false>;
+    }
+} Section2 <read=ReadSection2>;
+
+string ReadSection2(Section2& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    SectionHeader header(3);
+    Assert(header.entryCount == 0);
+} Section3 <read=ReadSection3>;
+
+string ReadSection3(Section3& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    int mapSectionID0;
+    int mapSectionID1;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14; Assert(unk14 == 0);
+    int unk18;
+    int unk1C; Assert(unk1C == 0);
+} Entry4 <read=ReadEntry4>;
+
+string ReadEntry4(Entry4& entry) {
+    string str;
+    SPrintf(str, "");
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(4);
+    if (header.entryCount > 0) {
+        Entry4 entries[header.entryCount] <optimize=false>;
+    }
+} Section4 <read=ReadSection4>;
+
+string ReadSection4(Section4& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    int unk00; // Too big to index anything besides Section1, but not big enough to be likely
+    int unk04;
+    int unk08;
+    int unk0C;
+} Entry5 <read=ReadEntry5>;
+
+string ReadEntry5(Entry5& entry) {
+    string str;
+    SPrintf(str, "%4i %4i %4i %4i", entry.unk00, entry.unk04, entry.unk08, entry.unk0C);
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(5);
+    if (header.entryCount > 0) {
+        Entry5 entries[header.entryCount] <optimize=false>;
+    }
+} Section5 <read=ReadSection5>;
+
+string ReadSection5(Section5& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    int unk00; // Not Section0, 2, 3, or 7 indices
+    int unk04;
+} Entry6 <read=ReadEntry6>;
+
+string ReadEntry6(Entry6& entry) {
+    string str;
+    SPrintf(str, "%3i %3i", entry.unk00, entry.unk04);
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(6);
+    if (header.entryCount > 0) {
+        Entry6 entries[header.entryCount] <optimize=false>;
+    }
+} Section6 <read=ReadSection6>;
+
+string ReadSection6(Section6& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    Vector3 unk00;
+    float unk0C; Assert(unk0C == 1);
+    int mapSectionID;
+    int unk14; Assert(unk14 == 0);
+    int unk18;
+    int unk1C; Assert(unk1C == 0);
+} Entry7 <read=ReadEntry7>;
+
+string ReadEntry7(Entry7& entry) {
+    string str;
+    SPrintf(str, "");
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(7);
+    if (header.entryCount > 0) {
+        Entry7 entries[header.entryCount] <optimize=false>;
+    }
+} Section7 <read=ReadSection7>;
+
+string ReadSection7(Section7& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+typedef struct {
+    Vector3 unk00;
+    short unk0C;
+    short unk0A;
+    short unk10[16];
+} Entry8 <read=ReadEntry8>;
+
+string ReadEntry8(Entry8& entry) {
+    string str;
+    SPrintf(str,
+        "%s %3i %2i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i",
+        ReadVector3(entry.unk00), entry.unk0C, entry.unk0A,
+        entry.unk10[0], entry.unk10[1], entry.unk10[2], entry.unk10[3],
+        entry.unk10[4], entry.unk10[5], entry.unk10[6], entry.unk10[7],
+        entry.unk10[8], entry.unk10[9], entry.unk10[10], entry.unk10[11],
+        entry.unk10[12], entry.unk10[13], entry.unk10[14], entry.unk10[15]);
+    return str;
+}
+
+typedef struct {
+    SectionHeader header(8);
+    if (header.entryCount > 0) {
+        Entry8 entries[header.entryCount] <optimize=false>;
+    }
+} Section8 <read=ReadSection8>;
+
+string ReadSection8(Section8& section) {
+    return ReadSectionHeader(section.header);
+}
+
+
+Header header <bgcolor=cLtRed>;
+Section0 section0 <bgcolor=cRed>;
+Section1 section1 <bgcolor=cDkYellow>;
+Section2 section2 <bgcolor=cYellow>;
+Section3 section3 <bgcolor=cLtGreen>;
+Section4 section4 <bgcolor=cGreen>;
+Section5 section5 <bgcolor=cDkGreen>;
+Section6 section6 <bgcolor=cAqua>;
+Section7 section7 <bgcolor=cLtBlue>;
+Section8 section8 <bgcolor=cLtPurple>;

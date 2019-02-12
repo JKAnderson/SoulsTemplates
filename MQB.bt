@@ -1,0 +1,245 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: MQB.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dark Souls
+// File Mask: *.mqb
+//  ID Bytes: 4D 51 42 20 00 00 00 00 CC 00 00 00 24 00 00 00
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    char magic[4]; Assert(magic == "MQB ");
+    int unk04; Assert(unk04 == 0);
+    int unk08; Assert(unk08 == 0xCC);
+    int unk0C; Assert(unk0C == 0x24);
+    int stringOffsetsOffset <format=hex>;
+    int unk14; Assert(unk14 == 1);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+    int unk20; Assert(unk20 == 0);
+    wchar_t name[0x20] <fgcolor=cGreen>;
+    float unk64;
+    int unk1Count;
+    int cutCount;
+    int unk70; Assert(unk70 == 0);
+    int unk74; Assert(unk74 == 0);
+    int unk78; Assert(unk78 == 0);
+    int unk7C; Assert(unk7C == 0);
+    int unk80; Assert(unk80 == 0);
+} Header;
+
+
+typedef struct {
+    wchar_t str[0x20] <fgcolor=cGreen>;
+    int unk40;
+    int index;
+    int unk48;
+    int unk4C; Assert(unk4C == 0);
+} Unk1 <read=ReadUnk1>;
+
+wstring ReadUnk1(Unk1& unk1) {
+    string str;
+    SPrintf(str, "%3i %3i %3i %s", unk1.unk40, unk1.index, unk1.unk48, unk1.str);
+    return str;
+}
+
+
+typedef struct {
+    int offset;
+    if (offset != 0) {
+        local quad pos = FTell();
+        FSeek(offset);
+        wstring str <bgcolor=cLtGreen>;
+        FSeek(pos);
+    }
+} OffsetString <read=ReadOffsetString>;
+
+string ReadOffsetString(OffsetString& os) {
+    if (os.offset == 0)
+        return "<null>";
+    else
+        return os.str;
+}
+
+
+typedef struct {
+    float unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10; Assert(unk10 == 0);
+    float unk14; Assert(unk14 == 0);
+    float unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+    float unk20; Assert(unk20 == 0);
+    int unk24; Assert(unk24 == 0);
+    int unk28; Assert(unk28 == 0);
+    float unk2C;
+    int unk30; Assert(unk30 == 0);
+    float unk34; Assert(unk34 == 0);
+    float unk38; Assert(unk38 == 0);
+    float unk3C; Assert(unk3C == 0);
+    float unk40; Assert(unk40 == 0);
+    float unk44; Assert(unk44 == 0);
+    float unk48; Assert(unk48 == 0);
+    float unk4C; Assert(unk4C == 1);
+    float unk50; Assert(unk50 == 1);
+    float unk54; Assert(unk54 == 1);
+    float unk58; Assert(unk58 == 0);
+    float unk5C; Assert(unk5C == 0);
+    float unk60; Assert(unk60 == 0);
+    int unk64; Assert(unk64 == 0);
+    int unk68; Assert(unk68 == 0);
+    int unk6C; Assert(unk6C == 0);
+} UnkFloats;
+
+
+typedef struct {
+    wchar_t str[0x20] <fgcolor=cGreen>;
+    int unk40;
+    int unk44;
+    int unk48;
+    int unk4C;
+    int unk50;
+    int unk54;
+    int unk58; Assert(unk58 == 0);
+    int unk5C; Assert(unk5C == 0);
+    
+    if ((unk40 == 8 || unk40 == 13) && unk54 > 0) {
+        local quad pos = FTell();
+        FSeek(unk50);
+        struct ParamUnk1 {
+            int unk00; Assert(unk00 == 0x1C);
+            int unk04;
+            int unk08; Assert(unk08 == 3 || unk08 == 8);
+            int unk0C; Assert(unk0C == 1 || unk0C == 2);
+            int unk10; Assert(unk10 == (unk0C == 1 ? 0x10 : 0x18));
+            int unk14;
+            int unk18;
+            
+            local quad pos2 = FTell();
+            FSeek(unk14);
+            if (unk0C == 1) {
+                struct ParamUnk2_1 {
+                    float unk00;
+                    int unk04; Assert(unk04 == 0);
+                    int unk08;
+                    int unk0C; Assert(unk0C == 0);
+                } paramUnk2s[unk04] <bgcolor=cPurple, optimize=false>;
+            } else if (unk0C == 2) {
+                struct ParamUnk2_2 {
+                    float unk00;
+                    int unk04; Assert(unk04 == 0);
+                    int unk08;
+                    int unk0C; Assert(unk0C == 0);
+                    float unk10;
+                    float unk14;
+                } paramUnk2s[unk04] <bgcolor=cPurple, optimize=false>;
+            }
+            FSeek(pos2);
+        } paramUnk1s[unk54] <optimize=false>;
+        FSeek(pos);
+    }
+    
+    if (unk40 == 10) {
+        wchar_t str2[unk48 / 2] <fgcolor=cGreen>;
+    } else if (unk40 == 13) {
+        int unk60;
+    }
+} Param <read=ReadParam>;
+
+wstring ReadParam(Param& param) {
+    return param.str;
+}
+
+
+typedef struct {
+        int unk00;
+        int unk04;
+        int unk08;
+        int unk0C;
+        int unk10;
+        int unk14; Assert(unk14 == 0);
+        int unk18;
+        int unk1C;
+        int unk20; Assert(unk20 == 0 || unk20 == 1);
+        int paramCount;
+        int unk28;
+        int unk2C; Assert(unk2C == 0);
+        
+        if (paramCount > 0) {
+            Param params[paramCount] <bgcolor=cLtBlue, optimize=false>;
+        }
+        
+        int unkX00;
+        int unkX04;
+        int unkX08;
+        int unkX0C;
+        int unkX10;
+        int unkX14;
+        int unkX18;
+        int unkX1C;
+        
+        UnkFloats unkFloats[unkX04] <bgcolor=cDkAqua, optimize=false>;
+} Entry;
+
+
+typedef struct {
+    int entryOffsetsOffset;
+    int entryCount;
+    int unk08;
+    int unk0C; Assert(unk0C == 0);
+    int unk10;
+    
+    if (entryCount > 0) {
+        local quad pos = FTell();
+        FSeek(entryOffsetsOffset);
+        int entryOffsets[entryCount];
+        FSeek(pos);
+    }
+} Group;
+
+
+typedef struct {
+    wchar_t str[0x20] <fgcolor=cGreen>;
+    int entryCount;
+    int unk44;
+    int unk48;
+    int unk4C; Assert(unk4C == 0);
+    int groupCount;
+    int groupsOffset;
+    int unk58; Assert(unk58 == 0);
+    int unk5C; Assert(unk5C == 0);
+    
+    Entry entries[entryCount] <bgcolor=cLtYellow, optimize=false>;
+
+    local quad pos = FTell();
+    FSeek(groupsOffset);
+    Group groups[groupCount] <optimize=false>;
+    FSeek(pos);
+} Cut <read=ReadCut>;
+
+wstring ReadCut(Cut& cut) {
+    return cut.str;
+}
+
+
+
+Header header <bgcolor=cLtRed>;
+
+struct Unk1s {
+    Unk1 unk1s[header.unk1Count] <optimize=false>;
+} unk1s <bgcolor=cAqua>;
+
+struct Cuts {
+    Cut cuts[header.cutCount] <optimize=false>;
+} cuts <bgcolor=cYellow>;
+
+FSeek(header.stringOffsetsOffset);
+struct OffsetStrings {
+    OffsetString strings[header.unk1Count] <optimize=false>;
+} offsetStrings <bgcolor=cGreen>;
