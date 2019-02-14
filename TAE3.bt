@@ -1,13 +1,13 @@
 //------------------------------------------------
 //--- 010 Editor v7.0.2 Binary Template
 //
-//      File: 
-//   Authors: 
-//   Version: 
-//   Purpose: 
-//  Category: 
-// File Mask: 
-//  ID Bytes: 
+//      File: TAE3.bt
+//   Authors: TKGP
+//   Version: 1.0
+//   Purpose: DS3 animation events
+//  Category: Dark Souls
+// File Mask: *.tae
+//  ID Bytes: 54 41 45 20 00 00 00 FF 0C 00 01 00
 //   History: 
 //------------------------------------------------
 
@@ -288,8 +288,6 @@ struct EventData {
         case 128:
             int unk00 <format=hex>;
             int unk04 <format=hex>;
-            int unk08 <format=hex>; //0
-            int unk0C <format=hex>; //0
             byte pad[Pad(0x10)];
             break;
 
