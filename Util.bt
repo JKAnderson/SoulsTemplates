@@ -1,0 +1,89 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#ifndef _SOULSTEMPLATES_UTIL
+    #define _SOULSTEMPLATES_UTIL
+
+typedef struct {
+    float x;
+    float y;
+} Vector2 <read=ReadVector2>;
+
+string ReadVector2(Vector2& vec) {
+    string str;
+    SPrintf(str, "<%7.2f, %7.2f>", vec.x, vec.y);
+    return str;
+}
+
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+} Vector3 <read=ReadVector3>;
+
+string ReadVector3(Vector3& vec) {
+    string str;
+    SPrintf(str, "<%7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z);
+    return str;
+}
+
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+    float w;
+} Vector4 <read=ReadVector4>;
+
+string ReadVector4(Vector4& vec) {
+    string str;
+    SPrintf(str, "<%7.2f, %7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z, vec.w);
+    return str;
+}
+
+
+typedef struct (int longOffset, int unicode) {
+    if (longOffset)
+        quad offset;
+    else
+        int offset;
+
+    local quad pos <hidden=true> = FTell();
+    FSeek(offset);
+    if (unicode)
+        wstring str;
+    else
+        string str;
+    FSeek(pos);
+} OffsetString <read=ReadOffsetString>;
+
+wstring ReadOffsetString(OffsetString& os) {
+    return os.str;
+}
+
+
+typedef struct {
+    if (VARINT_LONG)
+        quad val;
+    else
+        int val;
+} Varint <read=ReadVarint>;
+
+string ReadVarint(Varint& v) {
+    string s;
+    SPrintf(s, "%Xh", v.val);
+    return s;
+}
+
+#endif

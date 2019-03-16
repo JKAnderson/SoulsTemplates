@@ -1,0 +1,158 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: EMEVD.bt
+//   Authors: HotPocketRemix, TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dark Souls
+// File Mask: *.emevd
+//  ID Bytes: 45 56 44 00
+//   History: 
+//------------------------------------------------
+
+local int VARINT_WIDE = ReadByte(5) == -1;
+#include "Util.bt"
+
+enum GAME { DS1, BB, DS3 };
+enum <int> BONFIRE_TYPE { NONE = 0, RESTART = 1, END = 2 };
+
+if (ReadByte(4))
+    BigEndian();
+else
+    LittleEndian();
+
+typedef struct {
+    char magic[4]; Assert(magic == "EVD\0");
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
+    byte unk05; Assert(unk05 == 0 || unk05 == -1);
+    byte unk06; Assert(unk06 == 0 || unk06 == 1);
+    byte unk07; Assert(unk07 == 0);
+    int unk08; Assert(unk08 == 0xCC || unk08 == 0xCD);
+    int fileSize;
+
+    local GAME game;
+    if (unk08 == 0xCD)
+        game = DS3;
+    else if (unk05 == -1)
+        game = BB;
+    else
+        game = DS1;
+
+    Varint eventCount;
+    Varint eventsOffset;
+    Varint instructionCount;
+    Varint instructionsOffset;
+    Varint unk20; Assert(unk20.val == 0);
+    Varint unk24;
+    Varint eventLayerCount;
+    Varint eventLayersOffset;
+    Varint parameterCount;
+    Varint parametersOffset;
+    Varint linkedFileCount;
+    Varint linkedFilesOffset;
+    Varint argumentsLength;
+    Varint argumentsOffset;
+    Varint stringsLength;
+    Varint stringsOffset;
+
+    if (game == DS1) {
+        int unk50 <hidden=true>; Assert(unk50 == 0);
+    }
+} Header;
+
+
+typedef struct {
+    int unk00; Assert(unk00 == 2);
+    int layer;
+    quad unk08; Assert(unk08 == 0);
+    quad unk10; Assert(unk10 == -1);
+    quad unk18; Assert(unk18 == 1);
+} EventLayer;
+
+
+typedef struct (Header& header) {
+    int instructionClass;
+    int instructionIndex;
+    Varint argumentsLength;
+    Varint argumentsOffset;
+    Varint eventLayerOffset;
+    if (header.game == DS1)
+        Assert(eventLayerOffset.val == -1);
+    else if (header.game == BB)
+        Assert(eventLayerOffset.val == 0xFFFFFFFF); // @ me, I dare you
+
+    if (header.game == DS1) {
+        int unk14 <hidden=true>; Assert(unk14 == 0);
+    }
+    
+    local quad pos = FTell();
+    if (argumentsLength.val > 0) {
+        FSeek(header.argumentsOffset.val + argumentsOffset.val);
+        byte arguments[argumentsLength.val] <bgcolor=cBlack, fgcolor=cWhite>;
+    }
+    if (header.game == DS3 && eventLayerOffset.val != -1) {
+        FSeek(header.eventLayersOffset.val + eventLayerOffset.val);
+        EventLayer eventLayer <bgcolor=cBlue>;
+    }
+    FSeek(pos);
+} Instruction <optimize=false>;
+
+
+typedef struct (Header& header) {
+    Varint instructionIndex;
+    Varint targetStartByte;
+    Varint sourceStartByte;
+    Varint length;
+
+    if (header.game == DS1) {
+        int unk10 <hidden=true>; Assert(unk10 == 0);
+    }
+} Parameter <optimize=false>;
+
+
+typedef struct (Header& header) {
+    Varint id;
+    Varint instructionCount;
+    Varint instructionsOffset;
+    Varint parameterCount;
+    Varint parametersOffset;
+    BONFIRE_TYPE bonfireType;
+    int unk18; Assert(unk18 == 0);
+    
+    local quad pos = FTell();
+    FSeek(header.instructionsOffset.val + instructionsOffset.val);
+    struct {
+        Instruction instructions(header)[instructionCount.val];
+    } instructions <bgcolor=cAqua>;
+    FSeek(header.parametersOffset.val + parametersOffset.val);
+    if (parameterCount.val > 0) {
+    struct {
+        Parameter parameters(header)[parameterCount.val];
+    } parameters <bgcolor=cPurple>;
+    }
+    FSeek(pos);
+} Event <optimize=false>;
+
+
+typedef struct (Header& header) {
+    Varint stringOffset;
+    local quad pos <hidden=true> = FTell();
+    FSeek(header.stringsOffset.val + stringOffset.val);
+    string path <bgcolor=cLtGreen>;
+    FSeek(pos);
+} LinkedFile <optimize=false>;
+
+
+Header header <bgcolor=cLtRed>;
+FSeek(header.eventsOffset.val);
+struct {
+    Event events(header)[header.eventCount.val];
+} events <bgcolor=cLtGreen>;
+
+if (header.linkedFileCount.val > 0) {
+FSeek(header.linkedFilesOffset.val);
+struct {
+    LinkedFile linkedFiles(header)[header.linkedFileCount.val];
+} linkedFiles <bgcolor=cRed>;
+}

@@ -1,0 +1,117 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: BND4.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: FromSoft Binder4 containers
+//  Category: Dark Souls
+// File Mask: *.*bnd
+//  ID Bytes: 42 4E 44 34
+//   History: 
+//------------------------------------------------
+
+if (ReadByte(9))
+    BigEndian();
+else
+    LittleEndian();
+
+
+typedef struct {
+    char magic[4]; Assert(magic == "BND4");
+    byte unk04; Assert(unk04 == 0 || unk04 == 1);
+    byte unk05; Assert(unk05 == 0 || unk05 == 1);
+    byte unk06; Assert(unk06 == 0);
+    byte unk07; Assert(unk07 == 0);
+    byte unk08; Assert(unk08 == 0);
+    byte unk09; Assert(unk09 == 0 || unk09 == 1);
+    byte unk0A; Assert(unk0A == 0 || unk0A == 1);
+    byte unk0B; Assert(unk0B == 0);
+    int fileCount;
+    quad headerSize <format=hex>; Assert(headerSize == 0x40);
+    char version[8];
+    quad fileHeaderSize <format=hex>;
+    quad fileHeadersEnd <format=hex>;
+    byte unicode; Assert(unicode == 0 || unicode == 1);
+    byte format <format=hex>; Assert(
+           format == 0x2E // ID, uncompressed size, compression is DCX
+        || format == 0x54 // ID, uncompressed size
+        || format == 0x74 // ID, uncompressed size
+        );
+    byte unk32; Assert(unk32 == 0 || unk32 == 4);
+    byte unk33; Assert(unk33 == 0);
+    int unk34; Assert(unk34 == 0);
+    quad bucketsOffset;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct (Header& header) {
+    ubyte flags <format=hex>; Assert(
+           flags == 0x02 // uncompressed
+        || flags == 0x03 // compressed
+        || flags == 0x40 // uncompressed
+        );
+    byte unk01 <hidden=true>; Assert(unk01 == 0);
+    byte unk02 <hidden=true>; Assert(unk02 == 0);
+    byte unk03 <hidden=true>; Assert(unk03 == 0);
+    int unk04 <hidden=true>; Assert(unk04 == -1);
+    quad compressedSize <format=hex>;
+    if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
+        quad uncompressedSize <format=hex>;
+    }
+    uint fileOffset <format=hex>;
+    if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
+        int id;
+    }
+    int nameOffset <format=hex>;
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(nameOffset);
+    if (header.unicode)
+        wstring name <bgcolor=cGreen>;
+    else
+        string name <bgcolor=cGreen>;
+    if (compressedSize > 0) {
+        FSeek(fileOffset);
+        ubyte bytes[compressedSize] <bgcolor=cAqua>;
+    }
+    FSeek(pos);
+} File <read=ReadFile, bgcolor=cLtGreen, optimize=false>;
+
+wstring ReadFile(File& file) {
+    return file.name;
+}
+
+
+typedef struct {
+    int count;
+    int index;
+} Bucket <bgcolor=cPurple>;
+
+typedef struct {
+    uint hash <format=hex>;
+    int index;
+} Hash <bgcolor=cDkPurple>;
+
+typedef struct (Header& header) {
+    quad hashesOffset <format=hex>;
+    int bucketCount;
+    byte bucketsHeaderSize; Assert(bucketsHeaderSize == 0x10);
+    byte bucketSize; Assert(bucketSize == 8);
+    byte hashSize; Assert(hashSize == 8);
+    byte unk0F; Assert(unk0F == 0);
+    Bucket buckets[bucketCount];
+    
+    FSeek(hashesOffset);
+    Hash hashes[header.fileCount];
+} Buckets <bgcolor=cLtPurple>;
+
+
+Header header;
+struct {
+    File file(header)[header.fileCount];
+} files;
+if (header.bucketsOffset != 0) {
+    FSeek(header.bucketsOffset);
+    Buckets buckets(header);
+}

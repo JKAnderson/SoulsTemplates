@@ -1,0 +1,170 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MTD.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dark Souls
+// File Mask: *.mtd
+//  ID Bytes: [+44] 4D 54 44 20
+//   History: 
+//------------------------------------------------
+
+typedef struct (ubyte term) {
+    ubyte terminator; Assert(terminator == term);
+    if (FTell() % 4 != 0) {
+        ubyte padding[4 - (FTell() % 4)];
+    }
+} Marker;
+
+typedef struct (ubyte term) {
+    int length;
+    char str[length];
+    Marker terminator(term);
+} MTDString <read=ReadMTDString>;
+
+string ReadMTDString(MTDString& ms) {
+    return ms.str;
+}
+
+
+typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int fileSize;
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 3);
+    Marker marker10(0x01);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0x1C);
+    int unk1C; Assert(unk1C == 1);
+    int unk20; Assert(unk20 == 2);
+    Marker marker24(0xB0);
+    int unk28; Assert(unk28 == 4);
+    char magic[4]; Assert(magic == "MTD ");
+    Marker marker30(0x34);
+    int unk34; Assert(unk34 == 0x3E8);
+    Marker marker38(0x01);
+    int unk3C; Assert(unk3C == 0);
+    int dataSize;
+    int unk44; Assert(unk44 == 2);
+    int unk48; Assert(unk48 == 4);
+    Marker marker4C(0xA3);
+    MTDString shader(0xA3);
+    MTDString description(0x03);
+    int unkX00; Assert(unkX00 == 1);
+    int unkX04; Assert(unkX04 == 0);
+    int paramSize;
+    int unkX0C; Assert(unkX0C == 3);
+    int unkX10; Assert(unkX10 == 4);
+    Marker markerX14(0xA3);
+    int unkX18; Assert(unkX18 == 0);
+    Marker markerX1C(0x03);
+    int paramCount;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int unk04;
+    int unk08; Assert(unk08 == 4);
+    int unk0C; Assert(unk0C == 4);
+    Marker marker10(0xA3);
+    MTDString name(0xA3);
+    MTDString type(0x04);
+    int unkX00; Assert(unkX00 == 1);
+    int unkX04; Assert(unkX04 == 0);
+    int valueSize;
+    byte valueType;
+    byte unkX0D; Assert(unkX0D == 0x10);
+    short unkX0E; Assert(unkX0E == 0);
+    int unkX10; Assert(unkX10 == 1);
+    int markerX14;
+    int valueCount;
+    
+    switch (type.str) {
+        case "int":
+            int value;
+            break;
+        
+        case "int2":
+            int value[2];
+            break;
+        
+        case "bool":
+            byte value;
+            break;
+        
+        case "float":
+            float value;
+            break;
+
+        case "float2":
+            float value[2];
+            break;
+
+        case "float3":
+            float value[3];
+            break;
+
+        case "float4":
+            float value[4];
+            break;
+        
+        default:
+            Assert(false);
+    }
+    Marker terminator(0x04);
+    
+    int unkY00; Assert(unkY00 == 0);
+} Param <read=ReadParam, bgcolor=cLtGreen, optimize=false>;
+
+string ReadParam(Param& param) {
+    string str;
+    SPrintf(str, "%-6s %s", param.type.str, param.name.str);
+    return str;
+}
+
+
+typedef struct {
+    Marker marker00(0x03);
+    int textureCount;
+} Middler <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int unk04;
+    int unk08; Assert(unk08 == 0x2000);
+    int unk0C; Assert(unk0C == 3);
+    Marker marker10(0xA3);
+    MTDString type(0x35);
+    int uvNumber;
+    Marker markerX04(0x35);
+    int shaderDataIndex;
+} Texture <read=ReadTexture, bgcolor=cAqua, optimize=false>;
+
+string ReadTexture(Texture& tex) {
+    return tex.type.str;
+}
+
+
+typedef struct {
+    Marker marker00(0x04);
+    int unk04;
+    Marker marker08(0x04);
+    int unk0C;
+    Marker marker10(0x04);
+    int unk14;
+} Footer <bgcolor=cLtRed>;
+
+
+Header header;
+struct {
+    Param params[header.paramCount];
+} params;
+Middler middler;
+struct {
+    Texture textures[middler.textureCount];
+} textures;
+Footer footer;

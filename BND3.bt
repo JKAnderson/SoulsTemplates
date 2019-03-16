@@ -1,0 +1,100 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: BND3.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: FromSoft Binder3 containers
+//  Category: Dark Souls
+// File Mask: *.*bnd
+//  ID Bytes: 42 4E 44 33
+//   History: 
+//------------------------------------------------
+
+local ubyte format <hidden=true> = ReadUByte(0xC);
+if (ReadByte(0xD) || format == 0x67 || format == 0x80 || format == 0x91
+        || format == 0xA0 || format == 0xE4 || format == 0xF4)
+    BigEndian();
+else
+    LittleEndian();
+
+
+typedef struct {
+    char magic[4]; Assert(magic == "BND3");
+    char version[8];
+    ubyte format <format=hex>; Assert(
+           format == 0x00 // no ID, no uncompressed size, no name
+        || format == 0x06 // ID, no uncompressed size
+        || format == 0x0E // ID, no uncompressed size
+        || format == 0x24 // no ID, uncompressed size
+        || format == 0x26 // ID, uncompressed size
+        || format == 0x2C // no ID, uncompressed size
+        || format == 0x2E // ID, uncompressed size
+        || format == 0x67 // ID, uncompressed size, big endian
+        || format == 0x74 // ID, uncompressed size
+        || format == 0x80 // no ID, no uncompressed size, no name, big endian
+        || format == 0x91 // no ID, no uncompressed size, big endian
+        || format == 0xA0 // no ID, no uncompressed size, big endian
+        || format == 0xE4 // ID, uncompressed size, big endian
+        || format == 0xF4 // ID, uncompressed size, big endian
+        );
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
+    byte unk0E; Assert(unk0E == 0 || unk0E == 1);
+    byte unk0F <hidden=true>; Assert(unk0F == 0);
+    int fileCount;
+    int fileHeadersEnd <format=hex>;
+    int unk18 <hidden=true>; Assert(unk18 == 0);
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct (ubyte format) {
+    ubyte flags <format=hex>; Assert(
+           flags == 0x02 // uncompressed
+        || flags == 0x03 // compressed
+        || flags == 0x40 // uncompressed
+        || flags == 0xC0 // compressed
+        );
+    byte unk01 <hidden=true>; Assert(unk01 == 0);
+    byte unk02 <hidden=true>; Assert(unk02 == 0);
+    byte unk03 <hidden=true>; Assert(unk03 == 0);
+    int compressedSize <format=hex>;
+    int fileOffset <format=hex>;
+    if (format == 0x06 || format == 0x0E || format == 0x26 || format == 0x2E
+        || format == 0x67 || format == 0x74 || format == 0xE4 || format == 0xF4) {
+        int id;
+    }
+    local quad pos <hidden=true>;
+    if (format == 0x08 || format == 0x0E || format == 0x24 || format == 0x26
+        || format == 0x2C || format == 0x2E || format == 0x67 || format == 0x74
+        || format == 0x91 || format == 0xA0 || format == 0xE4 || format == 0xF4) {
+        int nameOffset <format=hex>;
+        pos = FTell();
+        FSeek(nameOffset);
+        string name <bgcolor=cGreen>;
+        FSeek(pos);
+    }
+    if (format == 0x24 || format == 0x26 || format == 0x2C || format == 0x2E
+        || format == 0x67 || format == 0x74 || format == 0xE4 || format == 0xF4) {
+        int uncompressedSize <format=hex>;
+    }
+    
+    if (compressedSize > 0) {
+        pos = FTell();
+        FSeek(fileOffset);
+        ubyte bytes[compressedSize] <bgcolor=cAqua>;
+        FSeek(pos);
+    }
+} File <read=ReadFile, bgcolor=cLtGreen, optimize=false>;
+
+wstring ReadFile(File& file) {
+    return file.name;
+}
+
+
+Header header;
+if (header.fileCount > 0) {
+    struct {
+        File files(header.format)[header.fileCount];
+    } files;
+}

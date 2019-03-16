@@ -11,22 +11,11 @@
 //   History: 
 //------------------------------------------------
 
+#include "Util.bt"
+
 LittleEndian();
 
 local int wide = 0;
-
-typedef struct {
-    if (wide)
-        quad value;
-    else
-        int value;
-} Varint <read=readVarint>;
-
-string readVarint(Varint& v) {
-    string s;
-    SPrintf(s, "%Xh", v.value);
-    return s;
-}
 
 struct Header {
     char magic[4]; Assert(magic == "fSSL" || magic == "fsSL");

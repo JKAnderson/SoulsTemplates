@@ -1,0 +1,112 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: BHD5_2.bt
+//   Authors: Atvaark, TKGP
+//   Version: 
+//   Purpose: DS2/DS3 dvdbnd headers
+//  Category: Dark Souls
+// File Mask: *.bhd
+//  ID Bytes: 42 48 44 35 FF 01 00 00 01 00 00 00
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    char magic[4]; Assert(magic == "BHD5");
+    byte unk04; Assert(unk04 == -1);
+    // 1 in DS3 and DS2 GameDataEbl
+    // 0 in DS2 not-GameDataEbl
+    byte unk05; Assert(unk05 == 0 || unk05 == 1);
+    byte unk06; Assert(unk06 == 0);
+    byte unk07; Assert(unk07 == 0);
+    int unk08; Assert(unk08 == 1);
+    int fileSize <format=hex>;
+    int bucketCount;
+    int bucketsOffset <format=hex>;
+    int saltLength;
+    char salt[saltLength];
+    
+    local int isDS3 = Strncmp(salt, "FDP_", 4) == 0;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    quad startOffset <format=hex>;
+    quad endOffset <format=hex>;
+} Range <read=ReadRange, bgcolor=cPurple>;
+
+string ReadRange(Range& range) {
+    string str;
+    SPrintf(str, "%8X - %8X", range.startOffset, range.endOffset);
+    return str;
+}
+
+
+typedef struct {
+    ubyte hash[32] <format=hex>;
+    int rangeCount;
+    Range ranges[rangeCount];
+} SaltedHash <bgcolor=cBlack>;
+
+
+typedef struct {
+    ubyte key[16] <format=hex>;
+    int rangeCount;
+    Range ranges[rangeCount];
+} AESKey <bgcolor=cSilver>;
+
+
+typedef struct (Header& header) {
+    int fileNameHash <format=hex>;
+    int paddedFileSize <format=hex>;
+    quad fileOffset <format=hex>;
+    quad saltedHashOffset <format=hex>;
+    quad aesKeyOffset <format=hex>;
+    if (header.isDS3)
+        quad fileSize <format=hex>;
+    
+    local quad pos <hidden=true> = FTell();
+    if (saltedHashOffset != 0) {
+        FSeek(saltedHashOffset);
+        SaltedHash saltedHash;
+    }
+    if (aesKeyOffset != 0) {
+        FSeek(aesKeyOffset);
+        AESKey aesKey;
+    }
+    FSeek(pos);
+} FileHeader <read=ReadFileHeader, bgcolor=cAqua, optimize=false>;
+
+string ReadFileHeader(FileHeader& header) {
+    string str;
+    SPrintf(str, "%08X : %16X+%X",
+        header.fileNameHash, header.fileOffset, header.paddedFileSize);
+    return str;
+}
+
+
+typedef struct (Header& header) {
+    int fileHeaderCount;
+    int fileHeadersOffset <format=hex>;
+    
+    if (fileHeaderCount > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(fileHeadersOffset);
+        struct {
+            FileHeader fileHeaders(header)[fileHeaderCount];
+        } fileHeaders;
+        FSeek(pos);
+    }
+} Bucket <read=ReadBucket, bgcolor=cLtGreen, optimize=false>;
+
+string ReadBucket(Bucket& bucket) {
+    string str;
+    SPrintf(str, "[%2i]", bucket.fileHeaderCount);
+    return str;
+}
+
+
+Header header;
+struct {
+    Bucket buckets(header)[header.bucketCount];
+} buckets;
