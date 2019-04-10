@@ -1,0 +1,164 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+
+typedef struct (int assertID) {
+    int id; Assert(id == assertID);
+    uint size <format=hex>;
+} Block <bgcolor=cBlack, fgcolor=cWhite>;
+
+
+typedef struct {
+    Block block(1);
+    byte unk00;
+    byte unk01;
+    short unk02;
+    Vector3 unk04;
+    Vector3 unk10;
+    int unk1C;
+    Vector3 unk20;
+} Block1;
+
+
+typedef struct {
+    Block block(2);
+    string str1;
+    string str2;
+} Block2;
+
+
+typedef struct {
+    float unk[14];
+    int unk38;
+} Vertex4;
+
+typedef struct {
+    short unk00;
+    short unk02;
+    float unk[15];
+} Vertex5;
+
+typedef struct {
+    Block block(3);
+    int unk00 <format=hex>;
+    int vertexCount;
+    if (unk00 == 0x12071980)
+        Vertex4 vertices[vertexCount];
+    else if (unk00 == 0x240E3300)
+        Vertex5 vertices[vertexCount];
+    else
+        Assert(false);
+} VertexBlock <bgcolor=cAqua>;
+
+
+typedef struct {
+    Block block(4);
+    int indexCount;
+    ushort indices[indexCount];
+} IndexBlock <bgcolor=cPurple>;
+
+
+typedef struct {
+    Block block(6);
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unkCount;
+    
+    struct Unk {
+        int unk00;
+        int unk04;
+    } unks[unkCount];
+} Block6 <bgcolor=cRed>;
+
+
+typedef struct {
+    int index;
+    int length <format=hex>;
+    Block1 block1;
+    Block2 block2;
+    VertexBlock vertices;
+    IndexBlock indices;
+    if (block1.unk01 == 4)
+        Block6 block6;
+} Mesh;
+
+
+typedef struct {
+    Block block(9);
+    local quad start <hidden=true> = FTell();
+    while (FTell() < start + block.size) {
+        Mesh meshes;
+    }
+} MeshesBlock <bgcolor=cLtGreen>;
+
+
+typedef struct {
+    string str1;
+    string str2;
+    float unkX00;
+    int unkX04;
+    int unkX08;
+    int unkX0C;
+    float unkX10;
+    int unkX14;
+    int unkX18;
+    int unkX1C;
+    float unkX20;
+    int unk24;
+    int unk28;
+    int unk2C;
+    int unk30;
+    int unk34;
+    int unk38;
+} BlockDUnk <optimize=false>;
+
+typedef struct {
+    Block block(0xD);
+    int unkCount;
+    BlockDUnk unks[unkCount];
+} BlockD <bgcolor=cLtGray>;
+
+
+typedef struct {
+    Block block(0x10);
+    ubyte b[block.size];
+} Block10 <bgcolor=cGray>;
+
+
+typedef struct {
+    Block block(0x11);
+    string ltx;
+} Block11 <bgcolor=cDkGray>;
+
+
+typedef struct {
+    Block block(0x12);
+    string str1;
+    string str2;
+    int unkX00;
+    string str3;
+    float unkY00;
+    string str4;
+    float unkZ00;
+} Block12 <bgcolor=cLtRed>;
+
+
+Block1 header1;
+Block12 header2;
+MeshesBlock meshes;
+BlockD blockD;
+Block10 block10;
+Block11 block11;

@@ -14,6 +14,12 @@
 #ifndef _SOULSTEMPLATES_UTIL
     #define _SOULSTEMPLATES_UTIL
 
+void Align(int align) {
+    if (FTell() % align > 0) {
+        FSkip(align - (FTell() % align));
+    }
+}
+
 typedef struct {
     float x;
     float y;
@@ -57,7 +63,7 @@ typedef struct (int longOffset, int unicode) {
     if (longOffset)
         quad offset;
     else
-        int offset;
+        uint offset;
 
     local quad pos <hidden=true> = FTell();
     FSeek(offset);

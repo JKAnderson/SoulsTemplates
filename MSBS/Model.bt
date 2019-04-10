@@ -1,0 +1,73 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MSBS\Model.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Sekiro map layout models
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+enum <int> ModelType {
+    ModelTypeMapPiece = 0,
+    ModelTypeObject = 1,
+    ModelTypeEnemy = 2,
+    //ModelTypeItem = 3,
+    ModelTypePlayer = 4,
+    ModelTypeCollision = 5,
+    //ModelTypeNavmesh = 6,
+    //ModelTypeDummyObject = 7,
+    //ModelTypeDummyEnemy = 8
+};
+
+struct ModelMapPiece;
+
+typedef struct {
+    local quad start <hidden=true> = FTell();
+
+    quad nameOffset <format=hex, hidden=true>;
+    ModelType type;
+    int id;
+    quad sibOffset <format=hex, hidden=true>;
+    int instanceCount;
+    int unk1C;
+    quad typeDataOffset <format=hex>;
+    
+    FSeek(start + nameOffset);
+    wstring name;
+    FSeek(start + sibOffset);
+    wstring sib;
+    
+    switch (type) {
+        case ModelTypeMapPiece:
+            Assert(typeDataOffset != 0);
+            FSeek(start + typeDataOffset);
+            ModelMapPiece mapPiece;
+            break;
+        
+        default:
+            Assert(typeDataOffset == 0);
+            break;
+    }
+} Model <read=ReadModel>;
+
+wstring ReadModel(Model& model) {
+    string str;
+    SPrintf(str, "%i ", model.type);
+    return str + model.name;
+}
+
+
+typedef struct {
+    int unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
+    float unk14;
+    float unk18;
+    int unk1C; Assert(unk1C == 0);
+} ModelMapPiece;

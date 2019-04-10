@@ -20,7 +20,11 @@ typedef struct (ubyte term) {
 
 typedef struct (ubyte term) {
     int length;
-    char str[length];
+    if (length > 0) {
+        char str[length];
+    } else {
+        local char str[] = "<null>";
+    }
     Marker terminator(term);
 } MTDString <read=ReadMTDString>;
 
@@ -69,7 +73,7 @@ typedef struct {
     int unk04;
     int unk08; Assert(unk08 == 4);
     int unk0C; Assert(unk0C == 4);
-    Marker marker10(0xA3);
+    Marker marker10(0xA3) <hidden=true>;
     MTDString name(0xA3);
     MTDString type(0x04);
     int unkX00; Assert(unkX00 == 1);
@@ -114,7 +118,7 @@ typedef struct {
         default:
             Assert(false);
     }
-    Marker terminator(0x04);
+    Marker terminator(0x04) <hidden=true>;
     
     int unkY00; Assert(unkY00 == 0);
 } Param <read=ReadParam, bgcolor=cLtGreen, optimize=false>;
@@ -136,12 +140,21 @@ typedef struct {
     int unk00; Assert(unk00 == 0);
     int unk04;
     int unk08; Assert(unk08 == 0x2000);
-    int unk0C; Assert(unk0C == 3);
-    Marker marker10(0xA3);
+    int unk0C; Assert(unk0C == 3 || unk0C == 5);
+    Marker marker10(0xA3) <hidden=true>;
     MTDString type(0x35);
     int uvNumber;
-    Marker markerX04(0x35);
+    Marker markerX04(0x35) <hidden=true>;
     int shaderDataIndex;
+    
+    if (unk0C == 5) {
+        int unkX0C <hidden=true>; Assert(unkX0C == 0xA3);
+        MTDString path(0xBA);
+        int floatCount;
+        if (floatCount > 0) {
+            float unkFloats[floatCount];
+        }
+    }
 } Texture <read=ReadTexture, bgcolor=cAqua, optimize=false>;
 
 string ReadTexture(Texture& tex) {

@@ -1,0 +1,40 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: DCX.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: FromSoft compression format
+//  Category: Dark Souls
+// File Mask: *.dcx
+//  ID Bytes: 44 43 58 00
+//   History: 
+//------------------------------------------------
+
+BigEndian();
+
+typedef struct {
+    char dcx[4]; Assert(dcx == "DCX\0");
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    char dcs[4]; Assert(dcs == "DCS\0");
+    uint uncompressedSize <format=hex>;
+    uint compressedSize <format=hex>;
+    char dcp[4]; Assert(dcp == "DCP\0");
+    char format[4];
+    int unk2C;
+    int unk30;
+    int unk34;
+    int unk38;
+    int unk3C;
+    int unk40;
+    char dca[4]; Assert(dca == "DCA\0");
+    int unk48;
+} Header <bgcolor=cLtRed>;
+
+
+Header header;
+ubyte bytes[header.compressedSize] <bgcolor=cLtGreen>;

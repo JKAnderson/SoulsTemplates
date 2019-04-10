@@ -1,0 +1,314 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MSBS\Point.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Sekiro map layout regions
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+enum <int> PointType {
+    PointTypeGeneral = -1,
+    PointType0 = 0, // This is written between 15 and 17 for some reason
+    PointTypeInvasionPoint = 1,
+    PointTypeEnvironmentMapPoint = 2,
+    PointTypeSound = 4,
+    PointTypeSFX = 5,
+    PointTypeWindSFX = 6,
+    PointTypeSpawnPoint = 8,
+    //PointTypeMessage = 9,
+    PointTypeWalkRoute = 11,
+    //PointTypeUnk12 = 12,
+    PointTypeWarpPoint = 13,
+    PointTypeActivationArea = 14,
+    PointTypeEvent = 15,
+    PointTypeEnvironmentMapEffectBox = 17,
+    PointTypeWindArea = 18,
+    PointTypeMufflingBox = 20,
+    PointTypeMufflingPortal = 21,
+    PointType23 = 23, // Reverb?
+    PointType24 = 24, // More muffling stuff?
+    PointTypePartsGroup = 25,
+    PointTypeAutoDrawGroup = 26,
+};
+
+struct PointInvasionPoint;
+struct PointEnvironmentMapPoint;
+struct PointSound;
+struct PointSFX;
+struct PointWindSFX;
+struct PointSpawnPoint;
+struct PointEnvironmentMapEffectBox;
+struct PointMufflingBox;
+struct PointMufflingPortal;
+struct Point23;
+struct PointPartsGroup;
+struct PointAutoDrawGroup;
+
+enum <int> ShapeType {
+    ShapeTypePoint = 0,
+    ShapeTypeCircle = 1, // Not used btw
+    ShapeTypeSphere = 2,
+    ShapeTypeCylinder = 3,
+    ShapeTypeSquare = 4,
+    ShapeTypeBox = 5,
+    ShapeTypeComposite = 6
+};
+
+struct ShapeCircle;
+struct ShapeSphere;
+struct ShapeCylinder;
+struct ShapeSquare;
+struct ShapeBox;
+struct ShapeComposite;
+
+typedef struct {
+    local quad start <hidden=true> = FTell();
+    
+    quad nameOffset <format=hex, hidden=true>;
+    PointType pointType;
+    int id;
+    ShapeType shapeType;
+    Vector3 position;
+    Vector3 rotation;
+    int unk2C;
+    quad baseDataOffset1 <format=hex>; Assert(baseDataOffset1 != 0);
+    quad baseDataOffset2 <format=hex>; Assert(baseDataOffset2 != 0);
+    int unk40; Assert(unk40 == -1);
+    int mapStudioLayer;
+    quad shapeDataOffset <format=hex>;
+    quad baseDataOffset3 <format=hex>; Assert(baseDataOffset3 != 0);
+    quad typeDataOffset <format=hex>;
+    
+    FSeek(start + nameOffset);
+    wstring name;
+    
+    FSeek(start + baseDataOffset1);
+    short unk1Count;
+    if (unk1Count > 0) {
+        short unk1Indices[unk1Count];
+    }
+    // pad to 4
+    
+    FSeek(start + baseDataOffset2);
+    short unk2Count;
+    if (unk2Count > 0) {
+        short unk2Indices[unk2Count];
+    }
+    // pad to 8
+    
+    FSeek(start + baseDataOffset3);
+    int unk300;
+    int unk304;
+    // pad to 8
+    
+    if (shapeType == ShapeTypePoint) {
+        Assert(shapeDataOffset == 0);
+    } else {
+        Assert(shapeDataOffset != 0);
+    }
+    
+    if (shapeDataOffset != 0) {
+        FSeek(start + shapeDataOffset);
+        switch (shapeType) {
+            case ShapeTypeCircle: ShapeCircle circle; break;
+            case ShapeTypeSphere: ShapeSphere sphere; break;
+            case ShapeTypeCylinder: ShapeCylinder cylinder; break;
+            case ShapeTypeSquare: ShapeSquare square; break;
+            case ShapeTypeBox: ShapeBox box; break;
+            case ShapeTypeComposite: ShapeComposite composite; break;
+        }
+    }
+    
+    if (pointType == PointTypeGeneral || pointType == PointType0
+        || pointType == PointTypeWalkRoute || pointType == PointTypeWarpPoint
+        || pointType == PointTypeActivationArea || pointType == PointTypeEvent
+        || pointType == PointTypeWindArea || pointType == PointType24) {
+        Assert(typeDataOffset == 0);
+    } else {
+        Assert(typeDataOffset != 0);
+    }
+    
+    if (typeDataOffset != 0) {
+        FSeek(start + typeDataOffset);
+        switch (pointType) {
+            case PointTypeInvasionPoint: PointInvasionPoint invasionPoint; break;
+            case PointTypeEnvironmentMapPoint: PointEnvironmentMapPoint environmentMapPoint; break;
+            case PointTypeSound: PointSound sound; break;
+            case PointTypeSFX: PointSFX sfx; break;
+            case PointTypeWindSFX: PointWindSFX windSFX; break;
+            case PointTypeSpawnPoint: PointSpawnPoint spawnPoint; break;
+            case PointTypeEnvironmentMapEffectBox: PointEnvironmentMapEffectBox environmentMapEffectBox; break;
+            case PointTypeMufflingBox: PointMufflingBox mufflingBox; break;
+            case PointTypeMufflingPortal: PointMufflingPortal mufflingPortal; break;
+            case PointType23: Point23 point23; break;
+            case PointTypePartsGroup: PointPartsGroup partsGroup; break;
+            case PointTypeAutoDrawGroup: PointAutoDrawGroup autoDrawGroup; break;
+        }
+    }
+} Point <read=ReadPoint>;
+
+wstring ReadPoint(Point& point) {
+    string str;
+    SPrintf(str, "%i %i ", point.pointType, point.shapeType);
+    return str + point.name;
+}
+
+
+typedef struct {
+    float radius;
+} ShapeCircle;
+
+typedef struct {
+    float radius;
+} ShapeSphere;
+
+typedef struct {
+    float radius;
+    float height;
+} ShapeCylinder;
+
+typedef struct {
+    float width;
+    float depth;
+} ShapeSquare;
+
+typedef struct {
+    float width;
+    float depth;
+    float height;
+} ShapeBox;
+
+typedef struct {
+    struct {
+        int pointIndex;
+        int unk04;
+    } pointIndices[8] <optimize=false>;
+} ShapeComposite;
+
+
+typedef struct {
+    int unk00;
+} PointInvasionPoint;
+
+
+typedef struct {
+    float unk00;
+    int unk04;
+    int unk08; Assert(unk08 == -1);
+    int unk0C;
+    float unk10;
+    float unk14;
+    int unk18;
+    int unk1C;
+    int unk20;
+    int unk24;
+    int unk28;
+    int unk2C; Assert(unk2C == -1);
+    int unk30; Assert(unk30 == 0);
+    int unk34; Assert(unk34 == 0);
+    int unk38; Assert(unk38 == 0);
+    int unk3C; Assert(unk3C == 0);
+} PointEnvironmentMapPoint;
+
+
+typedef struct {
+    int soundType;
+    int soundID;
+    int childPointIndices[16];
+    int unk48;
+} PointSound;
+
+
+typedef struct {
+    int ffxID;
+    int unk04;
+    int unk08; Assert(unk08 == -1);
+    int unk0C; Assert(unk0C == -1);
+    int unk10; Assert(unk10 == -1);
+    int startDisabled;
+} PointSFX;
+
+
+typedef struct {
+    int ffxID;
+    int unk04; Assert(unk04 == -1);
+    int unk08; Assert(unk08 == -1);
+    int unk0C; Assert(unk0C == -1);
+    int unk10; Assert(unk10 == -1);
+    int windAreaIndex;
+    float unk18;
+    int unk1C; Assert(unk1C == 0);
+} PointWindSFX;
+
+
+typedef struct {
+    int unk00; Assert(unk00 == -1);
+    int unk04; Assert(unk04 == 0);
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+} PointSpawnPoint;
+
+
+typedef struct {
+    float unk00;
+    float compare;
+    byte unk08;
+    byte unk09;
+    short unk0A;
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+    int unk20; Assert(unk20 == 0);
+    int unk24;
+    float unk28;
+    float unk2C;
+    int unk30; Assert(unk30 == 0);
+} PointEnvironmentMapEffectBox;
+
+
+typedef struct {
+    int unk00;
+} PointMufflingBox;
+
+
+typedef struct {
+    int unk00;
+    int unk04; Assert(unk04 == 0);
+} PointMufflingPortal;
+
+
+typedef struct {
+    int unk00;
+    int unk04; Assert(unk04 == 0);
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+} Point23;
+
+
+typedef struct {
+    int unk00;
+    int unk04; Assert(unk04 == 0);
+} PointPartsGroup;
+
+
+typedef struct {
+    int unk00;
+    int unk04; Assert(unk04 == 0);
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+} PointAutoDrawGroup;

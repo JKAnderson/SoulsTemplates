@@ -1,0 +1,62 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    int unk00; Assert(unk00 == 3);
+    int unk1Count;
+    quad unk08; Assert(unk08 == 0x48);
+    int id;
+    int unk14; Assert(unk14 == 0);
+    quad unk18;
+    quad unk20;
+    quad unk28;
+    int unk30;
+    int unk34;
+    int unk38;
+    int unk3C;
+    int unk40; Assert(unk40 == 1);
+    int unk44; Assert(unk44 == 0);
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    int unk18;
+    int unk1C;
+    short unk20;
+    short unk22;
+    int unk24;
+} Unk1Entry <bgcolor=cAqua>;
+
+
+typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int unk04; Assert(unk04 == 0);
+    quad offset;
+    int count;
+    int unk18; Assert(unk18 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(offset);
+    Unk1Entry entries[count];
+    FSeek(pos);
+} Unk1 <bgcolor=cLtGreen, optimize=false>;
+
+
+Header header;
+Unk1 unk1s[header.unk1Count];

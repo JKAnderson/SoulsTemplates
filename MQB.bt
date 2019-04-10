@@ -79,9 +79,9 @@ typedef struct {
     int unk1C; Assert(unk1C == 0);
     float unk20; Assert(unk20 == 0);
     int unk24; Assert(unk24 == 0);
-    int unk28; Assert(unk28 == 0);
-    float unk2C; // Usually 0
-    int unk30; Assert(unk30 == 0);
+    float unk28;
+    float unk2C;
+    float unk30;
     float unk34; Assert(unk34 == 0);
     float unk38; Assert(unk38 == 0);
     float unk3C; Assert(unk3C == 0);
@@ -233,24 +233,45 @@ wstring ReadEntry(Entry& entry) {
 
 
 typedef struct {
+    wchar_t str[0x20];
+    int unk40;
+    int unk44; Assert(unk44 == 0);
+    int unk48;
+    int unk4C; Assert(unk4C == 0);
+    int unk50; Assert(unk50 == 0);
+    int unk54; Assert(unk54 == 0);
+    int unk58; Assert(unk58 == 0);
+    int unk5C; Assert(unk5C == 0);
+} UnkGroupStr <read=ReadUnkGroupStr, optimize=false>;
+
+wstring ReadUnkGroupStr(UnkGroupStr& ugs) {
+    return ugs.str;
+}
+
+
+typedef struct {
     int entryOffsetsOffset <format=hex>;
     int entryCount;
-    int unk08 <format=hex>;
-    int unk0C; Assert(unk0C == 0);
+    int unkStrsOffset <format=hex>;
+    int unkStrCount;
     int unk10;
     
+    local quad pos <hidden=true> = FTell();
     if (entryCount > 0) {
-        local quad pos <hidden=true> = FTell();
         FSeek(entryOffsetsOffset);
         int entryOffsets[entryCount] <format=hex>;
-        FSeek(pos);
     }
+    if (unkStrCount > 0) {
+        FSeek(unkStrsOffset);
+        struct { UnkGroupStr unkStrs[unkStrCount]; } unkStrs;
+    }
+    FSeek(pos);
 } Group <read=ReadGroup>;
 
 wstring ReadGroup(Group& group) {
     string str;
-    SPrintf(str, "%5X[%i] %5X[%i] %2i", group.entryOffsetsOffset, group.entryCount,
-        group.unk08, group.unk0C, group.unk10);
+    SPrintf(str, "%5X[%i] %5X[%2i] %2i", group.entryOffsetsOffset, group.entryCount,
+        group.unkStrsOffset, group.unkStrCount, group.unk10);
     return str;
 }
 
@@ -280,7 +301,7 @@ typedef struct {
 
 wstring ReadCut(Cut& cut) {
     string str;
-    SPrintf(str, "%i %3i ", cut.unk44, cut.unk48);
+    SPrintf(str, "%i %4i ", cut.unk44, cut.unk48);
     return str + cut.str;
 }
 

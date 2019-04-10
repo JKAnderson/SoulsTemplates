@@ -20,14 +20,21 @@ typedef struct {
     int unk0C; Assert(unk0C == 0);
 } PaddedVector2 <optimize=false>;
 
+typedef struct {
+    float x;
+    float y;
+    float z;
+    int unk0C; Assert(unk0C == 0);
+} PaddedVector3 <optimize=false>;
+
 
 typedef struct {
     wchar_t magic[4]; Assert(magic == "filt");
-    int unk08; Assert(unk08 == 3);
-    int unk0C; Assert(unk0C == 0);
+    int version; Assert(version == 3 || version == 5);
+    int unk0C;
     int groupCount;
     int unk14;
-    int headerSize <format=hex>; Assert(headerSize == 0x50);
+    int headerSize <format=hex>; Assert(headerSize == (version == 3 ? 0x50 : 0x54));
     int groupHeadersOffset <format=hex>;
     int paramHeaderOffsetsOffset <format=hex>;
     int paramHeadersOffset <format=hex>;
@@ -41,6 +48,10 @@ typedef struct {
     int unkOffset5 <format=hex>;
     int commentOffsetsOffset <format=hex>;
     int commentsOffset <format=hex>;
+
+    if (version == 5) {
+        float unk50;
+    }
 } Header <bgcolor=cLtRed>;
 
 
@@ -95,6 +106,12 @@ typedef struct (Header& header) {
                     PaddedVector2 values[valueCount];
                 } values;
                 break;
+            
+            case 0xD:
+                struct {
+                    PaddedVector3 values[valueCount];
+                } values;
+                break;
     
             case 0xE:
                 Vector4 values[valueCount];
@@ -110,7 +127,10 @@ typedef struct (Header& header) {
         SetBackColor(color);
         
         FSeek(header.unkOffset1 + unkOffset1);
-        int unk1s[valueCount] <bgcolor=cRed>;
+        if (header.version == 3)
+            int ids[valueCount] <bgcolor=cRed>;
+        else if (header.version == 5)
+            quad ids[valueCount] <bgcolor=cRed>;
     }
     
     FSeek(pos);
@@ -133,10 +153,12 @@ typedef struct (Header& header) {
     wstring name1;
     wstring name2;
     
-    FSeek(header.paramHeaderOffsetsOffset + paramHeaderOffsetsOffset);
-    struct {
-        Param params(header)[paramCount];
-    } params;
+    if (paramCount > 0) {
+        FSeek(header.paramHeaderOffsetsOffset + paramHeaderOffsetsOffset);
+        struct {
+            Param params(header)[paramCount];
+        } params;
+    }
     FSeek(pos);
 } Group <read=ReadGroup, bgcolor=cLtGreen, optimize=false>;
 
@@ -149,11 +171,16 @@ typedef struct (Header& header) {
     int id;
     int count;
     int unkOffset4 <format=hex>;
+    if (header.version == 5) {
+        int unk0C;
+    }
     
-    local quad pos <hidden=true> = FTell();
-    FSeek(header.unkOffset4 + unkOffset4);
-    int data[count] <bgcolor=cLtGray>;
-    FSeek(pos);
+    if (count > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(header.unkOffset4 + unkOffset4);
+        int data[count] <bgcolor=cLtGray>;
+        FSeek(pos);
+    }
 } Unk3 <bgcolor=cGray, optimize=false>;
 
 

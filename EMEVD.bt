@@ -11,7 +11,7 @@
 //   History: 
 //------------------------------------------------
 
-local int VARINT_WIDE = ReadByte(5) == -1;
+local int VARINT_LONG = ReadByte(5) == -1;
 #include "Util.bt"
 
 enum GAME { DS1, BB, DS3 };
@@ -27,7 +27,7 @@ typedef struct {
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
     byte unk05; Assert(unk05 == 0 || unk05 == -1);
     byte unk06; Assert(unk06 == 0 || unk06 == 1);
-    byte unk07; Assert(unk07 == 0);
+    byte unk07; Assert(unk07 == 0 || unk07 == -1);
     int unk08; Assert(unk08 == 0xCC || unk08 == 0xCD);
     int fileSize;
 
@@ -86,7 +86,7 @@ typedef struct (Header& header) {
         int unk14 <hidden=true>; Assert(unk14 == 0);
     }
     
-    local quad pos = FTell();
+    local quad pos <hidden=true> = FTell();
     if (argumentsLength.val > 0) {
         FSeek(header.argumentsOffset.val + argumentsOffset.val);
         byte arguments[argumentsLength.val] <bgcolor=cBlack, fgcolor=cWhite>;
@@ -96,19 +96,29 @@ typedef struct (Header& header) {
         EventLayer eventLayer <bgcolor=cBlue>;
     }
     FSeek(pos);
-} Instruction <optimize=false>;
+} Instruction <read=ReadInstruction, optimize=false>;
+
+string ReadInstruction(Instruction& inst) {
+    string str;
+    SPrintf(str, "%4i[%2i]", inst.instructionClass, inst.instructionIndex);
+    return str;
+}
 
 
 typedef struct (Header& header) {
     Varint instructionIndex;
     Varint targetStartByte;
     Varint sourceStartByte;
-    Varint length;
+    int length;
+    int unk10;
+} Parameter <read=ReadParam, optimize=false>;
 
-    if (header.game == DS1) {
-        int unk10 <hidden=true>; Assert(unk10 == 0);
-    }
-} Parameter <optimize=false>;
+string ReadParam(Parameter& param) {
+    string str;
+    SPrintf(str, "%2i: %x->%x [%i] (%i)", param.instructionIndex.val,
+        param.sourceStartByte.val, param.targetStartByte.val, param.length, param.unk10);
+    return str;
+}
 
 
 typedef struct (Header& header) {
@@ -120,7 +130,7 @@ typedef struct (Header& header) {
     BONFIRE_TYPE bonfireType;
     int unk18; Assert(unk18 == 0);
     
-    local quad pos = FTell();
+    local quad pos <hidden=true> = FTell();
     FSeek(header.instructionsOffset.val + instructionsOffset.val);
     struct {
         Instruction instructions(header)[instructionCount.val];
@@ -132,14 +142,24 @@ typedef struct (Header& header) {
     } parameters <bgcolor=cPurple>;
     }
     FSeek(pos);
-} Event <optimize=false>;
+} Event <read=ReadEvent, optimize=false>;
+
+string ReadEvent(Event& event) {
+    string str;
+    SPrintf(str, "%i", event.id.val);
+    return str;
+}
 
 
 typedef struct (Header& header) {
     Varint stringOffset;
     local quad pos <hidden=true> = FTell();
     FSeek(header.stringsOffset.val + stringOffset.val);
-    string path <bgcolor=cLtGreen>;
+    if (header.game == DS3) {
+        wstring path <bgcolor=cLtGreen>;
+    } else {
+        string path <bgcolor=cLtGreen>;
+    }
     FSeek(pos);
 } LinkedFile <optimize=false>;
 
