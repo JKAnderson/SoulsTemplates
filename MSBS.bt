@@ -37,7 +37,13 @@ typedef struct (string assertName) {
         quad offsets[count - 1];
     }
     quad nextParamOffset;
-} Param;
+} Param <read=ReadParam>;
+
+string ReadParam(Param& param) {
+    string str;
+    SPrintf(str, "[%4i] %2Xh %s", param.count, param.unk00, param.name.str);
+    return str;
+}
 
 
 typedef struct {
@@ -51,9 +57,7 @@ typedef struct {
 } ModelParam <read=ReadModelParam, bgcolor=cLtGreen>;
 
 string ReadModelParam(ModelParam& modelParam) {
-    string str;
-    SPrintf(str, "[%4i]", modelParam.param.count - 1);
-    return str;
+    return ReadParam(modelParam.param);
 }
 
 
@@ -68,9 +72,7 @@ typedef struct {
 } EventParam <read=ReadEventParam, bgcolor=cYellow>;
 
 string ReadEventParam(EventParam& eventParam) {
-    string str;
-    SPrintf(str, "[%4i]", eventParam.param.count - 1);
-    return str;
+    return ReadParam(eventParam.param);
 }
 
 
@@ -85,9 +87,7 @@ typedef struct {
 } PointParam <read=ReadPointParam, bgcolor=cAqua>;
 
 string ReadPointParam(PointParam& pointParam) {
-    string str;
-    SPrintf(str, "[%4i]", pointParam.param.count - 1);
-    return str;
+    return ReadParam(pointParam.param);
 }
 
 
@@ -102,9 +102,7 @@ typedef struct {
 } RouteParam <read=ReadRouteParam, bgcolor=cRed>;
 
 string ReadRouteParam(RouteParam& routeParam) {
-    string str;
-    SPrintf(str, "[%4i]", routeParam.param.count - 1);
-    return str;
+    return ReadParam(routeParam.param);
 }
 
 
@@ -112,7 +110,11 @@ typedef struct {
     Param param("LAYER_PARAM_ST");
     Assert(param.count == 1);
     FSeek(param.nextParamOffset);
-} LayerParam <bgcolor=cLtGray, fgcolor=cBlack>;
+} LayerParam <read=ReadLayerParam, bgcolor=cLtGray, fgcolor=cBlack>;
+
+string ReadLayerParam(LayerParam& layerParam) {
+    return ReadParam(layerParam.param);
+}
 
 
 typedef struct {
@@ -126,9 +128,7 @@ typedef struct {
 } PartsParam <read=ReadPartsParam, bgcolor=cLtBlue>;
 
 string ReadPartsParam(PartsParam& partsParam) {
-    string str;
-    SPrintf(str, "[%4i]", partsParam.param.count - 1);
-    return str;
+    return ReadParam(partsParam.param);
 }
 
 
@@ -136,14 +136,22 @@ typedef struct {
     Param param("MAPSTUDIO_PARTS_POSE_ST");
     Assert(param.count == 1);
     FSeek(param.nextParamOffset);
-} MapstudioPartsPose <bgcolor=cLtGray, fgcolor=cBlack>;
+} MapstudioPartsPose <read=ReadMapstudioPartsPose, bgcolor=cLtGray, fgcolor=cBlack>;
+
+string ReadMapstudioPartsPose(MapstudioPartsPose& partsPose) {
+    return ReadParam(partsPose.param);
+}
 
 
 typedef struct {
     Param param("MAPSTUDIO_BONE_NAME_STRING");
     Assert(param.count == 1);
     Assert(param.nextParamOffset == 0);
-} MapstudioBoneName <bgcolor=cLtGray, fgcolor=cBlack>;
+} MapstudioBoneName <read=ReadMapstudioBoneName, bgcolor=cLtGray, fgcolor=cBlack>;
+
+string ReadMapstudioBoneName(MapstudioBoneName& boneName) {
+    return ReadParam(boneName.param);
+}
 
 
 Header header;
@@ -151,7 +159,7 @@ ModelParam models;
 EventParam events;
 PointParam points;
 RouteParam routes;
-LayerParam layers <hidden=true>;
+LayerParam layers <hidden=false>;
 PartsParam parts;
-MapstudioPartsPose partsPoses <hidden=true>;
-MapstudioBoneName boneNames <hidden=true>;
+MapstudioPartsPose partsPoses <hidden=false>;
+MapstudioBoneName boneNames <hidden=false>;
