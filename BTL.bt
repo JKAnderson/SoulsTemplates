@@ -1,0 +1,108 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: BTL.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: *.btl
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+#include "Util.bt"
+
+// Note to self:
+// Strings are padded to 0x10 /relative to the start of the string block/
+// That's why there's all that garbage in there.
+
+typedef struct {
+    int unk00; Assert(unk00 == 2);
+    int unk04;
+    int lightCount;
+    int namesLength <format=hex>;
+    int unk10; Assert(unk10 == 0);
+    int lightSize <format=hex>; Assert(lightSize == 0xE8);
+    
+    local int i <hidden=true>;
+    for (i = 0; i < 9; i++) {
+        int unk14 <hidden=true>; Assert(unk14 == 0);
+    }
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct (quad namesStart) {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int nameOffset <format=hex>;
+    int unk14; Assert(unk14 == 0);
+    int unk18;
+    byte unk1C;
+    byte diffuseRGB[3];
+    float diffusePower;
+    byte specularRGB[3];
+    byte unk27;
+    float specularPower;
+    float coneAngle;
+    float unk30;
+    float unk34;
+    Vector3 position;
+    Vector3 rotation;
+    int unk50;
+    float unk54;
+    float radius;
+    int unk5C;
+    int unk60; Assert(unk60 == 0);
+    byte unk64[4];
+    float unk68;
+    float unk6C;
+    float unk70;
+    float unk74;
+    float unk78;
+    float unk7C;
+    int unk80; Assert(unk80 == -1);
+    int unk84; Assert(unk84 == 0);
+    int unk88; Assert(unk88 == 0);
+    int unk8C; Assert(unk8C == 0);
+    int unk90; Assert(unk90 == 0);
+    int unk94; Assert(unk94 == 0);
+    float unk98;
+    float unk9C;
+    byte unkA0[4];
+    float unkA4;
+    int unkA8; Assert(unkA8 == 0);
+    float unkAC;
+    int unkB0; Assert(unkB0 == 0);
+    int unkB4; Assert(unkB4 == 0);
+    float width;
+    float unkBC;
+    byte unkC0[4];
+    float unkC4;
+    float unkC8;
+    float unkCC;
+    float unkD0;
+    int unkD4; Assert(unkD4 == 0);
+    float unkD8;
+    int unkDC;
+    int unkE0; Assert(unkE0 == 0);
+    int unkE4; Assert(unkE4 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(namesStart + nameOffset);
+    wstring name <bgcolor=cLtGreen>;
+    FSeek(pos);
+} Light <read=ReadLight, bgcolor=cAqua, optimize=false>;
+
+wstring ReadLight(Light& light) {
+    return light.name;
+}
+
+
+Header header;
+local quad namesStart <hidden=true> = FTell();
+FSkip(header.namesLength);
+Light lights(namesStart)[header.lightCount];
