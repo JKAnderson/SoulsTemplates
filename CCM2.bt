@@ -24,7 +24,7 @@ typedef struct {
     int unk14; Assert(unk14 == 0x20);
     int glyphOffset <format=hex>;
     byte unk1C; Assert(unk1C == 4);
-    byte unk1D; Assert(unk1C == 0);
+    byte unk1D; Assert(unk1D == 0);
     byte textureCount;
     byte unk1F; Assert(unk1F == 0);
 } Header;

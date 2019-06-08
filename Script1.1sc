@@ -20,6 +20,8 @@ for (i = 0; i < header.eventCount.val; i++) {
             || events.events[i].instructions.instructions[j].instructionIndex == 17)) {
             events.events[i].instructions.instructions[j].instructionClass = 1014;
             events.events[i].instructions.instructions[j].instructionIndex = 69;
+            events.events[i].instructions.instructions[j].argumentsLength.val = 0;
+            events.events[i].instructions.instructions[j].argumentsOffset.val = -1;
         }
     }
 }

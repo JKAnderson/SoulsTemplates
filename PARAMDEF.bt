@@ -12,21 +12,15 @@
 //------------------------------------------------
 
 LittleEndian();
+if (ReadInt() != FileSize())
+    BigEndian();
 
-struct EndianTest {
-    int fileSize;
-    if (fileSize != FileSize()) {
-        BigEndian();
-    }
-    FSeek(0);
-} endianTest <bgcolor=cWhite, hidden=true>;
-
-struct Header {
-    int fileSize; Assert(fileSize == FileSize());
+typedef struct {
+    int fileSize <format=hex>; Assert(fileSize == FileSize());
     short version; Assert(version == 0x30 || version == 0xFF);
     short unk06;
     short entryCount;
-    short entrySize;
+    short entrySize <format=hex>;
     if (version == 0x30)
         Assert(entrySize == 0x6C || entrySize == 0xAC || entrySize == 0xB0);
     else
@@ -42,11 +36,12 @@ struct Header {
         Assert(unk2E == 0xC9);
 
     if (version == 0xFF) {
-        quad entryStart; Assert(entryStart == 0x38);
+        quad entryStart <format=hex>; Assert(entryStart == 0x38);
     }
-} header <bgcolor=cLtRed>;
+} Header <bgcolor=cLtRed>;
 
-struct Entry {
+
+typedef struct (Header& header) {
     if (header.version == 0x30)
         char guiName[0x40] <bgcolor=cGreen>;
     else
@@ -62,12 +57,12 @@ struct Entry {
     int guiByteCount;
     
     if (header.version == 0x30)
-        int descriptionOffset;
+        int descriptionOffset <format=hex>;
     else
-        quad descriptionOffset;
+        quad descriptionOffset <format=hex>;
     
     if (descriptionOffset != 0) {
-        local quad pos = FTell();
+        local quad pos <hidden=true> = FTell();
         FSeek(descriptionOffset);
         if (header.version == 0x30)
             string description;
@@ -90,4 +85,12 @@ struct Entry {
         int unkC8; Assert(unkC8 == 0);
         int unkCC; Assert(unkCC == 0);
     }
-} entries[header.entryCount] <bgcolor=cLtGreen, optimize=false>;
+} Entry <read=ReadEntry, bgcolor=cLtGreen, optimize=false>;
+
+string ReadEntry(Entry& entry) {
+    return entry.internalValue + " " + entry.guiName;
+}
+
+
+Header header;
+Entry entries(header)[header.entryCount];

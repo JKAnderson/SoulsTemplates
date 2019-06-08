@@ -20,11 +20,11 @@ LittleEndian();
 
 typedef struct {
     int unk00; Assert(unk00 == 2);
-    int unk04;
+    int version;
     int lightCount;
     int namesLength <format=hex>;
     int unk10; Assert(unk10 == 0);
-    int lightSize <format=hex>; Assert(lightSize == 0xE8);
+    int lightSize <format=hex>;
     
     local int i <hidden=true>;
     for (i = 0; i < 9; i++) {
@@ -33,13 +33,16 @@ typedef struct {
 } Header <bgcolor=cLtRed>;
 
 
-typedef struct (quad namesStart) {
+typedef struct (int lightSize, quad namesStart) {
     int unk00;
     int unk04;
     int unk08;
     int unk0C;
-    int nameOffset <format=hex>;
-    int unk14; Assert(unk14 == 0);
+    if (lightSize == 0xC0) {
+        int nameOffset <format=hex>;
+    } else {
+        quad nameOffset <format=hex>;
+    }
     int unk18;
     byte unk1C;
     byte diffuseRGB[3];
@@ -59,16 +62,16 @@ typedef struct (quad namesStart) {
     int unk60; Assert(unk60 == 0);
     byte unk64[4];
     float unk68;
-    float unk6C;
+    byte unk6C[4];
     float unk70;
     float unk74;
     float unk78;
     float unk7C;
-    int unk80; Assert(unk80 == -1);
-    int unk84; Assert(unk84 == 0);
-    int unk88; Assert(unk88 == 0);
+    int unk80;
+    byte unk84[4];
+    float unk88;
     int unk8C; Assert(unk8C == 0);
-    int unk90; Assert(unk90 == 0);
+    float unk90;
     int unk94; Assert(unk94 == 0);
     float unk98;
     float unk9C;
@@ -76,20 +79,26 @@ typedef struct (quad namesStart) {
     float unkA4;
     int unkA8; Assert(unkA8 == 0);
     float unkAC;
-    int unkB0; Assert(unkB0 == 0);
-    int unkB4; Assert(unkB4 == 0);
+    if (lightSize == 0xC0) {
+        int unkB0; Assert(unkB0 == 0);
+    } else {
+        quad unkB0; Assert(unkB0 == 0);
+    }
     float width;
     float unkBC;
     byte unkC0[4];
     float unkC4;
-    float unkC8;
-    float unkCC;
-    float unkD0;
-    int unkD4; Assert(unkD4 == 0);
-    float unkD8;
-    int unkDC;
-    int unkE0; Assert(unkE0 == 0);
-    int unkE4; Assert(unkE4 == 0);
+    
+    if (lightSize > 0xC8) {
+        float unkC8;
+        float unkCC;
+        float unkD0;
+        int unkD4; Assert(unkD4 == 0);
+        float unkD8;
+        int unkDC;
+        int unkE0; Assert(unkE0 == 0);
+        int unkE4; Assert(unkE4 == 0);
+    }
     
     local quad pos <hidden=true> = FTell();
     FSeek(namesStart + nameOffset);
@@ -105,4 +114,4 @@ wstring ReadLight(Light& light) {
 Header header;
 local quad namesStart <hidden=true> = FTell();
 FSkip(header.namesLength);
-Light lights(namesStart)[header.lightCount];
+Light lights(header.lightSize, namesStart)[header.lightCount];

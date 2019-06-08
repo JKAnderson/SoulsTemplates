@@ -1,7 +1,7 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: PARAM.bt
+//      File: PARAM64.bt
 //   Authors: TKGP
 //   Version: 
 //   Purpose: DS3/Sekiro .param
@@ -12,9 +12,7 @@
 //------------------------------------------------
 
 typedef struct {
-    int unk00 <format=hex>;
-    short unk04;
-    short unk06;
+    quad stringsStart <format=hex>;
     short unk08;
     ushort rowCount;
     int unk0C;

@@ -45,7 +45,7 @@ typedef struct {
     int unkOffset3 <format=hex>;
     int unkOffset4 <format=hex>;
     int unk40; Assert(unk40 == 0);
-    int unkOffset5 <format=hex>;
+    int commentOffsetsOffsetsOffset <format=hex>;
     int commentOffsetsOffset <format=hex>;
     int commentsOffset <format=hex>;
 
@@ -64,7 +64,7 @@ typedef struct (Header& header) {
     int unkOffset1 <format=hex>;
     byte type;
     byte valueCount;
-    short unk0A; Assert(unk0A == 0);
+    short unk0A <hidden=true>; Assert(unk0A == 0);
     wstring name1;
     wstring name2;
     
@@ -143,7 +143,7 @@ wstring ReadParam(Param& param) {
 }
 
 
-typedef struct (Header& header) {
+typedef struct (Header& header, int index) {
     int groupHeaderOffset <format=hex>;
     local quad pos <hidden=true> = FTell();
     FSeek(header.groupHeadersOffset + groupHeaderOffset);
@@ -158,6 +158,19 @@ typedef struct (Header& header) {
         struct {
             Param params(header)[paramCount];
         } params;
+        
+        /*
+        FSeek(header.commentOffsetsOffsetsOffset + index * 4);
+        int commentOffsetsOffset;
+        FSeek(header.commentOffsetsOffset + commentOffsetsOffset);
+        struct {
+            int commentOffset;
+            local quad pos2 <hidden=true> = FTell();
+            FSeek(header.commentsOffset + commentOffset);
+            wstring comment;
+            FSeek(pos2);
+        } comments[params.params[0].valueCount] <bgcolor=cLtYellow, optimize=false>;
+        */
     }
     FSeek(pos);
 } Group <read=ReadGroup, bgcolor=cLtGreen, optimize=false>;
@@ -186,7 +199,9 @@ typedef struct (Header& header) {
 
 Header header;
 struct {
-    Group groups(header)[header.groupCount];
+    local int i <hidden=true>;
+    for (i = 0; i < header.groupCount; i++)
+        Group groups(header, i);
 } groups;
 FSeek(header.unkOffset3);
 struct {

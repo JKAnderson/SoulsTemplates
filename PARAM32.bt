@@ -1,0 +1,49 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    int stringsStart <format=hex>;
+    short unk04;
+    short unk06;
+    short unk08;
+    short rowCount;
+    char id[0x20];
+    short unk2C;
+    short unk2E;
+    int rowsOffset;
+    int unk34;
+    int unk38;
+    int unk3C;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int id;
+    int dataOffset <format=hex>;
+    int nameOffset <format=hex>;
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(dataOffset);
+    byte data <bgcolor=cBlack, fgcolor=cWhite>;
+    FSeek(pos);
+} Row <read=ReadRow, bgcolor=cLtGreen, optimize=false>;
+
+string ReadRow(Row& row) {
+    string str;
+    SPrintf(str, "%10i @ %8Xh", row.id, row.dataOffset);
+    return str;
+}
+
+
+Header header;
+Row rows[header.rowCount];

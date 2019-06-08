@@ -11,15 +11,14 @@
 //   History: 
 //------------------------------------------------
 
+local int VARINT_LONG = 0;
 #include "Util.bt"
 
 LittleEndian();
 
-local int wide = 0;
-
 struct Header {
     char magic[4]; Assert(magic == "fSSL" || magic == "fsSL");
-    wide = magic == "fsSL";
+    VARINT_LONG = magic == "fsSL";
 
     int unk04; Assert(unk04 == 1);
     int numberOfDarkSoulses1;
@@ -29,17 +28,17 @@ struct Header {
     int unk10 <format=hex>; Assert(unk10 == 0x54);
     int dataSize;
     int unk18; Assert(unk18 == 6);
-    int dataHeaderSize <format=hex>; Assert(dataHeaderSize == (wide ? 0x48 : 0x2C));
+    int dataHeaderSize <format=hex>; Assert(dataHeaderSize == (VARINT_LONG ? 0x48 : 0x2C));
     int unk20; Assert(unk20 == 1);
-    int stateGroupSize <format=hex>; Assert(stateGroupSize == (wide ? 0x20 : 0x10));
+    int stateGroupSize <format=hex>; Assert(stateGroupSize == (VARINT_LONG ? 0x20 : 0x10));
     int stateGroupCount;
-    int stateSize <format=hex>; Assert(stateSize == (wide ? 0x48 : 0x24));
+    int stateSize <format=hex>; Assert(stateSize == (VARINT_LONG ? 0x48 : 0x24));
     int stateCount;
-    int conditionSize <format=hex>; Assert(conditionSize == (wide ? 0x38 : 0x1C));
+    int conditionSize <format=hex>; Assert(conditionSize == (VARINT_LONG ? 0x38 : 0x1C));
     int conditionCount;
-    int commandCallSize <format=hex>; Assert(commandCallSize == (wide ? 0x18 : 0x10));
+    int commandCallSize <format=hex>; Assert(commandCallSize == (VARINT_LONG ? 0x18 : 0x10));
     int commandCallCount;
-    int commandArgSize <format=hex>; Assert(commandArgSize == (wide ? 0x10 : 0x8));
+    int commandArgSize <format=hex>; Assert(commandArgSize == (VARINT_LONG ? 0x10 : 0x8));
     int commandArgCount;
     int conditionOffsetsOffset <format=hex>;
     int conditionOffsetCount;
@@ -63,21 +62,21 @@ struct DataHeader {
     int unk74 <format=hex>;
     int unk78 <format=hex>;
     int unk7C <format=hex>;
-    if (wide) {
+    if (VARINT_LONG) {
         int unk80; Assert(unk80 == 0);
     }
         
-    Varint dataHeaderSize; Assert(dataHeaderSize.value == (wide ? 0x48 : 0x2C));
-    Varint stateGroupCount; Assert(stateGroupCount.value == header.stateGroupCount);
+    Varint dataHeaderSize; Assert(dataHeaderSize.val == (VARINT_LONG ? 0x48 : 0x2C));
+    Varint stateGroupCount; Assert(stateGroupCount.val == header.stateGroupCount);
     Varint nameOffset;
     Varint nameLength;
-    Varint unkNull1; Assert(unkNull1.value == 0 || unkNull1.value == -1);
-    Varint unkNull2; Assert(unkNull2.value == unkNull1.value);
+    Varint unkNull1; Assert(unkNull1.val == 0 || unkNull1.val == -1);
+    Varint unkNull2; Assert(unkNull2.val == unkNull1.val);
 
-    if (nameLength.value > 0) {
+    if (nameLength.val > 0) {
         local quad pos = FTell();
-        FSeek(0x6C + nameOffset.value);
-        wchar_t name[nameLength.value];
+        FSeek(0x6C + nameOffset.val);
+        wchar_t name[nameLength.val];
         FSeek(pos);
     }
 } dataHeader <bgcolor=cLtRed>;
@@ -87,10 +86,10 @@ struct CommandArg {
     Varint dataOffset;
     Varint dataSize;
     
-    if (dataSize.value > 0) {
+    if (dataSize.val > 0) {
         local quad pos = FTell();
-        FSeek(dataStart + dataOffset.value);
-        byte data[dataSize.value] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
+        FSeek(dataStart + dataOffset.val);
+        byte data[dataSize.val] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
         FSeek(pos);
     }
 };
@@ -103,10 +102,10 @@ struct CommandCall {
     Varint commandArgsOffset;
     Varint commandArgCount;
 
-    if (commandArgCount.value > 0) {
+    if (commandArgCount.val > 0) {
         local quad pos = FTell();
-        FSeek(dataStart + commandArgsOffset.value);
-        CommandArg args[commandArgCount.value] <bgcolor=cAqua, optimize=false>;
+        FSeek(dataStart + commandArgsOffset.val);
+        CommandArg args[commandArgCount.val] <bgcolor=cAqua, optimize=false>;
         FSeek(pos);
     }
 };
@@ -128,21 +127,21 @@ struct State {
     Varint unkCommandCount;
     
     local quad pos = FTell();
-    if (conditionOffsetCount.value > 0) {
-        FSeek(dataStart + conditionOffsetsOffset.value);
-        Varint conditionOffsets[conditionOffsetCount.value] <format=hex, bgcolor=cDkGreen, optimize=true>;
+    if (conditionOffsetCount.val > 0) {
+        FSeek(dataStart + conditionOffsetsOffset.val);
+        Varint conditionOffsets[conditionOffsetCount.val] <format=hex, bgcolor=cDkGreen, optimize=true>;
     }
-    if (onCommandCount.value > 0) {
-        FSeek(dataStart + onCommandsOffset.value);
-        CommandCall onCommands[onCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    if (onCommandCount.val > 0) {
+        FSeek(dataStart + onCommandsOffset.val);
+        CommandCall onCommands[onCommandCount.val] <bgcolor=cLtBlue, optimize=false>;
     }
-    if (offCommandCount.value > 0) {
-        FSeek(dataStart + offCommandsOffset.value);
-        CommandCall offCommands[offCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    if (offCommandCount.val > 0) {
+        FSeek(dataStart + offCommandsOffset.val);
+        CommandCall offCommands[offCommandCount.val] <bgcolor=cLtBlue, optimize=false>;
     }
-    if (unkCommandCount.value > 0) {
-        FSeek(dataStart + unkCommandsOffset.value);
-        CommandCall unkCommands[unkCommandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    if (unkCommandCount.val > 0) {
+        FSeek(dataStart + unkCommandsOffset.val);
+        CommandCall unkCommands[unkCommandCount.val] <bgcolor=cLtBlue, optimize=false>;
     }
     FSeek(pos);
 };
@@ -152,19 +151,19 @@ struct StateGroup {
     Varint unkOffset1;
     Varint stateCount;
     // One of these is probably "entry state" or something.
-    Varint unkOffset2; Assert(unkOffset2.value == unkOffset1.value);
+    Varint unkOffset2; Assert(unkOffset2.val == unkOffset1.val);
     
     local quad pos = FTell();
-    FSeek(dataStart + unkOffset1.value);
+    FSeek(dataStart + unkOffset1.val);
     struct StatesGroup {
-        State states[stateCount.value] <bgcolor=cGreen, optimize=false>;
+        State states[stateCount.val] <bgcolor=cGreen, optimize=false>;
     } statesGroup;
     State transitionState <bgcolor=cDkGreen>;
     FSeek(pos);
 };
 
 struct StateGroupsGroup {
-    StateGroup stateGroups[dataHeader.stateGroupCount.value] <bgcolor=cSilver, optimize=false>;
+    StateGroup stateGroups[dataHeader.stateGroupCount.val] <bgcolor=cSilver, optimize=false>;
 } stateGroupsGroup;
 
 struct Condition {
@@ -181,17 +180,17 @@ struct Condition {
     Varint dataSize;
     
     local quad pos = FTell();
-    if (commandCount.value > 0) {
-        FSeek(dataStart + commandsOffset.value);
-        CommandCall commands[commandCount.value] <bgcolor=cLtBlue, optimize=false>;
+    if (commandCount.val > 0) {
+        FSeek(dataStart + commandsOffset.val);
+        CommandCall commands[commandCount.val] <bgcolor=cLtBlue, optimize=false>;
     }
-    if (conditionOffsetCount.value > 0) {
-        FSeek(dataStart + conditionOffsetsOffset.value);
-        Varint conditionOffsets[conditionOffsetCount.value] <format=hex, bgcolor=cDkGreen, optimize=true>;
+    if (conditionOffsetCount.val > 0) {
+        FSeek(dataStart + conditionOffsetsOffset.val);
+        Varint conditionOffsets[conditionOffsetCount.val] <format=hex, bgcolor=cDkGreen, optimize=true>;
     }
-    if (dataSize.value > 0) {
-        FSeek(dataStart + dataOffset.value);
-        byte data[dataSize.value] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
+    if (dataSize.val > 0) {
+        FSeek(dataStart + dataOffset.val);
+        byte data[dataSize.val] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
     }
     FSeek(pos);
 };

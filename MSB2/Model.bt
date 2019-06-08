@@ -1,0 +1,48 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MSB2\Model.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: DS2 map layout models
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+enum <short> ModelType {
+    ModelTypeMapPiece = 0,
+    ModelTypeObject = 1,
+    //ModelTypeEnemy = 2,
+    ModelTypeCollision = 3,
+    ModelTypeNavmesh = 4,
+};
+
+struct ModelMapPiece;
+
+typedef struct {
+    local quad start <hidden=true> = FTell();
+
+    quad nameOffset <format=hex>; Assert(nameOffset == 0x20);
+    ModelType type;
+    short id;
+    int unk0C; Assert(unk0C == 0);
+    quad offset10 <format=hex>;
+    quad unk18; Assert(unk18 == 0);
+    
+    FSeek(start + nameOffset);
+    wstring name;
+    
+    if (offset10 != 0) {
+        FSeek(start + offset10);
+        int unkX00; Assert(unkX00 == 0);
+        int unkX04; Assert(unkX04 == 0);
+    }
+} Model <read=ReadModel>;
+
+wstring ReadModel(Model& model) {
+    string str;
+    SPrintf(str, "%i ", model.type);
+    return str + model.name;
+}

@@ -11,21 +11,11 @@
 //   History: 
 //------------------------------------------------
 
-typedef struct {
-    float x;
-    float y;
-    float z;
-} Vector3 <read=ReadVector3>;
-
-string ReadVector3(Vector3& vec) {
-    string str;
-    SPrintf(str, "<%7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z);
-    return str;
-}
+#include "Util.bt"
 
 typedef struct {
     char magic[4]; Assert(magic == "NVMA");
-    int unk04; Assert(unk04 == 4);
+    int version; Assert(version == 4 || version == 5);
     int fileSize <format=hex>;
     int sectionCount; Assert(sectionCount == 9);
 } Header <read=ReadHeader>;
@@ -36,24 +26,25 @@ string ReadHeader(Header& header) {
     return str;
 }
 
+
 typedef struct (int assertIndex) {
     int index; Assert(index == assertIndex);
-    // 2 - DS3, 3 - BB
-    int unk04; Assert(index == 0 ? (unk04 == 2 || unk04 == 3) : (unk04 == 1));
+    int version;
     int sectionSize <format=hex>;
     int entryCount;
+    local quad start <format=hex> = FTell();
 } SectionHeader <read=ReadSectionHeader>;
 
 string ReadSectionHeader(SectionHeader& header) {
     string str;
     SPrintf(str, "%i[%5i] %i %5X",
-        header.index, header.entryCount, header.unk04, header.sectionSize);
+        header.index, header.entryCount, header.version, header.sectionSize);
     return str;
 }
 
 
-typedef struct {
-    Vector3 unk00; // Usually 0,0,0
+typedef struct (SectionHeader& header) {
+    Vector3 position; // Usually 0,0,0
     float unk0C; Assert(unk0C == 1);
     int unk10; // These are not floats
     int unk14;
@@ -63,22 +54,38 @@ typedef struct {
     float unk24; // The only file where these two aren't 1 is m50_00,
     float unk28; // where a couple entries have 1.000001 or 1.000002 like lel
     int unk2C; Assert(unk2C == 0);
-    int mapSectionID; // i.e. 350000110 in int form
-    int unk34;
+    int nvaNameID; // i.e. 350000110 in int form
+    int navimeshModelID;
     int unk38;
     int unk3C; Assert(unk3C == 0);
-    int unk40;
-    int unkCount;
+    int condition;
+    int count44;
     short unk48;
-    short unk4A;
+    short count4A;
     int unk4C;
-    if (unkCount > 0) {
-    int mapSectionArray[unkCount]; // Each array entry seems to either be a section reference or -1
-    }
+    
+    // Each array entry seems to either be a section reference or -1
+    if (header.version == 2 || header.version == 3) {
+        if (count44 > 0) {
+            int mapSectionArray[count44];
+        }
 
-    local int i;
-    for (i = 0; i < 16 - unkCount; i++) {
-        int null <fgcolor=cRed, hidden=true>; Assert(null == -1);
+        local int i <hidden=true>;
+        for (i = 0; i < 16 - count44; i++) {
+            int null <fgcolor=cRed, hidden=true>; Assert(null == -1);
+        }
+    } else {
+        int unkOffset;
+        int unk54; Assert(unk54 == 0);
+        int unk58; Assert(unk54 == 0);
+        int unk5C; Assert(unk54 == 0);
+        
+        if (count44 > 0) {
+            local quad pos <hidden=true> = FTell();
+            FSeek(unkOffset);
+            int mapSectionArray[count44];
+            FSeek(pos);
+        }
     }
 } Entry0 <read=ReadEntry0>;
 
@@ -91,8 +98,9 @@ string ReadEntry0(Entry0& entry) {
 typedef struct {
     SectionHeader header(0);
     if (header.entryCount > 0) {
-        Entry0 entries[header.entryCount] <optimize=false>;
+        Entry0 entries(header)[header.entryCount] <optimize=false>;
     }
+    FSeek(header.start + header.sectionSize);
 } Section0 <read=ReadSection0>;
 
 string ReadSection0(Section0& section) {
@@ -107,7 +115,7 @@ typedef struct {
 
 string ReadEntry1(Entry1& entry) {
     string str;
-    SPrintf(str, "%i %i", unk00, unk04);
+    SPrintf(str, "%i %i", entry.unk00, entry.unk04);
     return str;
 }
 
@@ -175,17 +183,17 @@ string ReadSection3(Section3& section) {
 
 
 typedef struct {
-    int mapSectionID0;
-    int mapSectionID1;
-    int unk08;
-    int unk0C;
-    int unk10;
+    int nvaModelNameMain;
+    int nvaModelNameConnectedPiece;
+    int section4Index;
+    int selfCompareCondition;
+    int section5Index;
     int unk14; Assert(unk14 == 0);
-    int unk18;
+    int section6Index;
     int unk1C; Assert(unk1C == 0);
-} Entry4 <read=ReadEntry4>;
+} Connector <read=ReadEntry4>;
 
-string ReadEntry4(Entry4& entry) {
+string ReadEntry4(Connector& entry) {
     string str;
     SPrintf(str, "");
     return str;
@@ -194,7 +202,7 @@ string ReadEntry4(Entry4& entry) {
 typedef struct {
     SectionHeader header(4);
     if (header.entryCount > 0) {
-        Entry4 entries[header.entryCount] <optimize=false>;
+        Connector entries[header.entryCount] <optimize=false>;
     }
 } Section4 <read=ReadSection4>;
 
@@ -208,9 +216,9 @@ typedef struct {
     int unk04;
     int unk08;
     int unk0C;
-} Entry5 <read=ReadEntry5>;
+} ConnectPoint <read=ReadEntry5>;
 
-string ReadEntry5(Entry5& entry) {
+string ReadEntry5(ConnectPoint& entry) {
     string str;
     SPrintf(str, "%4i %4i %4i %4i", entry.unk00, entry.unk04, entry.unk08, entry.unk0C);
     return str;
@@ -219,7 +227,7 @@ string ReadEntry5(Entry5& entry) {
 typedef struct {
     SectionHeader header(5);
     if (header.entryCount > 0) {
-        Entry5 entries[header.entryCount] <optimize=false>;
+        ConnectPoint entries[header.entryCount] <optimize=false>;
     }
 } Section5 <read=ReadSection5>;
 
@@ -278,29 +286,39 @@ string ReadSection7(Section7& section) {
 }
 
 
-typedef struct {
-    Vector3 unk00;
-    short unk0C;
-    short unk0A;
-    short unk10[16];
+typedef struct (SectionHeader& header) {
+    Vector3 position;
+    short section0Index;
+    short mainID;
+    
+    if (header.version == 1) {
+        short subIDs[16];
+    } else if (header.version == 2) {
+        int subIDCount;
+        int unk14; Assert(unk14 == -1);
+        int subIDsOffset;
+        int unk1C; Assert(unk1C == 0);
+        
+        if (subIDCount > 0) {
+            local quad pos <hidden=true> = FTell();
+            FSeek(subIDsOffset);
+            short subIDs[subIDCount];
+            FSeek(pos);
+        }
+    }
 } Entry8 <read=ReadEntry8>;
 
 string ReadEntry8(Entry8& entry) {
     string str;
-    SPrintf(str,
-        "%s %3i %2i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i %5i",
-        ReadVector3(entry.unk00), entry.unk0C, entry.unk0A,
-        entry.unk10[0], entry.unk10[1], entry.unk10[2], entry.unk10[3],
-        entry.unk10[4], entry.unk10[5], entry.unk10[6], entry.unk10[7],
-        entry.unk10[8], entry.unk10[9], entry.unk10[10], entry.unk10[11],
-        entry.unk10[12], entry.unk10[13], entry.unk10[14], entry.unk10[15]);
+    SPrintf(str, "%s %3i %2i",
+        ReadVector3(entry.unk00), entry.unk0C, entry.unk0A);
     return str;
 }
 
 typedef struct {
     SectionHeader header(8);
     if (header.entryCount > 0) {
-        Entry8 entries[header.entryCount] <optimize=false>;
+        Entry8 entries(header)[header.entryCount] <optimize=false>;
     }
 } Section8 <read=ReadSection8>;
 

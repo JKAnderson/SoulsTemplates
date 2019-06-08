@@ -1,0 +1,234 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: MDL-Otogi.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: [+4] 4D 44 4C 20
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+
+typedef struct {
+    int fileSize <format=hex>;
+    char magic[4]; Assert(magic == "MDL ");
+    short unk08;
+    short unk0A;
+    int unk0C;
+    int unk10 <format=hex>;
+    int unk14 <format=hex>;
+
+    int count18;
+    int indexCount;
+    int vertexCountA;
+    int vertexCountB;
+    int vertexCountC;
+    int vertexCountD;
+    int count30;
+    int count34;
+    int textureCount;
+
+    int offset3C <format=hex>;
+    int indicesOffset <format=hex>;
+    int verticesOffsetA <format=hex>;
+    int verticesOffsetB <format=hex>;
+    int verticesOffsetC <format=hex>;
+    int verticesOffsetD <format=hex>;
+    int offset54 <format=hex>;
+    int offset58 <format=hex>;
+    int texturesOffset <format=hex>;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    byte unk00;
+    byte unk01;
+    short vertexCount;
+    int indexCount;
+    int startVertex;
+    int startIndex;
+} Faceset <bgcolor=cDkYellow>;
+
+typedef struct {
+    short facesetCount;
+    short unk02;
+    int facesetsOffset;
+    short unk[8];
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(facesetsOffset);
+    Faceset facesets[facesetCount];
+    FSeek(pos);
+} FacesetC <bgcolor=cLtYellow, optimize=false>;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    float unk18;
+    float unk1C;
+    float unk20;
+    int unk24;
+    int unk28;
+    int unk2C;
+    int unk30;
+    int facesetCountA;
+    int facesetCountB;
+    int facesetCountC;
+    int facesetCountD;
+    int facesetsOffsetA <format=hex>;
+    int facesetsOffsetB <format=hex>;
+    int facesetsOffsetC <format=hex>;
+    int facesetsOffsetD <format=hex>;
+    int unk54;
+    float unk58;
+    float unk5C;
+    float unk60;
+    float unk64;
+    float unk68;
+    float unk6C;
+    int unk70;
+    int unk74;
+    int unk78;
+    int unk7C;
+    int unk80;
+    int unk84;
+    int unk88;
+    int unk8C;
+    
+    local quad pos <hidden=true> = FTell();
+    if (facesetCountA > 0) {
+        FSeek(facesetsOffsetA);
+        Faceset facesetsA[facesetCountA];
+    }
+    if (facesetCountB > 0) {
+        FSeek(facesetsOffsetB);
+        //FacesetB facesetsB[facesetCountB];
+    }
+    if (facesetCountC > 0) {
+        FSeek(facesetsOffsetC);
+        FacesetC facesetsC[facesetCountC];
+    }
+    if (facesetCountD > 0) {
+        FSeek(facesetsOffsetD);
+        //FacesetD facesetsD[facesetCountD];
+    }
+    FSeek(pos);
+} Unk18 <bgcolor=cYellow, optimize=false>;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    float unk14;
+    int unk18;
+    int unk1C;
+} Unk30 <bgcolor=cLtGray>;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    int unk18;
+    int unk1C;
+    float unk20;
+    float unk24;
+    float unk28;
+    float unk2C;
+    float unk30;
+    float unk34;
+    float unk38;
+    float unk3C;
+    float unk40;
+    float unk44;
+    float unk48;
+    float unk4C;
+    int unk50;
+    int unk54;
+    int unk58;
+    int unk5C;
+    float unk60;
+    int unk64;
+    int unk68;
+    int unk6C;
+    int unk70;
+    int unk74;
+    int unk78;
+    int unk7C;
+} Unk34 <bgcolor=cPurple>;
+
+
+typedef struct {
+    string texture;
+} Texture <bgcolor=cLtGreen, optimize=false>;
+
+
+typedef struct {
+    Vector3 position;
+    float unk0C; // Normal?
+    int unk10; Assert(unk10 == 0); // 0
+    int unk14; Assert(unk14 == 0); // 0
+    int unk18; // Color?
+    Vector2 uvs[4];
+} VertexA <read=ReadVertexA, bgcolor=cAqua, optimize=false>;
+
+string ReadVertexA(VertexA& vert) {
+    string str;
+    SPrintf(str, "%f", vert.unk0C);
+    return str;
+}
+
+
+typedef struct {
+    Vector3 position;
+    int unk0C;
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18;
+    Vector2 uvs[4];
+    int unk3C;
+    float unk40;
+    int unk44;
+} VertexC <bgcolor=cAqua, optimize=false>;
+
+
+Header header;
+
+FSeek(header.offset3C);
+struct { Unk18 unk18s[header.count18]; } unk18s;
+
+FSeek(header.indicesOffset);
+short indices[header.indexCount] <bgcolor=cLtBlue>;
+
+FSeek(header.verticesOffsetA);
+struct { VertexA verticesA[header.vertexCountA]; } verticesA;
+
+FSeek(header.verticesOffsetB);
+//Unk28 unk28s[header.verticesCountB];
+
+FSeek(header.verticesOffsetC);
+struct { VertexC verticesC[header.vertexCountC]; } verticesC;
+
+FSeek(header.offset54);
+Unk30 unk30s[header.count30];
+
+FSeek(header.offset58);
+Unk34 unk34s[header.count34];
+
+FSeek(header.texturesOffset);
+struct { Texture textures[header.textureCount]; } textures;

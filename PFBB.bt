@@ -1,0 +1,48 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: PFBB.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dark Souls
+// File Mask: *.pfbbin
+//  ID Bytes: 50 46 42 42 46 52 50 47 32
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+
+typedef struct {
+    char magic[12]; Assert(magic == "PFBBFRPG2");
+    int unk0C;
+    int unk10;
+    int unk14;
+    short unk18;
+    short unk1A;
+    short unk1C;
+    short unk1E;
+    int unk20;
+    int unk24;
+    int unk28;
+    short unk2C;
+    short unk2E;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int unk00;
+    OffsetString name(0, 1);
+    OffsetString path(0, 1);
+    int unk0C;
+    int unk10;
+    int unk14;
+} Unk1 <read=ReadUnk1, bgcolor=cLtGreen, optimize=false>;
+
+wstring ReadUnk1(Unk1& unk1) {
+    return unk1.path.str + " | " + unk1.name.str;
+}
+
+
+Header header;
+Unk1 unk1s[header.unk2E];

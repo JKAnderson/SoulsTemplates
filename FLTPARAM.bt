@@ -56,7 +56,7 @@ struct Param {
     byte unk0A; Assert(unk0A == 0);
     byte unk0B; Assert(unk0B == 0);
     string name1;
-    string name2;
+    //string name2;
     
     FSeek(header.valuesOffset + valuesOffset);
     local int color = GetBackColor();
@@ -128,7 +128,7 @@ struct Group {
     int paramCount;
     int paramHeaderOffsetsOffset;
     string name1;
-    string name2;
+    //string name2;
     
     FSeek(header.paramHeaderOffsetsOffset + paramHeaderOffsetsOffset);
     Param params[paramCount] <bgcolor=cAqua, optimize=false>;
