@@ -1,0 +1,103 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MSB1\Point.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: DS1 map layout regions
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+enum <int> ShapeType {
+    ShapeTypePoint = 0,
+    ShapeTypeCircle = 1,
+    ShapeTypeSphere = 2,
+    ShapeTypeCylinder = 3,
+    ShapeTypeSquare = 4,
+    ShapeTypeBox = 5,
+};
+
+struct ShapeCircle;
+struct ShapeSphere;
+struct ShapeCylinder;
+struct ShapeSquare;
+struct ShapeBox;
+
+typedef struct {
+    local quad start <hidden=true> = FTell();
+    
+    int nameOffset <format=hex>;
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    int id;
+    ShapeType shapeType;
+    Vector3 position;
+    Vector3 rotation;
+    int baseDataOffset1 <format=hex>;
+    int baseDataOffset2 <format=hex>;
+    int shapeDataOffset <format=hex>;
+    int entityDataOffset <format=hex>;
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    
+    FSeek(start + nameOffset);
+    string name;
+    
+    FSeek(start + baseDataOffset1);
+    int unkA00 <hidden=true>; Assert(unkA00 == 0);
+    
+    FSeek(start + baseDataOffset2);
+    int unkB00 <hidden=true>; Assert(unkB00 == 0);
+    
+    FSeek(start + entityDataOffset);
+    int entityID;
+    
+    if (shapeType == ShapeTypePoint) {
+        Assert(shapeDataOffset == 0);
+    } else {
+        Assert(shapeDataOffset != 0);
+    }
+    
+    if (shapeDataOffset != 0) {
+        FSeek(start + shapeDataOffset);
+        switch (shapeType) {
+            case ShapeTypeCircle: ShapeCircle circle; break;
+            case ShapeTypeSphere: ShapeSphere sphere; break;
+            case ShapeTypeCylinder: ShapeCylinder cylinder; break;
+            case ShapeTypeSquare: ShapeSquare square; break;
+            case ShapeTypeBox: ShapeBox box; break;
+        }
+    }
+} Point <read=ReadPoint>;
+
+wstring ReadPoint(Point& point) {
+    string str;
+    SPrintf(str, "%i ", point.shapeType);
+    return str + point.name;
+}
+
+
+typedef struct {
+    float radius;
+} ShapeCircle;
+
+typedef struct {
+    float radius;
+} ShapeSphere;
+
+typedef struct {
+    float radius;
+    float height;
+} ShapeCylinder;
+
+typedef struct {
+    float width;
+    float depth;
+} ShapeSquare;
+
+typedef struct {
+    float width;
+    float depth;
+    float height;
+} ShapeBox;

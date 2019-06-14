@@ -4,21 +4,23 @@
 //      File: FLVER.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: Sekiro models
+//   Purpose: FromSoft models
 //  Category: Dark Souls
-// File Mask: *.flver
-//  ID Bytes: 46 4C 56 45 52 00 4C 00 1A 00 02 00
+// File Mask: *.flv*
+//  ID Bytes: 46 4C 56 45 52 00 4C 00
 //   History: 
 //------------------------------------------------
 
 #include "Util.bt"
 
 LittleEndian();
+if (ReadString(6) == "B")
+    BigEndian();
 
 typedef struct {
     char magic[6]; Assert(magic == "FLVER\0");
-    char endian[2]; Assert(endian == "L\0");
-    uint version; Assert(version == 0x2001A);
+    char endian[2]; Assert(endian == "B\0" || endian == "L\0");
+    uint version;
     uint dataOffset <format=hex>;
     uint dataLength <format=hex>;
     int dummyCount;
@@ -30,7 +32,7 @@ typedef struct {
     Vector3 boundingBoxMax;
     int unk40;
     int totalFaceCount;
-    byte unk48;
+    byte vertexIndexSize;
     byte unk49;
     byte unk4A;
     byte unk4B;
@@ -42,7 +44,7 @@ typedef struct {
     int unk5C;
     int unk60 <hidden=true>; Assert(unk60 == 0);
     int unk64 <hidden=true>; Assert(unk64 == 0);
-    int unk68;
+    int flags68;
     int unk6C <hidden=true>; Assert(unk6C == 0);
     int unk70 <hidden=true>; Assert(unk70 == 0);
     int unk74 <hidden=true>; Assert(unk74 == 0);
@@ -59,7 +61,8 @@ typedef struct {
     short dummyBoneIndex;
     Vector3 upward;
     short attachBoneIndex;
-    short unk2E;
+    byte unk2E;
+    byte unk2F;
     int unk30;
     int unk34;
     int unk38 <hidden=true>; Assert(unk38 == 0);
@@ -89,9 +92,11 @@ typedef struct {
     if (gxOffset != 0) {
         local quad pos <hidden=true> = FTell();
         FSeek(gxOffset);
-        do {
-            GXItem gxItem;
-        } while(gxItem.unk00 != 0x7FFFFFFF);
+        struct {
+            do {
+                GXItem gxItem;
+            } while(gxItem.unk00 != 0x7FFFFFFF);
+        } gxItems;
         FSeek(pos);
     }
 } Material <read=ReadMaterial, bgcolor=cGreen, optimize=false>;
@@ -125,13 +130,13 @@ wstring ReadBone(Bone& bone) {
 }
 
 
-typedef struct {
+typedef struct (Header& header) {
     int dynamic; Assert(dynamic == 0 || dynamic == 1);
     int materialIndex;
-    int unk08;
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
     int defaultBoneIndex;
     int boneCount;
-    int unk14;
     uint boundingBoxOffset <format=hex>;
     uint boneIndicesOffset <format=hex>;
     int faceSetCount;
@@ -140,10 +145,13 @@ typedef struct {
     uint vertexBufferIndicesOffset <format=hex>;
     
     local quad pos <hidden=true> = FTell();
-    FSeek(boundingBoxOffset);
-    Vector3 boundingBoxMin;
-    Vector3 boundingBoxMax;
-    Vector3 boundingBoxUnk;
+    if (boundingBoxOffset != 0) {
+        FSeek(boundingBoxOffset);
+        Vector3 boundingBoxMin;
+        Vector3 boundingBoxMax;
+        if (header.version >= 0x2001A)
+            Vector3 boundingBoxUnk;
+    }
     if (boneCount > 0) {
         FSeek(boneIndicesOffset);
         int boneIndices[boneCount];
@@ -156,7 +164,7 @@ typedef struct {
 } Mesh <bgcolor=cAqua, optimize=false>;
 
 
-typedef struct (uint dataOffset) {
+typedef struct (Header& header) {
     uint flags;
     byte triangleStrip;
     byte cullBackFaces;
@@ -169,7 +177,7 @@ typedef struct (uint dataOffset) {
     int unk1C <hidden=true>; Assert(unk1C == 0);
     
     local quad pos <hidden=true> = FTell();
-    FSeek(dataOffset + vertexIndicesOffset);
+    FSeek(header.dataOffset + vertexIndicesOffset);
     if (vertexIndexSize == 0 || vertexIndexSize == 16) {
         ushort vertexIndices[vertexCount];
     } else if (vertexIndexSize == 32) {
@@ -179,7 +187,7 @@ typedef struct (uint dataOffset) {
 } FaceSet <bgcolor=cDkAqua, optimize=false>;
 
 
-typedef struct (uint dataOffset) {
+typedef struct (Header& header) {
     int bufferIndex;
     int layoutIndex;
     int vertexSize;
@@ -190,7 +198,7 @@ typedef struct (uint dataOffset) {
     uint bufferOffset <format=hex>;
     
     local quad pos <hidden=true> = FTell();
-    FSeek(dataOffset + bufferOffset);
+    FSeek(header.dataOffset + bufferOffset);
     ubyte buffer[verticesLength];
     FSeek(pos);
 } VertexBuffer <bgcolor=cLtBlue, optimize=false>;
@@ -272,13 +280,14 @@ if (header.materialCount > 0)
 if (header.boneCount > 0)
     struct { Bone bones[header.boneCount]; } bones;
 if (header.meshCount > 0)
-    struct { Mesh meshes[header.meshCount]; } meshes;
+    struct { Mesh meshes(header)[header.meshCount]; } meshes;
 if (header.faceSetCount > 0)
-    struct { FaceSet faceSets(header.dataOffset)[header.faceSetCount]; } faceSets;
+    struct { FaceSet faceSets(header)[header.faceSetCount]; } faceSets;
 if (header.vertexBufferCount > 0)
-    struct { VertexBuffer vertexBuffers(header.dataOffset)[header.vertexBufferCount]; } vertexBuffers;
+    struct { VertexBuffer vertexBuffers(header)[header.vertexBufferCount]; } vertexBuffers;
 if (header.bufferLayoutCount > 0)
     struct { BufferLayout bufferLayouts[header.bufferLayoutCount]; } bufferLayouts;
 if (header.textureCount > 0)
     struct { Texture textures[header.textureCount]; } textures;
-UnkThing unkThing;
+if (header.version >= 0x2001A)
+    UnkThing unkThing;

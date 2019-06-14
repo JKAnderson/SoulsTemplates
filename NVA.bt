@@ -15,9 +15,9 @@
 
 typedef struct {
     char magic[4]; Assert(magic == "NVMA");
-    int version; Assert(version == 4 || version == 5);
+    int version; //Assert(version == 4 || version == 5);
     int fileSize <format=hex>;
-    int sectionCount; Assert(sectionCount == 9);
+    int sectionCount; Assert(sectionCount == 8 || sectionCount == 9);
 } Header <read=ReadHeader>;
 
 string ReadHeader(Header& header) {
@@ -75,7 +75,7 @@ typedef struct (SectionHeader& header) {
             int null <fgcolor=cRed, hidden=true>; Assert(null == -1);
         }
     } else {
-        int unkOffset;
+        int unkOffset <format=hex>;
         int unk54; Assert(unk54 == 0);
         int unk58; Assert(unk54 == 0);
         int unk5C; Assert(unk54 == 0);
@@ -109,7 +109,7 @@ string ReadSection0(Section0& section) {
 
 
 typedef struct {
-    int unk00 <fgcolor=cDkYellow>; Assert(unk00 == 0);
+    int unk00 <fgcolor=cDkYellow>;
     int unk04 <fgcolor=cDkYellow>; Assert(unk04 == 0);
 } Entry1 <read=ReadEntry1>;
 
@@ -296,7 +296,7 @@ typedef struct (SectionHeader& header) {
     } else if (header.version == 2) {
         int subIDCount;
         int unk14; Assert(unk14 == -1);
-        int subIDsOffset;
+        int subIDsOffset <format=hex>;
         int unk1C; Assert(unk1C == 0);
         
         if (subIDCount > 0) {
@@ -311,7 +311,7 @@ typedef struct (SectionHeader& header) {
 string ReadEntry8(Entry8& entry) {
     string str;
     SPrintf(str, "%s %3i %2i",
-        ReadVector3(entry.unk00), entry.unk0C, entry.unk0A);
+        ReadVector3(entry.position), entry.section0Index, entry.mainID);
     return str;
 }
 
@@ -336,4 +336,5 @@ Section4 section4 <bgcolor=cGreen>;
 Section5 section5 <bgcolor=cDkGreen>;
 Section6 section6 <bgcolor=cAqua>;
 Section7 section7 <bgcolor=cLtBlue>;
+if (header.sectionCount == 9)
 Section8 section8 <bgcolor=cLtPurple>;

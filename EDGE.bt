@@ -23,25 +23,23 @@ typedef struct {
 
 typedef struct {
     Vector3 v1;
-    float unk0C; Assert(unk0C == 1);
+    float unk0C;
     Vector3 v2;
-    float unk1C; Assert(unk1C == 1);
-    int unk20; Assert(unk20 == 0);
-    int unk24; Assert(unk24 == 0);
-    int unk28; Assert(unk28 == 0);
-    int unk2C; Assert(unk2C == 0);
+    float unk1C;
+    Vector3 v3;
+    float unk2C;
     int unk30;
     byte unk34;
     byte unk35;
     byte unk36;
-    byte unk37; Assert(unk37 == 0);
-    int unk38; Assert(unk38 == 0);
-    int unk3C; Assert(unk3C == 0);
+    byte unk37 <hidden=true>; Assert(unk37 == 0);
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
 } Edge <read=ReadEdge, bgcolor=cLtGreen, optimize=false>;
 
 string ReadEdge(Edge& edge) {
     string str;
-    SPrintf(str, "%2i %i %i %s %s", edge.unk30, edge.unk34, edge.unk35,
+    SPrintf(str, "%2i %2i %2i %2i %s %s", edge.unk30, edge.unk34, edge.unk35, edge.unk36,
         ReadVector3(edge.v1), ReadVector3(edge.v2));
     return str;
 }

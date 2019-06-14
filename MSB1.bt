@@ -1,0 +1,101 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.1 Binary Template
+//
+//      File: MSB1.bt
+//   Authors: Meowmaritus, TKGP
+//   Version: 
+//   Purpose: DS1 map layouts
+//  Category: Dark Souls
+// File Mask: *.msb
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+#include "MSB1\Model.bt"
+#include "MSB1\Event.bt"
+#include "MSB1\Point.bt"
+#include "MSB1\Part.bt"
+
+
+typedef struct (string assertName) {
+    int unk00;
+    OffsetString name(0, 0); Assert(name.str == assertName);
+    int count;
+    if (count > 1) {
+        int offsets[count - 1] <format=hex>;
+    }
+    int nextParamOffset <format=hex>;
+} Param <read=ReadParam>;
+
+string ReadParam(Param& param) {
+    string str;
+    SPrintf(str, "[%4i] %2Xh %s", param.count, param.unk00, param.name.str);
+    return str;
+}
+
+
+typedef struct {
+    Param param("MODEL_PARAM_ST");
+    local int i <hidden=true>;
+    for (i = 0; i < param.count - 1; i++) {
+        FSeek(param.offsets[i]);
+        Model model;
+    }
+    FSeek(param.nextParamOffset);
+} ModelParam <read=ReadModelParam, bgcolor=cLtGreen>;
+
+string ReadModelParam(ModelParam& modelParam) {
+    return ReadParam(modelParam.param);
+}
+
+
+typedef struct {
+    Param param("EVENT_PARAM_ST");
+    local int i <hidden=true>;
+    for (i = 0; i < param.count - 1; i++) {
+        FSeek(param.offsets[i]);
+        Event event;
+    }
+    FSeek(param.nextParamOffset);
+} EventParam <read=ReadEventParam, bgcolor=cYellow>;
+
+string ReadEventParam(EventParam& eventParam) {
+    return ReadParam(eventParam.param);
+}
+
+
+typedef struct {
+    Param param("POINT_PARAM_ST");
+    local int i <hidden=true>;
+    for (i = 0; i < param.count - 1; i++) {
+        FSeek(param.offsets[i]);
+        Point point;
+    }
+    FSeek(param.nextParamOffset);
+} PointParam <read=ReadPointParam, bgcolor=cAqua>;
+
+string ReadPointParam(PointParam& pointParam) {
+    return ReadParam(pointParam.param);
+}
+
+
+typedef struct {
+    Param param("PARTS_PARAM_ST");
+    local int i <hidden=true>;
+    for (i = 0; i < param.count - 1; i++) {
+        FSeek(param.offsets[i]);
+        Part part;
+    }
+    Assert(param.nextParamOffset == 0);
+} PartsParam <read=ReadPartsParam, bgcolor=cLtBlue>;
+
+string ReadPartsParam(PartsParam& partsParam) {
+    return ReadParam(partsParam.param);
+}
+
+
+ModelParam models;
+EventParam events;
+PointParam points;
+PartsParam parts;
