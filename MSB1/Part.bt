@@ -26,17 +26,13 @@ enum <int> PartType {
     PartTypeConnectCollision = 11,
 };
 
-struct PartUnk1;
-struct PartUnk2;
 struct PartMapPiece;
 struct PartObject;
 struct PartEnemy;
 struct PartPlayer;
 struct PartCollision;
+struct PartNavmesh;
 struct PartConnectCollision;
-struct PartUnk5;
-struct PartUnk6;
-struct PartUnk7;
 
 typedef struct {
     local quad start <hidden=true> = FTell();
@@ -92,6 +88,7 @@ typedef struct {
         case PartTypeDummyEnemy: PartEnemy enemy; break;
         case PartTypePlayer: PartPlayer player; break;
         case PartTypeCollision: PartCollision collision; break;
+        case PartTypeNavmesh: PartNavmesh navmesh; break;
         case PartTypeConnectCollision: PartConnectCollision connectCollision; break;
     }
 } Part <read=ReadPart>;
@@ -166,6 +163,15 @@ typedef struct {
     int unk48 <hidden=true>; Assert(unk48 == 0);
     int unk4C <hidden=true>; Assert(unk4C == 0);
 } PartCollision;
+
+
+typedef struct {
+    int nvmGroups[4];
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    int unk14 <hidden=true>; Assert(unk14 == 0);
+    int unk18 <hidden=true>; Assert(unk18 == 0);
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+} PartNavmesh;
 
 
 typedef struct {
