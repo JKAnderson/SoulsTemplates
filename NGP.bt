@@ -1,0 +1,129 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: NGP.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: DS2, something to do with navmeshes
+//  Category: Dark Souls
+// File Mask: *.ngp
+//  ID Bytes: 4E 56 47 32
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+
+typedef struct {
+    char magic[4]; Assert(magic == "NVG2");
+    int unk04; Assert(unk04 == 2);
+    int count08;
+    int count0C;
+    int count10;
+    int count14;
+    int count18;
+    byte unk1C; Assert(unk1C == -1);
+    byte unk1D; Assert(unk1D == -1);
+    byte unk1E; Assert(unk1E == -1);
+    byte unk1F;
+    quad offset20 <format=hex>;
+    quad offset28 <format=hex>;
+    quad offset30 <format=hex>;
+    quad offset38 <format=hex>;
+    quad offsets40[count08] <format=hex>;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    byte unk00[0x24];
+} UnkStructA <bgcolor=cLtGreen>;
+
+
+typedef struct {
+    byte unk00[0x0C];
+} UnkStructB <bgcolor=cAqua>;
+
+
+typedef struct {
+    short unk00;
+    short unk02;
+} UnkStructC <bgcolor=cLtBlue>;
+
+
+typedef struct {
+    short unk00;
+} UnkStructD <bgcolor=cYellow>;
+
+
+typedef struct {
+    short unk00; Assert(unk00 == -1);
+    short unk02;
+    int thisLength;
+    int unk08;
+    int unk0C; Assert(unk0C == 0);
+    Vector3 boundingBoxMin;
+    Vector3 boundingBoxMax;
+    int vertexCount;
+    short count2C;
+    short count30;
+    short unk30;
+    short unk32;
+    int unk34; Assert(unk34 == 1);
+    int unk38; Assert(unk38 == 0);
+    int unk3C; Assert(unk3C == 0);
+    quad verticesOffset <format=hex>;
+    quad offset48 <format=hex>;
+    quad offset50 <format=hex>;
+    quad offset58 <format=hex>;
+    quad offset60 <format=hex>;
+    quad offset68 <format=hex>;
+    
+    FSeek(verticesOffset);
+    Vector3 vertices[vertexCount] <bgcolor=cBlack>;
+    // Pad to 8
+    
+    FSeek(offset48);
+    int unkSection2[count2C] <bgcolor=cWhite>;
+    // Pad to 8
+    
+    FSeek(offset50);
+    struct {
+        short v1;
+        short v2;
+        short v3;
+        short unk06;
+        short unk08;
+        short unk0A;
+    } faces[count2C] <bgcolor=cBlack>;
+    // Pad to 8
+    
+    FSeek(offset58);
+    struct {
+        byte unk00[0x10];
+    } unkSection4[count30] <bgcolor=cWhite>;
+    // Pad to 8
+    
+    FSeek(offset60);
+    // ???
+    // Pad to 8
+    
+    FSeek(offset68);
+    // ???
+    // Pad to 8
+} UnkStructE <bgcolor=cLtPurple>;
+
+
+Header header;
+FSeek(header.offset20);
+if (header.count0C > 0) UnkStructA unkAs[header.count0C];
+FSeek(header.offset28);
+if (header.count10 > 0) UnkStructB unkBs[header.count10];
+FSeek(header.offset30);
+if (header.count14 > 0) UnkStructC unkCs[header.count14];
+FSeek(header.offset38);
+if (header.count18 > 0) UnkStructD unkDs[header.count18];
+
+local int i;
+for (i = 0; i < header.count08; i++) {
+    FSeek(header.offsets40[i]);
+    UnkStructE unkEs;
+}
