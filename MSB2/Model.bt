@@ -44,5 +44,8 @@ typedef struct {
 wstring ReadModel(Model& model) {
     string str;
     SPrintf(str, "%i ", model.type);
+    if (model.offset10 != 0) {
+        SPrintf(str, "%s%i %i ", str, model.unkX00, model.unkX04);
+    }
     return str + model.name;
 }

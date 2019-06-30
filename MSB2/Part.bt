@@ -37,8 +37,16 @@ typedef struct {
     Vector3 position;
     Vector3 rotation;
     Vector3 scale;
-    uint drawGroupsMaybe[15];
-    quad typeDataOffset <format=hex>; Assert(typeDataOffset == 0xA0);
+    uint drawGroupsMaybe[4];
+    int unk44;
+    int unk48;
+    int unk4C;
+    int unk50;
+    uint dispGroupsMaybe[4];
+    int unk64;
+    int unk68;
+    int unk6C;
+    quad typeDataOffset <format=hex>;
     quad unk78; Assert(unk78 == 0);
     
     FSeek(start + nameOffset);
@@ -57,7 +65,11 @@ typedef struct {
 
 wstring ReadPart(Part& part) {
     string str;
-    SPrintf(str, "%i ", part.type);
+    SPrintf(str, "%i %8X %8X %8X %8X %8X %8X %8X ",
+        part.type, part.unk44, part.unk48, part.unk4C, part.unk50, part.unk64, part.unk68, part.unk6C);
+    if (part.type == PartTypeMapPiece) {
+        SPrintf(str, "%s %i %i %i", str, part.mapPiece.unk00, part.mapPiece.unk02, part.mapPiece.unk04);
+    }    
     return str + part.name;
 }
 

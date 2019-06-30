@@ -85,7 +85,7 @@ wstring ReadSTREntry(STREntry& entry) {
 
 typedef struct {
     BlockHeader header("STR\0");
-    //STREntry entries[header.count] <optimize=false>;
+    STREntry entries[header.count] <optimize=false>;
 } STR <read=ReadSTR>;
 
 wstring ReadSTR(STR& str) {
@@ -173,69 +173,16 @@ typedef struct (BlockOffsets& offsets) {
         byte unk0C; Assert(unk0C == 0);
         byte unk0D; Assert(unk0D == 0);
         byte unk0E; Assert(unk0E == 0);
-    } else if (type == "MonoFrame") {
-        byte unk00; Assert(unk00 == 1);
-        byte unk01; Assert(unk01 == 0);
-        byte unk02; Assert(unk02 == 0);
-        byte unk03; Assert(unk03 >= 1 && unk03 <= 3);
-        int unk04; Assert(unk04 >= 0 && unk04 <= 7);
-        int unk08; // Maybe ABGR?
-    } else if (type == "MonoRect") {
-        int unk00; Assert(unk00 == 1);
-        int unk04; // Seems like a palette of 80 colors (0 uses abgr below)
+    } else if (type == "MonoFrame" || type == "MonoRect") {
+        byte unk00[4];
+        int paletteColor; // Seems like a palette of 80 colors (0 uses abgr below)
         ubyte abgr[4];
     } else if (type == "Null") {
-    } else if (type == "ScrollText") {
-        byte unk00; Assert(unk00 == 1);
-        byte unk01; Assert(unk01 == 1);
-        short lineSpacing;
-        int color;
-        ubyte argb[4];
-        short fontSize;
-        byte alignment;
-        byte textType; Assert(textType >= 1 && textType <= 2);
-        int unk10; Assert(unk10 == 0x1C);
-        if (textType == 1) {
-            int charLength;
-            int textID;
-        } else {
-            int charLength;
-        }
-        int unk1C; Assert(unk1C == 0);
-        int unk20; Assert(unk20 == 0);
-        int unk24; Assert(unk24 == 0xF || unk24 == 0x64);
-        int unk28; Assert(unk28 == 0);
-        short unk2C; Assert(unk2C == 0);
-    } else if (type == "Sprite") {
-        short texLeftEdge;
-        short texTopEdge;
-        short texRightEdge;
-        short texBottomEdge;
-        short texiIndex;
-        //    1 - nothing?
-        //    2 - nothing?
-        //    4 - nothing?
-        //    8 - nothing?
-        //   10 - rotate 90 degrees clockwise
-        //   20 - rotate 180 degrees
-        //   40 - flip vertical
-        //   80 - flip horizontal
-        //  100 - alpha transparency
-        //  200 - overlay
-        //  400 - same as 200?
-        //  800 - same as 200?
-        // 1000 - same as 200?
-        // 2000 - same as 200?
-        // 4000 - same as 200?
-        // 8000 - same as 200?
-        ushort flags <format=hex>;
-        int unk0C; // Often 0
-        ubyte abgr[4];
-    } else if (type == "Text") {
+    } else if (type == "ScrollText" || type == "Text") {
         byte unk00; Assert(unk00 >= 0 || unk00 <= 2);
         byte unk01; Assert(unk01 == 1);
         short lineSpacing;
-        int color;
+        int palletteColor;
         ubyte abgr[4];
         // 0-11: different sizes of menu font
         // 12: talk font
@@ -259,13 +206,47 @@ typedef struct (BlockOffsets& offsets) {
         } else {
             int charLength;
         }
-        int unk1C; Assert(unk1C == 0);
-        short unk20; Assert(unk20 == 0);
+
+        if (type == "ScrollText") {
+            int unk1C; Assert(unk1C == 0);
+            int unk20; Assert(unk20 == 0);
+            int unk24; Assert(unk24 == 0xF || unk24 == 0x64);
+            int unk28; Assert(unk28 == 0);
+            short unk2C; Assert(unk2C == 0);
+        } else if (type == "Text") {
+            int unk1C; Assert(unk1C == 0);
+            short unk20; Assert(unk20 == 0);
+        }
         
         if (textType == 0) {
             FSeek(offsets.str + stringOffset);
             wstring str;
         }
+    } else if (type == "Sprite") {
+        short texLeftEdge;
+        short texTopEdge;
+        short texRightEdge;
+        short texBottomEdge;
+        short textureIndex;
+        //    1 - nothing?
+        //    2 - nothing?
+        //    4 - nothing?
+        //    8 - nothing?
+        //   10 - rotate 90 degrees clockwise
+        //   20 - rotate 180 degrees
+        //   40 - flip vertical
+        //   80 - flip horizontal
+        //  100 - alpha transparency
+        //  200 - overlay
+        //  400 - same as 200?
+        //  800 - same as 200?
+        // 1000 - same as 200?
+        // 2000 - same as 200?
+        // 4000 - same as 200?
+        // 8000 - same as 200?
+        ushort flags <format=hex>;
+        int unk0C; // Often 0
+        ubyte abgr[4];
     } else {
         Assert(false);
     }
@@ -289,7 +270,7 @@ wstring ReadSHAPEntry(SHAPEntry& entry) {
         SPrintf(str, "%s - %i %i %i %i %i %8X",
             entry.type, entry.unk08, entry.unk09, entry.unk0A, entry.unk0B, entry.unk0C, entry.unk10);
     } else if (entry.type == "MonoRect") {
-        SPrintf(str, "%s - %i %2i [%3i,%3i,%3i,%3i]", entry.type, entry.unk08, entry.unk0C,
+        SPrintf(str, "%s - %i [%3i,%3i,%3i,%3i]", entry.type, entry.paletteColor, 
             entry.abgr[0], entry.abgr[1], entry.abgr[2], entry.abgr[3]);
     } else if (entry.type == "Text") {
         if (entry.textType == 0) {
@@ -382,7 +363,7 @@ typedef struct (BlockOffsets& offsets, int anioIndex) {
         float intp00;
         int intp04 <hidden=true>; Assert(intp04 == 0); // Probably another float
         float intp08;
-        float intp08;
+        float intp0C;
     }
     FSeek(offsets.anip + anipOffset);
     if (anioIndex == 0) {

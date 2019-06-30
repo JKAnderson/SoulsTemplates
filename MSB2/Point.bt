@@ -12,51 +12,31 @@
 //------------------------------------------------
 
 enum <byte> PointType {
-    PointTypeGeneral = -1,
-    PointType0 = 0, // This is written between 15 and 17 for some reason
-    PointTypeInvasionPoint = 1,
-    PointTypeEnvironmentMapPoint = 2,
-    PointTypeSound = 4,
-    PointTypeSFX = 5,
-    PointTypeWindSFX = 6,
-    PointTypeSpawnPoint = 8,
-    //PointTypeMessage = 9,
-    PointTypeWalkRoute = 11,
-    //PointTypeUnk12 = 12,
-    PointTypeWarpPoint = 13,
-    PointTypeActivationArea = 14,
-    PointTypeEvent = 15,
-    PointTypeEnvironmentMapEffectBox = 17,
-    PointTypeWindArea = 18,
-    PointTypeMufflingBox = 20,
-    PointTypeMufflingPortal = 21,
-    PointType23 = 23, // Reverb?
-    PointType24 = 24, // More muffling stuff?
-    PointTypePartsGroup = 25,
-    PointTypeAutoDrawGroup = 26,
+    PointType0 = 0, // "test enemy" ???
+    PointTypeLight3 = 3,
+    PointTypeStartPoint = 5,
+    PointTypeSound = 7,
+    PointTypeSFX = 9,
+    PointTypeWind = 13,
+    PointTypeLight14 = 14,
+    PointType15 = 15, // More fog?
 };
 
-struct PointInvasionPoint;
-struct PointEnvironmentMapPoint;
+struct PointLight3;
+struct PointStartPoint;
 struct PointSound;
 struct PointSFX;
-struct PointWindSFX;
-struct PointSpawnPoint;
-struct PointEnvironmentMapEffectBox;
-struct PointMufflingBox;
-struct PointMufflingPortal;
-struct Point23;
-struct PointPartsGroup;
-struct PointAutoDrawGroup;
+struct PointWind;
+struct PointLight14;
+struct Point15;
 
 enum <byte> ShapeType {
     ShapeTypePoint = 0,
-    ShapeTypeCircle = 1, // Not used btw
+    ShapeTypeCircle = 1,
     ShapeTypeSphere = 2,
     ShapeTypeCylinder = 3,
     ShapeTypeSquare = 4,
     ShapeTypeBox = 5,
-    ShapeTypeComposite = 6
 };
 
 struct ShapeCircle;
@@ -64,7 +44,6 @@ struct ShapeSphere;
 struct ShapeCylinder;
 struct ShapeSquare;
 struct ShapeBox;
-struct ShapeComposite;
 
 typedef struct {
     local quad start <hidden=true> = FTell();
@@ -119,7 +98,6 @@ typedef struct {
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
             case ShapeTypeSquare: ShapeSquare square; break;
             case ShapeTypeBox: ShapeBox box; break;
-            case ShapeTypeComposite: ShapeComposite composite; break;
         }
         
         if (typeDataOffset != 0) {
@@ -127,10 +105,7 @@ typedef struct {
         }
     }
     
-    /*if (pointType == PointTypeGeneral || pointType == PointType0
-        || pointType == PointTypeWalkRoute || pointType == PointTypeWarpPoint
-        || pointType == PointTypeActivationArea || pointType == PointTypeEvent
-        || pointType == PointTypeWindArea || pointType == PointType24) {
+    if (pointType == PointType0 || pointType == PointTypeStartPoint) {
         Assert(typeDataOffset == 0);
     } else {
         Assert(typeDataOffset != 0);
@@ -139,20 +114,17 @@ typedef struct {
     if (typeDataOffset != 0) {
         FSeek(start + typeDataOffset);
         switch (pointType) {
-            case PointTypeInvasionPoint: PointInvasionPoint invasionPoint; break;
-            case PointTypeEnvironmentMapPoint: PointEnvironmentMapPoint environmentMapPoint; break;
+            case PointType0: break;
+            case PointTypeLight3: PointLight3 light3; break;
+            case PointTypeStartPoint: break;
             case PointTypeSound: PointSound sound; break;
             case PointTypeSFX: PointSFX sfx; break;
-            case PointTypeWindSFX: PointWindSFX windSFX; break;
-            case PointTypeSpawnPoint: PointSpawnPoint spawnPoint; break;
-            case PointTypeEnvironmentMapEffectBox: PointEnvironmentMapEffectBox environmentMapEffectBox; break;
-            case PointTypeMufflingBox: PointMufflingBox mufflingBox; break;
-            case PointTypeMufflingPortal: PointMufflingPortal mufflingPortal; break;
-            case PointType23: Point23 point23; break;
-            case PointTypePartsGroup: PointPartsGroup partsGroup; break;
-            case PointTypeAutoDrawGroup: PointAutoDrawGroup autoDrawGroup; break;
+            case PointTypeWind: PointWind wind; break;
+            case PointTypeLight14: PointLight14 light14; break;
+            case PointType15: Point15 point15; break;
+            default: Assert(false);
         }
-    }*/
+    }
 } Point <read=ReadPoint>;
 
 wstring ReadPoint(Point& point) {
@@ -160,6 +132,80 @@ wstring ReadPoint(Point& point) {
     SPrintf(str, "%i %i ", point.pointType, point.shapeType);
     return str + point.name;
 }
+
+
+typedef struct {
+    int unk00;
+    ubyte color04[4];
+    ubyte color08[4];
+    float unk0C;
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+    int unk20; Assert(unk20 == 0);
+} PointLight3;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+} PointSound;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+} PointSFX;
+
+
+typedef struct {
+    int unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
+    float unk14;
+    float unk18;
+    int unk1C; Assert(unk1C == 0);
+} PointWind;
+
+
+typedef struct {
+    int unk00;
+    float unk04;
+    float unk08;
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+} PointLight14;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == 0);
+    int unk1C; Assert(unk1C == 0);
+    int unk20; Assert(unk20 == 0);
+} Point15;
 
 
 typedef struct {
@@ -185,133 +231,3 @@ typedef struct {
     float depth;
     float height;
 } ShapeBox;
-
-typedef struct {
-    struct {
-        int pointIndex;
-        int unk04;
-    } pointIndices[8] <optimize=false>;
-} ShapeComposite;
-
-
-typedef struct {
-    int unk00;
-} PointInvasionPoint;
-
-
-typedef struct {
-    float unk00;
-    int unk04;
-    int unk08; Assert(unk08 == -1);
-    int unk0C;
-    float unk10;
-    float unk14;
-    int unk18;
-    int unk1C;
-    int unk20;
-    int unk24;
-    int unk28;
-    int unk2C; Assert(unk2C == -1);
-    int unk30; Assert(unk30 == 0);
-    int unk34; Assert(unk34 == 0);
-    int unk38; Assert(unk38 == 0);
-    int unk3C; Assert(unk3C == 0);
-} PointEnvironmentMapPoint;
-
-
-typedef struct {
-    int soundType;
-    int soundID;
-    int childPointIndices[16];
-    int unk48;
-} PointSound;
-
-
-typedef struct {
-    int ffxID;
-    int unk04;
-    int unk08; Assert(unk08 == -1);
-    int unk0C; Assert(unk0C == -1);
-    int unk10; Assert(unk10 == -1);
-    int startDisabled;
-} PointSFX;
-
-
-typedef struct {
-    int ffxID;
-    int unk04; Assert(unk04 == -1);
-    int unk08; Assert(unk08 == -1);
-    int unk0C; Assert(unk0C == -1);
-    int unk10; Assert(unk10 == -1);
-    int windAreaIndex;
-    float unk18;
-    int unk1C; Assert(unk1C == 0);
-} PointWindSFX;
-
-
-typedef struct {
-    int unk00; Assert(unk00 == -1);
-    int unk04; Assert(unk04 == 0);
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
-} PointSpawnPoint;
-
-
-typedef struct {
-    float unk00;
-    float compare;
-    byte unk08;
-    byte unk09;
-    short unk0A;
-    int unk0C; Assert(unk0C == 0);
-    int unk10; Assert(unk10 == 0);
-    int unk14; Assert(unk14 == 0);
-    int unk18; Assert(unk18 == 0);
-    int unk1C; Assert(unk1C == 0);
-    int unk20; Assert(unk20 == 0);
-    int unk24;
-    float unk28;
-    float unk2C;
-    int unk30; Assert(unk30 == 0);
-} PointEnvironmentMapEffectBox;
-
-
-typedef struct {
-    int unk00;
-} PointMufflingBox;
-
-
-typedef struct {
-    int unk00;
-    int unk04; Assert(unk04 == 0);
-} PointMufflingPortal;
-
-
-typedef struct {
-    int unk00;
-    int unk04; Assert(unk04 == 0);
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
-    int unk10; Assert(unk10 == 0);
-    int unk14; Assert(unk14 == 0);
-    int unk18; Assert(unk18 == 0);
-    int unk1C; Assert(unk1C == 0);
-} Point23;
-
-
-typedef struct {
-    int unk00;
-    int unk04; Assert(unk04 == 0);
-} PointPartsGroup;
-
-
-typedef struct {
-    int unk00;
-    int unk04; Assert(unk04 == 0);
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
-    int unk10; Assert(unk10 == 0);
-    int unk14; Assert(unk14 == 0);
-    int unk18; Assert(unk18 == 0);
-    int unk1C; Assert(unk1C == 0);
-} PointAutoDrawGroup;
