@@ -4,123 +4,108 @@
 //      File: MTD.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: 
-//  Category: Dark Souls
+//   Purpose: Material definition files
+//  Category: Dantelion
 // File Mask: *.mtd
 //  ID Bytes: [+44] 4D 54 44 20
 //   History: 
 //------------------------------------------------
 
-typedef struct (ubyte term) {
-    ubyte terminator; Assert(terminator == term);
-    if (FTell() % 4 != 0) {
-        ubyte padding[4 - (FTell() % 4)];
-    }
-} Marker;
+#include "Util.bt"
 
-typedef struct (ubyte term) {
+typedef struct (byte assert) {
+    ubyte value; if (assert != -1) Assert(value == assert);
+    if (FTell() % 4 != 0)
+        ubyte padding[4 - FTell() % 4];
+} Marker <read=ReadMarker>;
+
+string ReadMarker(Marker& marker) {
+    string str;
+    SPrintf(str, "%2Xh", marker.value);
+    return str;
+}
+
+
+typedef struct (int typeAssert, int versionAssert, byte markerAssert) {
+    Align(4);
+    int zero; Assert(zero == 0);
+    // I just want to note that there are some files in DS2 (e.g. M[stone][DB].mtd)
+    // where most of the lengths are completely wrong, even the main file size
+    int length <format=hex>;
+    local int end <format=hex> = FTell() + length;
+    int type <format=hex>; if (typeAssert != -1) Assert(type == typeAssert);
+    int version; if (versionAssert != -1) Assert(version == versionAssert);
+    Marker marker(markerAssert);
+} Block <read=ReadBlock, bgcolor=cBlack, fgcolor=cWhite>;
+
+string ReadBlock(Block& block) {
+    string str;
+    SPrintf(str, "Len %8Xh | Type %8Xh | Ver %i", block.length, block.type, block.version);
+    return str;
+}
+
+
+typedef struct (byte markerAssert) {
     int length;
     if (length > 0) {
         char str[length];
     } else {
-        local char str[] = "<null>";
+        local string str = "";
     }
-    Marker terminator(term);
-} MTDString <read=ReadMTDString>;
+    Marker marker(markerAssert);
+} MarkedString <read=ReadMarkedString>;
 
-string ReadMTDString(MTDString& ms) {
+string ReadMarkedString(MarkedString& ms) {
     return ms.str;
+}
+
+////////////////////////////////////////////////////////////////
+
+typedef struct {
+    Block block(0x2000, -1, 0xA3);
+    MarkedString type(0x35);
+    int uvNumber;
+    Marker marker1(0x35);
+    int shaderDataIndex;
+    
+    if (block.version == 5) {
+        int unkB0C; Assert(unkB0C == 0xA3);
+        MarkedString path(0xBA);
+        int floatCount;
+        float floats[floatCount];
+    }
+} Texture <read=ReadTexture, bgcolor=cAqua, optimize=false>;
+
+string ReadTexture(Texture& tex) {
+    string str;
+    if (tex.block.version == 5)
+        SPrintf(str, "%s \"%s\"", tex.type.str, tex.path.str);
+    else
+        SPrintf(str, "%s", tex.type.str);
+    return str;
 }
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int fileSize;
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 3);
-    Marker marker10(0x01);
-    int unk14; Assert(unk14 == 0);
-    int unk18; Assert(unk18 == 0x1C);
-    int unk1C; Assert(unk1C == 1);
-    int unk20; Assert(unk20 == 2);
-    Marker marker24(0xB0);
-    int unk28; Assert(unk28 == 4);
-    char magic[4]; Assert(magic == "MTD ");
-    Marker marker30(0x34);
-    int unk34; Assert(unk34 == 0x3E8);
-    Marker marker38(0x01);
-    int unk3C; Assert(unk3C == 0);
-    int dataSize;
-    int unk44; Assert(unk44 == 2);
-    int unk48; Assert(unk48 == 4);
-    Marker marker4C(0xA3);
-    MTDString shader(0xA3);
-    MTDString description(0x03);
-    int unkX00; Assert(unkX00 == 1);
-    int unkX04; Assert(unkX04 == 0);
-    int paramSize;
-    int unkX0C; Assert(unkX0C == 3);
-    int unkX10; Assert(unkX10 == 4);
-    Marker markerX14(0xA3);
-    int unkX18; Assert(unkX18 == 0);
-    Marker markerX1C(0x03);
-    int paramCount;
-} Header <bgcolor=cLtRed>;
+    Block block(-1, 1, -1);
+    int valueCount;
+    if (block.type == 0x1000)
+        byte values[valueCount];
+    else if (block.type == 0x1001)
+        int values[valueCount];
+    else if (block.type == 0x1002)
+        float values[valueCount];
+} Value;
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04;
-    int unk08; Assert(unk08 == 4);
-    int unk0C; Assert(unk0C == 4);
-    Marker marker10(0xA3) <hidden=true>;
-    MTDString name(0xA3);
-    MTDString type(0x04);
-    int unkX00; Assert(unkX00 == 1);
-    int unkX04; Assert(unkX04 == 0);
-    int valueSize;
-    byte valueType;
-    byte unkX0D; Assert(unkX0D == 0x10);
-    short unkX0E; Assert(unkX0E == 0);
-    int unkX10; Assert(unkX10 == 1);
-    int markerX14;
-    int valueCount;
-    
-    switch (type.str) {
-        case "int":
-            int value;
-            break;
-        
-        case "int2":
-            int value[2];
-            break;
-        
-        case "bool":
-            byte value;
-            break;
-        
-        case "float":
-            float value;
-            break;
-
-        case "float2":
-            float value[2];
-            break;
-
-        case "float3":
-            float value[3];
-            break;
-
-        case "float4":
-            float value[4];
-            break;
-        
-        default:
-            Assert(false);
-    }
-    Marker terminator(0x04) <hidden=true>;
-    
-    int unkY00; Assert(unkY00 == 0);
+    Block block(4, 4, 0xA3);
+    MarkedString name(0xA3);
+    MarkedString type(0x04);
+    int unkB00; Assert(unkB00 == 1);
+    Value value;
+    Marker end(0x04);
+    int unkC00; Assert(unkC00 == 0);
 } Param <read=ReadParam, bgcolor=cLtGreen, optimize=false>;
 
 string ReadParam(Param& param) {
@@ -131,53 +116,46 @@ string ReadParam(Param& param) {
 
 
 typedef struct {
-    Marker marker00(0x03);
+    Block block(3, 4, 0xA3);
+    int unkA04; Assert(unkA04 == 0);
+    Marker marker1(0x03);
+    int paramCount;
+    struct { Param params[paramCount]; } params;
+    Marker paramsEnd(0x03);
     int textureCount;
-} Middler <bgcolor=cLtRed>;
+    struct { Texture textures[textureCount]; } textures;
+    Marker end(0x04);
+    int unkC00; Assert(unkC00 == 0);
+} Lists;
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04;
-    int unk08; Assert(unk08 == 0x2000);
-    int unk0C; Assert(unk0C == 3 || unk0C == 5);
-    Marker marker10(0xA3) <hidden=true>;
-    MTDString type(0x35);
-    int uvNumber;
-    Marker markerX04(0x35) <hidden=true>;
-    int shaderDataIndex;
-    
-    if (unk0C == 5) {
-        int unkX0C <hidden=true>; Assert(unkX0C == 0xA3);
-        MTDString path(0xBA);
-        int floatCount;
-        if (floatCount > 0) {
-            float unkFloats[floatCount];
-        }
-    }
-} Texture <read=ReadTexture, bgcolor=cAqua, optimize=false>;
-
-string ReadTexture(Texture& tex) {
-    return tex.type.str;
-}
+    Block block(2, 4, 0xA3);
+    MarkedString shader(0xA3);
+    MarkedString description(0x03);
+    int unkB00; Assert(unkB00 == 1);
+    Lists lists;
+    Marker end(0x04);
+    int unkC00; Assert(unkC00 == 0);
+} Data;
 
 
 typedef struct {
-    Marker marker00(0x04);
-    int unk04;
-    Marker marker08(0x04);
-    int unk0C;
-    Marker marker10(0x04);
-    int unk14;
-} Footer <bgcolor=cLtRed>;
+    Block block(1, 2, 0xB0);
+    MarkedString magic(0x34); Assert(magic.str == "MTD ");
+    int unkB00; Assert(unkB00 == 1000);
+} Header;
 
 
-Header header;
-struct {
-    Param params[header.paramCount];
-} params;
-Middler middler;
-struct {
-    Texture textures[middler.textureCount];
-} textures;
-Footer footer;
+typedef struct {
+    Block block(0, 3, 0x01);
+    Header header;
+    Marker headerEnd(0x01);
+    Data data;
+    Marker end(0x04);
+    int unkC00; Assert(unkC00 == 0);
+} File <bgcolor=cLtRed>;
+
+////////////////////////////////////////////////////////////////
+
+File file;
