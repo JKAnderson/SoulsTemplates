@@ -13,7 +13,10 @@
 
 typedef struct {
     quad type;
-    quad offset <format=hex>; Assert(offset == FTell());
+    quad offset <format=hex>; Assert(offset == 0 || offset == FTell());
+    if (offset == 0)
+        return;
+
     local int color <hidden=true> = GetBackColor();
     SetBackColor(cDkGreen);
 
