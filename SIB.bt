@@ -4,7 +4,7 @@
 //      File: SIB.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: 
+//   Purpose: Source quality model format; only one example (c9990 in DeS) known to exist
 //  Category: Dantelion
 // File Mask: *.sib
 //  ID Bytes: [+40] 53 49 42 20
@@ -65,20 +65,6 @@ typedef struct {
 
 string ReadPrefixString(PrefixString& ps) {
     return ps.str;
-}
-
-
-typedef struct {
-    int length;
-    if (length > 0)
-        char str[length];
-    else
-        local string str = "";
-    Align(4);
-} AlignString <read=ReadAlignString>;
-
-string ReadAlignString(AlignString& as) {
-    return as.str;
 }
 
 
@@ -346,7 +332,7 @@ typedef struct {
     int unk08;
     int unk0C;
     int unk10;
-} UnkMeshBlock4;
+} EntityFooter;
 
 
 typedef struct {
@@ -364,7 +350,16 @@ typedef struct {
     Block block(0x3010800, 2, 0x01);
     Float3Header float3Header;
     int unkA00;
-    int unkA04;
+    int floatCount;
+    Vector3 tangents[float3Header.count];
+} VertexTangents;
+
+
+typedef struct {
+    Block block(0x3010400, 2, 0x01);
+    Float3Header float3Header;
+    int unkA00;
+    int floatCount;
     Vector3 normals[float3Header.count];
 } VertexNormals;
 
@@ -373,7 +368,7 @@ typedef struct {
     Block block(0x3010300, 2, 0x01);
     Float3Header float3Header;
     int unkA00;
-    int unkA04;
+    int floatCount;
     Vector3 positions[float3Header.count];
 } VertexPositions;
 
@@ -381,34 +376,31 @@ typedef struct {
 typedef struct {
     Block block(0x3010205, 1, 0xA3);
     PrefixString winding;
-} TriListBlock2_1_1;
+} WindingOrder <read=ReadWindingOrder>;
+
+string ReadWindingOrder(WindingOrder& order) {
+    return order.winding.str;
+}
 
 
 typedef struct {
     Block block(0x3010203, 4, 0x35);
     int unk00;
-    int unk04;
+    Marker marker1(0x34);
     int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
+    Marker marker2(0x34);
+    int vertexCount;
+    Marker marker3(0x04);
     int unk18;
-    TriListBlock2_1_1 triListBlock2_1_1;
-} TriListBlock2_1;
+    WindingOrder windingOrder;
+} MeshInfo;
 
 
 typedef struct {
     Block block(0x3010202, 3, 0x01);
-    TriListBlock2_1 triListBlock2_1;
-    Marker endTriListblock2_1(0xC4);
+    MeshInfo meshInfo;
+    Marker endMeshInfo(0xC4);
     int indexCount;
-    // Each vertex has 6 indices
-    // [0] - position
-    // [1] - 
-    // [2] - 
-    // [3] - 
-    // [4] - 
-    // [5] - 
     int indices[indexCount];
     int unkA00;
     int unkA04;
@@ -417,24 +409,24 @@ typedef struct {
 
 typedef struct {
     Block block(0x3010206, 9, 0x34);
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
+    int indicesPerVertex;
+    Marker marker1(0x35);
+    int positionIndex;
+    Marker marker2(0x35);
     int unk10;
-    int unk14;
+    Marker marker3(0x35);
     int unk18;
-    int unk1C;
+    Marker marker4(0x35);
     int unk20;
-    int unk24;
+    Marker marker5(0x35);
     int unk28;
-    int unk2C;
+    Marker marker6(0x35);
     int unk30;
-    int unk34;
+    Marker marker7(0x35);
     int unk38;
-    int unk3C;
+    Marker marker8(0x35);
     int unk40;
-} TriListBlock1_1;
+} IndexLayout;
 
 
 typedef struct {
@@ -442,15 +434,15 @@ typedef struct {
     int unk00;
     int unk04;
     MarkedString str(0x01);
-    TriListBlock1_1 triListBlock1_1;
+    IndexLayout indexLayout;
     int unkB00;
     int unkB04;
-} TriListBlock1;
+} TriListInfo;
 
 
 typedef struct {
     Block block(0x3010200, 2, 0x01);
-    TriListBlock1 triListBlock1;
+    TriListInfo triListInfo;
     int unkA00;
     int meshCount;
     struct { Mesh meshes[meshCount]; } meshes;
@@ -471,20 +463,24 @@ typedef struct {
     TriDataBlock1_1 triDataBlock1_1;
     int unkA00;
     int unkA04;
-} TriDataBlock1;
+} GeometryInfo <read=ReadGeometryInfo>;
+
+string ReadGeometryInfo(GeometryInfo& info) {
+    return info.str.str;
+}
 
 
 typedef struct {
     Block block(-1, -1, -1);
     if (block.type == 0x3010000) {
-        TriDataBlock1 triDataBlock1;
+        GeometryInfo geometryInfo;
         int unkA00;
-        int unkA04;
+        int dataBlockCount;
         Meshes meshes;
         VertexPositions vertexPositions;
-        SkippedBlock triListData3;
         VertexNormals vertexNormals;
-        SkippedBlock triListData[unkA04 - 4];
+        VertexTangents vertexTangents;
+        SkippedBlock triListData[dataBlockCount - 4];
     } else {
         FSeek(block.end);
     }
@@ -494,7 +490,7 @@ typedef struct {
 typedef struct {
     Block block(0x3000004, 4, 0x01);
     FSeek(block.end);
-} UnkMeshBlock3;
+} EntityInfo3;
 
 
 typedef struct {
@@ -518,32 +514,42 @@ typedef struct {
     UnkMeshBlock2_1 unkBlock2_1_3;
     Marker endUnkBlock2_1_3(-1);
     int unkC04;
-} UnkMeshBlock2;
+} EntityInfo2;
 
 
 typedef struct {
     Block block(0x3000001, 3, 0x35);
-    int unk00;
-    int unk04;
+    int entityIndex;
+    Marker marker(0xA3);
     MarkedString name(0xA3);
     PrefixString type;
-} UnkMeshBlock1;
+} EntityInfo1 <read=ReadEntityInfo1>;
+
+string ReadEntityInfo1(EntityInfo1& info) {
+    string str;
+    SPrintf(str, "%s %s", info.type.str, info.name.str);
+    return str;
+}
 
 
 typedef struct {
     Block block(0x3000000, 4, 0x01);
-    UnkMeshBlock1 unkBlock1;
-    Marker endBlock1(0x01);
-    UnkMeshBlock2 unkBlock2;
-    Marker endBlock2(0x01);
-    UnkMeshBlock3 unkBlock3;
-    Marker endBlock3(0x04);
+    EntityInfo1 entityInfo1;
+    Marker endEntityInfo1(0x01);
+    EntityInfo2 entityInfo2;
+    Marker endEntityInfo2(0x01);
+    EntityInfo3 entityInfo3;
+    Marker endEntityInfo3(0x04);
     int blockCount;
     if (blockCount > 1) {
         EntityData dataBlocks[blockCount - 1];
     }
-    UnkMeshBlock4 unkBlock4;
-} Entity <optimize=false>;
+    EntityFooter entityFooter;
+} Entity <read=ReadEntity, optimize=false>;
+
+string ReadEntity(Entity& entity) {
+    return ReadEntityInfo1(entity.entityInfo1);
+}
 
 
 typedef struct {
@@ -644,22 +650,22 @@ typedef struct {
     MarkedString path2(0xA3);
     MarkedString name1(0xA3);
     MarkedString name2(0xA3);
-    AlignString version;
+    PrefixString version;
 } Header;
 
 
 typedef struct {
     Block block(0, 6, 0x01);
     Header header;
-    int unkA00;
+    Marker endHeader(0x01);
     Motion motion;
-    int unkB00;
+    Marker endMotion(0x01);
     Materials materials;
-    int unkC00;
+    Marker endMaterials(0x01);
     Entities entities;
-    int unkD00;
+    Marker endEntities(0x01);
     Footer footer;
-    int unkE00;
+    Marker end(0x04);
     int unkE04;
 } File <bgcolor=cLtRed>;
 
