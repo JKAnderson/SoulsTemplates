@@ -29,8 +29,6 @@ string ReadMarker(Marker& marker) {
 typedef struct (int typeAssert, int versionAssert, byte markerAssert) {
     Align(4);
     int zero; Assert(zero == 0);
-    // I just want to note that there are some files in DS2 (e.g. M[stone][DB].mtd)
-    // where most of the lengths are completely wrong, even the main file size
     int length <format=hex>;
     local int end <format=hex> = FTell() + length;
     int type <format=hex>; if (typeAssert != -1) Assert(type == typeAssert);
