@@ -104,13 +104,13 @@ typedef struct {
 wstring ReadEntry(Entry& entry) {
     string str;
     if (entry.type == 1) {
-        SPrintf(str, "%i ", entry.type);
+        SPrintf(str, "%i | ", entry.type);
     } else if (entry.type == 2) {
-        SPrintf(str, "%i ", entry.type);
+        SPrintf(str, "%i | ", entry.type);
     } else if (entry.type == 3) {
-        SPrintf(str, "%i ", entry.type);
+        SPrintf(str, "%i | ", entry.type);
     } else if (entry.type == 4) {
-        SPrintf(str, "%i %8X %8X ", entry.type, entry.unk10, entry.unk14);
+        SPrintf(str, "%i %8X %8X | ", entry.type, entry.unk10, entry.unk14);
     }
     return str + entry.str00.str + " | " + entry.str04.str;
 }
