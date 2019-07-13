@@ -171,10 +171,15 @@ typedef struct (Header& header) {
     short unk06;
     int vertexCount;
     uint vertexIndicesOffset <format=hex>;
-    int vertexIndicesLength <format=hex>;
-    int unk14 <hidden=true>; Assert(unk14 == 0);
-    int vertexIndexSize;
-    int unk1C <hidden=true>; Assert(unk1C == 0);
+    
+    if (header.version <= 0x20005) {
+        local int vertexIndexSize = 16;
+    } else {
+        int vertexIndicesLength <format=hex>;
+        int unk14 <hidden=true>; Assert(unk14 == 0);
+        int vertexIndexSize;
+        int unk1C <hidden=true>; Assert(unk1C == 0);
+    }
     
     local quad pos <hidden=true> = FTell();
     FSeek(header.dataOffset + vertexIndicesOffset);
