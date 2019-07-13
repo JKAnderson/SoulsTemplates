@@ -4,8 +4,8 @@
 //      File: TPF.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: FromSoft texture containers
-//  Category: Dark Souls
+//   Purpose: Container for multiple textures
+//  Category: Dantelion
 // File Mask: *.tpf
 //  ID Bytes: 54 50 46 00
 //   History: 
@@ -23,7 +23,7 @@ else
 
 typedef struct {
     char magic[4]; Assert(magic == "TPF\0");
-    int fileSize <format=hex>;
+    int dataSize <format=hex>;
     int texCount;
     PLATFORM platform;
     byte unk0D;
@@ -56,6 +56,11 @@ typedef struct (Header& header) {
             int unk14;
             uint nameOffset <format=hex>;
             int unk1C;
+            if (unk1C == 1) {
+                int unk20;
+                int unk24;
+                float unk28;
+            }
         } else if (header.platform == PS4 || header.platform == Xbone) {
             int imageCount;
             int unk14;
