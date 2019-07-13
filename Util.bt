@@ -20,6 +20,18 @@ void Align(int align) {
     }
 }
 
+ubyte ReverseBits(ubyte value) {
+    return
+        ((value & 0b00000001) << 7) |
+        ((value & 0b00000010) << 5) |
+        ((value & 0b00000100) << 3) |
+        ((value & 0b00001000) << 1) |
+        ((value & 0b00010000) >> 1) |
+        ((value & 0b00100000) >> 3) |
+        ((value & 0b01000000) >> 5) |
+        ((value & 0b10000000) >> 7);
+}
+
 typedef struct {
     float x;
     float y;
@@ -61,9 +73,9 @@ string ReadVector4(Vector4& vec) {
 
 typedef struct (int longOffset, int unicode) {
     if (longOffset)
-        quad offset;
+        quad offset <format=hex>;
     else
-        uint offset;
+        uint offset <format=hex>;
 
     local quad pos <hidden=true> = FTell();
     FSeek(offset);
