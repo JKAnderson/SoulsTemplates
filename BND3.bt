@@ -5,15 +5,16 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: FromSoft Binder3 containers
-//  Category: Dark Souls
+//  Category: Dantelion
 // File Mask: *.*bnd
 //  ID Bytes: 42 4E 44 33
 //   History: 
 //------------------------------------------------
 
+#include "Util.bt"
+
 local ubyte format <hidden=true> = ReadUByte(0xC);
-if (ReadByte(0xD) || format == 0x67 || format == 0x80 || format == 0x91
-        || format == 0xA0 || format == 0xE4 || format == 0xF4)
+if (ReadByte(0xD) || ReadByte(0xC) & 0b10000000)
     BigEndian();
 else
     LittleEndian();
@@ -22,23 +23,11 @@ else
 typedef struct {
     char magic[4]; Assert(magic == "BND3");
     char version[8];
-    ubyte format <format=hex>; Assert(
-           format == 0x00 // no ID, no uncompressed size, no name
-        || format == 0x06 // ID, no uncompressed size
-        || format == 0x0E // ID, no uncompressed size
-        || format == 0x24 // no ID, uncompressed size
-        || format == 0x26 // ID, uncompressed size
-        || format == 0x2C // no ID, uncompressed size
-        || format == 0x2E // ID, uncompressed size
-        || format == 0x67 // ID, uncompressed size, big endian
-        || format == 0x74 // ID, uncompressed size
-        || format == 0x80 // no ID, no uncompressed size, no name, big endian
-        || format == 0x91 // no ID, no uncompressed size, big endian
-        || format == 0xA0 // no ID, no uncompressed size, big endian
-        || format == 0xE4 // ID, uncompressed size, big endian
-        || format == 0xF4 // ID, uncompressed size, big endian
-        );
+    ubyte rawFlags <hidden=true, format=hex>;
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
+    // Flags are reversed when the bigEndian byte is set,
+    // but not when the bigEndian /flag/ is set.
+    local ubyte flags <format=binary> = bigEndian ? ReverseBits(rawFlags) : rawFlags;
     byte unk0E; Assert(unk0E == 0 || unk0E == 1);
     byte unk0F <hidden=true>; Assert(unk0F == 0);
     int fileCount;
@@ -58,24 +47,24 @@ typedef struct (ubyte format) {
     byte unk01 <hidden=true>; Assert(unk01 == 0);
     byte unk02 <hidden=true>; Assert(unk02 == 0);
     byte unk03 <hidden=true>; Assert(unk03 == 0);
+
     int compressedSize <format=hex>;
     int fileOffset <format=hex>;
-    if (format == 0x06 || format == 0x0E || format == 0x26 || format == 0x2E
-        || format == 0x67 || format == 0x74 || format == 0xE4 || format == 0xF4) {
+
+    if (format & 0b01000000) {
         int id;
     }
+
     local quad pos <hidden=true>;
-    if (format == 0x08 || format == 0x0E || format == 0x24 || format == 0x26
-        || format == 0x2C || format == 0x2E || format == 0x67 || format == 0x74
-        || format == 0x91 || format == 0xA0 || format == 0xE4 || format == 0xF4) {
+    if (format & 0b00010000) {
         int nameOffset <format=hex>;
         pos = FTell();
         FSeek(nameOffset);
         string name <bgcolor=cGreen>;
         FSeek(pos);
     }
-    if (format == 0x24 || format == 0x26 || format == 0x2C || format == 0x2E
-        || format == 0x67 || format == 0x74 || format == 0xE4 || format == 0xF4) {
+
+    if (format & 0b00000100) {
         int uncompressedSize <format=hex>;
     }
     
@@ -95,6 +84,6 @@ wstring ReadFile(File& file) {
 Header header;
 if (header.fileCount > 0) {
     struct {
-        File files(header.format)[header.fileCount];
+        File files(header.flags)[header.fileCount];
     } files;
 }
