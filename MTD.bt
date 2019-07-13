@@ -13,6 +13,8 @@
 
 #include "Util.bt"
 
+LittleEndian();
+
 typedef struct (byte assert) {
     ubyte value; if (assert != -1) Assert(value == assert);
     if (FTell() % 4 != 0)
