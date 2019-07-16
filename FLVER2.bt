@@ -1,26 +1,28 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: FLVER.bt
+//      File: FLVER2.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: FromSoft models
-//  Category: Dark Souls
+//   Purpose: FromSoft models since DS1
+//  Category: Dantelion
 // File Mask: *.flv*
-//  ID Bytes: 46 4C 56 45 52 00 4C 00
+//  ID Bytes: 46 4C 56 45 52 00
 //   History: 
 //------------------------------------------------
 
 #include "Util.bt"
 
 LittleEndian();
-if (ReadString(6) == "B")
+if (ReadString(6, 1) == "B")
     BigEndian();
+
+//------------------------------------------------
 
 typedef struct {
     char magic[6]; Assert(magic == "FLVER\0");
     char endian[2]; Assert(endian == "B\0" || endian == "L\0");
-    uint version;
+    uint version <format=hex>; Assert(version >= 0x20000);
     uint dataOffset <format=hex>;
     uint dataLength <format=hex>;
     int dummyCount;
@@ -33,7 +35,7 @@ typedef struct {
     int unk40;
     int totalFaceCount;
     byte vertexIndexSize;
-    byte unk49;
+    byte unicode;
     byte unk4A;
     byte unk4B;
     short unk4C;
@@ -41,7 +43,10 @@ typedef struct {
     int faceSetCount;
     int bufferLayoutCount;
     int textureCount;
-    int unk5C;
+    byte unk5C;
+    byte unk5D;
+    byte unk5E; Assert(unk5E == 0);
+    byte unk5F; Assert(unk5F == 0);
     int unk60 <hidden=true>; Assert(unk60 == 0);
     int unk64 <hidden=true>; Assert(unk64 == 0);
     int flags68;
@@ -67,7 +72,13 @@ typedef struct {
     int unk34;
     int unk38 <hidden=true>; Assert(unk38 == 0);
     int unk3C <hidden=true>; Assert(unk3C == 0);
-} Dummy <bgcolor=cLtGreen, optimize=false>;
+} Dummy <read=ReadDummy, bgcolor=cLtGreen, optimize=false>;
+
+string ReadDummy(Dummy& dummy) {
+    string str;
+    SPrintf(str, "%i", dummy.referenceID);
+    return str;
+}
 
 
 typedef struct {
@@ -79,9 +90,9 @@ typedef struct {
         ubyte unk0C[length - 0xC];
 } GXItem <optimize=false>;
 
-typedef struct {
-    OffsetString name(0, 1);
-    OffsetString mtd(0, 1);
+typedef struct (Header& header) {
+    OffsetString name(0, header.unicode);
+    OffsetString mtd(0, header.unicode);
     int textureCount;
     int textureIndex;
     uint flags;
@@ -106,9 +117,9 @@ wstring ReadMaterial(Material& mat) {
 }
 
 
-typedef struct {
+typedef struct (Header& header) {
     Vector3 translation;
-    OffsetString name(0, 1);
+    OffsetString name(0, header.unicode);
     Vector3 rotation;
     short parentIndex;
     short childIndex;
@@ -131,7 +142,10 @@ wstring ReadBone(Bone& bone) {
 
 
 typedef struct (Header& header) {
-    int dynamic; Assert(dynamic == 0 || dynamic == 1);
+    byte dynamic; Assert(dynamic == 0 || dynamic == 1);
+    byte unk01; Assert(unk01 == 0);
+    byte unk02; Assert(unk02 == 0);
+    byte unk03; Assert(unk03 == 0);
     int materialIndex;
     int unk08; Assert(unk08 == 0);
     int unk0C; Assert(unk0C == 0);
@@ -164,32 +178,79 @@ typedef struct (Header& header) {
 } Mesh <bgcolor=cAqua, optimize=false>;
 
 
+typedef struct (quad start) {
+    int length00;
+    int offset04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    int unk18;
+    int unk1C;
+    int unk20;
+    int unk24;
+    int unk28;
+    int unk2C;
+    int unk30;
+    int unk34;
+    int unk38;
+    int unk3C;
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(start + offset04);
+    ubyte data[length00];
+    FSeek(pos);
+} AnnoyingMember <optimize=false>;
+
+typedef struct {
+    local quad start = FTell();
+    short memberCount;
+    short unk02;
+    int unk04;
+    int unk08;
+    int unk0C;
+    AnnoyingMember members(start)[memberCount];
+} AnnoyingIndices;
+
 typedef struct (Header& header) {
-    uint flags;
+    uint flags <format=hex>;
     byte triangleStrip;
     byte cullBackFaces;
-    short unk06;
+    byte unk06;
+    byte unk07;
     int vertexCount;
     uint vertexIndicesOffset <format=hex>;
     
-    if (header.version <= 0x20005) {
-        local int vertexIndexSize = 16;
-    } else {
+    if (header.version > 0x20005) {
         int vertexIndicesLength <format=hex>;
         int unk14 <hidden=true>; Assert(unk14 == 0);
         int vertexIndexSize;
         int unk1C <hidden=true>; Assert(unk1C == 0);
     }
     
+    local int actualVertexIndexSize = header.vertexIndexSize;
+    if (actualVertexIndexSize == 0) {
+        actualVertexIndexSize = vertexIndexSize;
+    }
+    
     local quad pos <hidden=true> = FTell();
     FSeek(header.dataOffset + vertexIndicesOffset);
-    if (vertexIndexSize == 0 || vertexIndexSize == 16) {
+    if (actualVertexIndexSize == 8) {
+        // Only used in AC V as far as I know
+        AnnoyingIndices vertexIndices;
+    } else if (actualVertexIndexSize == 16) {
         ushort vertexIndices[vertexCount];
-    } else if (vertexIndexSize == 32) {
+    } else if (actualVertexIndexSize == 32) {
         uint vertexIndices[vertexCount];
     }
     FSeek(pos);
-} FaceSet <bgcolor=cDkAqua, optimize=false>;
+} FaceSet <read=ReadFaceSet, bgcolor=cDkAqua, optimize=false>;
+
+string ReadFaceSet(FaceSet& fs) {
+    string str;
+    SPrintf(str, "Flags %8X", fs.flags);
+    return str;
+}
 
 
 typedef struct (Header& header) {
@@ -199,12 +260,14 @@ typedef struct (Header& header) {
     int vertexCount;
     int unk10 <hidden=true>; Assert(unk10 == 0);
     int unk14 <hidden=true>; Assert(unk14 == 0);
-    uint verticesLength <format=hex>;
+    uint verticesLength <format=hex>; // 0 in version 20005
     uint bufferOffset <format=hex>;
     
     local quad pos <hidden=true> = FTell();
     FSeek(header.dataOffset + bufferOffset);
-    ubyte buffer[verticesLength];
+    struct {
+        ubyte vertex[vertexSize];
+    } vertices[vertexCount] <optimize=false>;
     FSeek(pos);
 } VertexBuffer <bgcolor=cLtBlue, optimize=false>;
 
@@ -236,14 +299,16 @@ typedef struct {
 } BufferLayout <bgcolor=cBlue, optimize=false>;
 
 
-typedef struct {
-    OffsetString path(0, 1);
-    OffsetString type(0, 1);
+typedef struct (Header& header) {
+    OffsetString path(0, header.unicode);
+    OffsetString type(0, header.unicode);
     Vector2 scale;
-    int unk10;
-    int unk14 <hidden=true>; Assert(unk14 == 0);
-    int unk18 <hidden=true>; Assert(unk18 == 0);
-    int unk1C <hidden=true>; Assert(unk1C == 0);
+    byte unk10;
+    byte unk11;
+    short unk12 <hidden=true>; Assert(unk12 == 0);
+    float unk14;
+    float unk18;
+    float unk1C;
 } Texture <read=ReadTexture, bgcolor=cDkBlue, optimize=false>;
 
 wstring ReadTexture(Texture& tex) {
@@ -276,14 +341,15 @@ typedef struct {
     FSeek(pos);
 } UnkThing <bgcolor=cDkPurple, optimize=false>;
 
+//------------------------------------------------
 
 Header header;
 if (header.dummyCount > 0)
     struct { Dummy dummies[header.dummyCount]; } dummies;
 if (header.materialCount > 0)
-    struct { Material materials[header.materialCount]; } materials;
+    struct { Material materials(header)[header.materialCount]; } materials;
 if (header.boneCount > 0)
-    struct { Bone bones[header.boneCount]; } bones;
+    struct { Bone bones(header)[header.boneCount]; } bones;
 if (header.meshCount > 0)
     struct { Mesh meshes(header)[header.meshCount]; } meshes;
 if (header.faceSetCount > 0)
@@ -293,6 +359,6 @@ if (header.vertexBufferCount > 0)
 if (header.bufferLayoutCount > 0)
     struct { BufferLayout bufferLayouts[header.bufferLayoutCount]; } bufferLayouts;
 if (header.textureCount > 0)
-    struct { Texture textures[header.textureCount]; } textures;
+    struct { Texture textures(header)[header.textureCount]; } textures;
 if (header.version >= 0x2001A)
     UnkThing unkThing;

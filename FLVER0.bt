@@ -4,44 +4,25 @@
 //      File: FLVERD.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: Demon's Souls models
+//   Purpose: FromSoft models before ACE:R
 //  Category: Dark Souls
 // File Mask: *.flver
-//  ID Bytes: 46 4C 56 45 52 00 42 00 00 00 00
+//  ID Bytes: 46 4C 56 45 52 00
 //   History: 
 //------------------------------------------------
 
-struct Vector3 {
-    float x;
-    float y;
-    float z;
-};
+#include "Util.bt";
 
-local int UNICODE <hidden=true>;
-typedef struct {
-    int offset <format=hex>;
-    local quad pos = FTell();
-    FSeek(offset);
-    if (UNICODE)
-        wstring str;
-    else
-        string str;
-    FSeek(pos);
-} OffsetString <read=OffsetStringRead>;
+LittleEndian();
+if (ReadString(6, 1) == "B")
+    BigEndian();
 
-string OffsetStringRead(OffsetString &os) {
-    return os.str;
-};
-
+//------------------------------------------------
 
 typedef struct {
     char magic[6]; Assert(magic == "FLVER\0");
     char endian[2]; Assert(endian == "L\0" || endian == "B\0");
-    if (endian == "L\0")
-        LittleEndian();
-    else
-        BigEndian();
-    int version; Assert(version >= 0x0E && version <= 0x15 && version != 0x11);
+    int version; Assert(version >= 0 && version < 0x10000);
     int dataOffset <format=hex>;
     int dataSize <format=hex>;
     int dummyCount;
@@ -55,7 +36,6 @@ typedef struct {
     int unk44 <format=hex>;
     byte unk48 <format=hex>;
     byte unicode;
-    UNICODE = unicode;
     byte unk4A;
     byte unk4B;
     int unk4C <format=hex>;
@@ -83,12 +63,14 @@ typedef struct {
     int unk3C; Assert(unk3C == 0);
 } Dummy <bgcolor=cPurple, optimize=true>;
 
-typedef struct {
-    OffsetString path;
-    OffsetString type;
+
+typedef struct (Header& header) {
+    OffsetString path(0, header.unicode);
+    OffsetString type(0, header.unicode);
     int unk08; Assert(unk08 == 0);
     int unk0C; Assert(unk0C == 0);
 } Texture;
+
 
 typedef struct {
     int unk00;
@@ -97,6 +79,7 @@ typedef struct {
     int semantic;
     int index;
 } BufferMember;
+
 
 typedef struct {
     short memberCount;
@@ -107,9 +90,10 @@ typedef struct {
     BufferMember bufferMembers[memberCount];
 } BufferLayout;
 
-typedef struct {
-    OffsetString name;
-    OffsetString mtd;
+
+typedef struct (Header& header) {
+    OffsetString name(0, header.unicode);
+    OffsetString mtd(0, header.unicode);
     int texturesOffset <format=hex, hidden=true>;
     int bufferLayoutOffset <format=hex>;
     int dataSize <format=hex>; // From name offset to end of buffer layouts
@@ -126,7 +110,7 @@ typedef struct {
     int unkT04; Assert(unkT04 == 0);
     int unkT08; Assert(unkT08 == 0);
     int unkT0C; Assert(unkT0C == 0);
-    Texture textures[textureCount] <bgcolor=cAqua, optimize=false>;
+    Texture textures(header)[textureCount] <bgcolor=cAqua, optimize=false>;
 
     if (bufferLayoutHeaderOffset != 0) {
     FSeek(bufferLayoutHeaderOffset);
@@ -144,9 +128,9 @@ typedef struct {
     FSeek(pos);
 } Material <bgcolor=cLtBlue, optimize=false>;
 
-typedef struct {
+typedef struct (Header& header) {
     Vector3 translation;
-    OffsetString name;
+    OffsetString name(0, header.unicode);
     Vector3 rotation;
     short parentIndex;
     short childIndex;
@@ -194,10 +178,10 @@ struct {
     Dummy dummies[header.dummyCount];
 } dummies;
 struct {
-    Material materials[header.materialCount];
+    Material materials(header)[header.materialCount];
 } materials;
 struct {
-    Bone bones[header.boneCount];
+    Bone bones(header)[header.boneCount];
 } bones;
 struct {
     Mesh meshes[header.meshCount];
