@@ -3,15 +3,17 @@
 //
 //      File: NVA.bt
 //   Authors: katalash, TKGP
-//   Version: 0.9
-//   Purpose: DS3/BB .nva
-//  Category: Dark Souls
+//   Version: 
+//   Purpose: BB/DS3/SDT navmesh configuration
+//  Category: Dantelion
 // File Mask: *.nva
-//  ID Bytes: 4E 56 4D 41 04 00 00 00 [+4] 09 00 00 00 00 00 00 00
+//  ID Bytes: 4E 56 4D 41
 //   History: 
 //------------------------------------------------
 
 #include "Util.bt"
+
+LittleEndian();
 
 typedef struct {
     char magic[4]; Assert(magic == "NVMA");
