@@ -24,7 +24,7 @@ typedef struct {
     byte unk06; Assert(unk06 == 0);
     byte unk07; Assert(unk07 == 0);
     byte unk08; Assert(unk08 == 0);
-    byte unk09; Assert(unk09 == 0 || unk09 == 1);
+    byte bigEndian;
     byte unk0A; Assert(unk0A == 0 || unk0A == 1);
     byte unk0B; Assert(unk0B == 0);
     int fileCount;
@@ -34,7 +34,8 @@ typedef struct {
     quad fileHeadersEnd <format=hex>;
     byte unicode; Assert(unicode == 0 || unicode == 1);
     byte format <format=hex>; Assert(
-           format == 0x2E // ID, uncompressed size, compression is DCX
+           format == 0x22 // ID, compression, no name
+        || format == 0x2E // ID, uncompressed size, compression is DCX
         || format == 0x54 // ID, uncompressed size
         || format == 0x74 // ID, uncompressed size
         );
@@ -56,26 +57,30 @@ typedef struct (Header& header) {
     byte unk03 <hidden=true>; Assert(unk03 == 0);
     int unk04 <hidden=true>; Assert(unk04 == -1);
     quad compressedSize <format=hex>;
-    if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
+    if (header.format == 0x22 || header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
         quad uncompressedSize <format=hex>;
     }
     uint fileOffset <format=hex>;
-    if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
+    if (header.format == 0x22 || header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
         int id;
     }
-    int nameOffset <format=hex>;
+    if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
+        int nameOffset <format=hex>;
+        local quad pos <hidden=true> = FTell();
+        FSeek(nameOffset);
+        if (header.unicode)
+            wstring name <bgcolor=cGreen>;
+        else
+            string name <bgcolor=cGreen>;
+        FSeek(pos);
+    }
     
-    local quad pos <hidden=true> = FTell();
-    FSeek(nameOffset);
-    if (header.unicode)
-        wstring name <bgcolor=cGreen>;
-    else
-        string name <bgcolor=cGreen>;
     if (compressedSize > 0) {
+        local quad pos <hidden=true> = FTell();
         FSeek(fileOffset);
         ubyte bytes[compressedSize] <bgcolor=cAqua>;
+        FSeek(pos);
     }
-    FSeek(pos);
 } File <read=ReadFile, bgcolor=cLtGreen, optimize=false>;
 
 wstring ReadFile(File& file) {
