@@ -52,8 +52,8 @@ typedef struct {
 
 
 typedef struct {
-    OffsetString str00(0, 1);
-    OffsetString str04(0, 1);
+    OffsetString absolutePath(0, 1);
+    OffsetString relativePath(0, 1);
     short type;
     
     if (type == 1) {
@@ -65,17 +65,22 @@ typedef struct {
         int unk10;
         int unk14; Assert(unk14 == 0);
         int unk18; Assert(unk18 == 0);
-        int unk1C;
+        short unk1C;
+        byte reflectible;
+        byte unk1F;
         int unk20;
         byte unk24;
-        byte unk25;
-        byte unk26;
+        byte disableShadowSource;
+        byte disableShadowTarget;
         byte unk27;
         float unk28;
-        int unk2C;
+        byte unk2C;
+        byte fixToCamera;
+        byte unk2E;
+        byte unk2F; Assert(unk2F == 0);
         short unk30;
         short unk32;
-        byte unk34;
+        byte unk34; Assert(unk34 == 0);
         byte unk35;
         byte unk36;
         byte unk37;
@@ -114,7 +119,7 @@ wstring ReadEntry(Entry& entry) {
     } else if (entry.type == 4) {
         SPrintf(str, "%i %8X %8X | ", entry.type, entry.unk10, entry.unk14);
     }
-    return str + entry.str00.str + " | " + entry.str04.str;
+    return str + entry.absolutePath.str + " | " + entry.relativePath.str;
 }
 
 //------------------------------------------------
