@@ -82,12 +82,13 @@ string ReadDummy(Dummy& dummy) {
 
 
 typedef struct {
-    uint unk00 <format=hex>;
+    uint id <format=hex>;
     int unk04 <format=hex>;
     int length <format=hex>;
     
-    if (length > 0xC)
-        ubyte unk0C[length - 0xC];
+    if (length > 0xC) {
+        ubyte data[length - 0xC];
+    }
 } GXItem <optimize=false>;
 
 typedef struct (Header& header) {
@@ -106,7 +107,7 @@ typedef struct (Header& header) {
         struct {
             do {
                 GXItem gxItem;
-            } while(gxItem.unk00 != 0x7FFFFFFF);
+            } while(gxItem.id != 0x7FFFFFFF);
         } gxItems;
         FSeek(pos);
     }
