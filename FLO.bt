@@ -1,0 +1,361 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: FLO.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Dark Souls 2 UI configs
+//  Category: Dantelion
+// File Mask: *.flo
+//  ID Bytes: 00 00 02 00 [+4] A8 00 00 00 00 00 00 00
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    short unk00; Assert(unk00 == 0);
+    short unk02; Assert(unk02 == 2);
+    int unk04;
+    quad offset1 <format=hex>;
+    quad offset2 <format=hex>;
+    quad offset3 <format=hex>;
+    quad offset4 <format=hex>;
+    quad offset5 <format=hex>;
+    quad texturesOffset <format=hex>;
+    quad stringsOffset <format=hex>;
+    quad offset8 <format=hex>;
+    short count1;
+    short count2; Assert(count2 == 0);
+    short count3;
+    short count4;
+    short count5;
+    short textureCount;
+    short stringCount;
+    short count8;
+    short unk58; Assert(unk58 == 0);
+    short unk5A;
+    int unk5C <hidden=true>; Assert(unk5C == 0);
+    int unk60 <hidden=true>; Assert(unk60 == 0);
+    int unk64 <hidden=true>; Assert(unk64 == 0);
+    int unk68 <hidden=true>; Assert(unk68 == 0);
+    int unk6C <hidden=true>; Assert(unk6C == 0);
+    int unk70 <hidden=true>; Assert(unk70 == 0);
+    int unk74 <hidden=true>; Assert(unk74 == 0);
+    int unk78 <hidden=true>; Assert(unk78 == 0);
+    int unk7C <hidden=true>; Assert(unk7C == 0);
+    int unk80 <hidden=true>; Assert(unk80 == 0);
+    int unk84 <hidden=true>; Assert(unk84 == 0);
+    int unk88 <hidden=true>; Assert(unk88 == 0);
+    int unk8C <hidden=true>; Assert(unk8C == 0);
+    int unk90 <hidden=true>; Assert(unk90 == 0);
+    int unk94 <hidden=true>; Assert(unk94 == 0);
+    int unk98 <hidden=true>; Assert(unk98 == 0);
+    int unk9C <hidden=true>; Assert(unk9C == 0);
+    int unkA0 <hidden=true>; Assert(unkA0 == 0);
+    int unkA4;
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    float x1;
+    float y1;
+    float x2;
+    float y2;
+} TexRegion <read=ReadTexRegion>;
+
+string ReadTexRegion(TexRegion& reg) {
+    string str;
+    SPrintf(str, "(%f, %f) (%f, %f)", reg.x1, reg.y1, reg.x2, reg.y2);
+    return str;
+}
+
+
+struct Texture;
+typedef struct {
+    float unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
+    float unk14;
+    int unk18; Assert(unk18 == -1);
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+    quad textureOffset <format=hex>;
+    int unk28;
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+    quad texRegionOffset <format=hex>;
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(textureOffset);
+    Texture texture;
+    FSeek(texRegionOffset);
+    TexRegion texRegion;
+    FSeek(pos);
+} Struct1_1 <optimize=false>;
+
+
+typedef struct {
+    short unk00;
+    short struct1_1Count;
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    quad struct1_1sOffset <format=hex>;
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    int unk14 <hidden=true>; Assert(unk14 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(struct1_1sOffset);
+    Struct1_1 struct1_1s[struct1_1Count];
+    FSeek(pos);
+} Struct1 <read=ReadStruct1, bgcolor=cLtGreen, optimize=false>;
+
+string ReadStruct1(Struct1& struct1) {
+    string str;
+    SPrintf(str, "%2i", struct1.unk00);
+    return str;
+}
+
+
+typedef struct {
+    int unk00;
+    short unk04;
+    short unk06;
+    int unk08;
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    int unk14 <hidden=true>; Assert(unk14 == 0);
+    int unk18 <hidden=true>; Assert(unk18 == 0);
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+} Struct3_2_1 <optimize=false>;
+
+
+typedef struct {
+    quad struct3_2_1sOffset <format=hex>;
+    int struct3_2_1Count;
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    int unk14;
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(struct3_2_1sOffset);
+    struct { Struct3_2_1 struct3_2_1s[struct3_2_1Count]; } struct3_2_1s;
+    FSeek(pos);
+} Struct3_2;
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+} Struct3_1_1 <optimize=false>;
+
+
+typedef struct {
+    quad struct3_1_1sOffset <format=hex>;
+    int struct3_1_1Count;
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    int unk14;
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(struct3_1_1sOffset);
+    struct { Struct3_1_1 struct3_1_1s[struct3_1_1Count]; } struct3_1_1s;
+    FSeek(pos);
+} Struct3_1 <optimize=false>;
+
+
+struct Struct4;
+typedef struct {
+    short unk00;
+    short struct4Count;
+    int unk04;
+    quad struct4sOffset <format=hex>;
+    int unk10;
+    int unk14; Assert(unk14 == 1);
+    quad struct3_1Offset <format=hex>;
+    quad struct3_2Offset <format=hex>;
+    int unk28 <hidden=true>; Assert(unk28 == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+    int unk30 <hidden=true>; Assert(unk30 == 0);
+    int unk34 <hidden=true>; Assert(unk34 == 0);
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
+    int unk40 <hidden=true>; Assert(unk40 == 0);
+    int unk44 <hidden=true>; Assert(unk44 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(struct4sOffset);
+    struct { Struct4 struct4s[struct4Count]; } struct4s;
+    
+    if (struct3_1Offset != 0) {
+        FSeek(struct3_1Offset);
+        Struct3_1 struct3_1;
+    }
+    if (struct3_2Offset != 0) {
+        FSeek(struct3_2Offset);
+        Struct3_2 struct3_2;
+    }
+    FSeek(pos);
+} Struct3 <read=ReadStruct3, bgcolor=cAqua, optimize=false>;
+
+string ReadStruct3(Struct3& struct3) {
+    string str;
+    SPrintf(str, "%2i %3i", struct3.unk00, struct3.unk10);
+    return str;
+}
+
+
+typedef struct {
+    float unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
+    float unk14;
+    ubyte color[4]; // RGBA
+    int unk1C;
+    int unk20;
+    int unk24;
+    int unk28 <hidden=true>; Assert(unk28 == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+} Frame <read=ReadFrame, optimize=false>;
+
+string ReadFrame(Frame& frame) {
+    string str;
+    SPrintf(str, "%2X %2X %2X %2X",
+        frame.color[0], frame.color[1], frame.color[2], frame.color[3]);
+    return str;
+}
+
+
+typedef struct {
+    short unk00;
+    short frameCount;
+    int unk04;
+    quad framesOffset <format=hex>;
+    short unk10;
+    short unk12;
+    short unk14;
+    short unk16;
+    int unk18;
+    int unk1C;
+    int unk20 <hidden=true>; Assert(unk20 == 0);
+    int unk24 <hidden=true>; Assert(unk24 == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(framesOffset);
+    struct { Frame frames[frameCount]; } frames;
+    FSeek(pos);
+} Struct4 <read=ReadStruct4, bgcolor=cLtBlue, optimize=false>;
+
+string ReadStruct4(Struct4& struct4) {
+    string str;
+    SPrintf(str, "%i %i", struct4.unk00, struct4.frameCount);
+    return str;
+}
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    quad struct3Offset <format=hex>;
+    float unk10;
+    float unk14;
+    int unk18;
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+    int unk20 <hidden=true>; Assert(unk20 == 0);
+    int unk24;
+} Struct5 <read=ReadStruct5, bgcolor=cPurple, optimize=false>;
+
+string ReadStruct5(Struct5& struct5) {
+    string str;
+    SPrintf(str, "%i", struct5.unk00);
+    return str;
+}
+
+
+typedef struct {
+    OffsetString name(1, 0);
+    int unk08;
+    short unk0C <hidden=true>; Assert(unk0C == 0);
+    short width; // These don't seem to actually do anything
+    short height;
+    short unk12 <hidden=true>; Assert(unk12 == 0);
+    int unk14;
+} Texture <read=ReadTexture, bgcolor=cDkYellow, optimize=false>;
+
+string ReadTexture(Texture& tex) {
+    string str;
+    SPrintf(str, "%2i ", tex.unk08);
+    return str + tex.name.str;
+}
+
+
+typedef struct {
+    string str;
+} StringWrapper <read=ReadStringWrapper, bgcolor=cBlack, fgcolor=cWhite, optimize=false>;
+
+string ReadStringWrapper(StringWrapper& sw) {
+    return sw.str;
+}
+
+
+typedef struct {
+    int unk00;
+    short unk04;
+    short unk06;
+    int unk08;
+    int unk0C;
+    short unk10;
+    short unk12;
+    short unk14;
+    short unk16;
+    int unk18 <hidden=true>; Assert(unk18 == 0);
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+    int unk20 <hidden=true>; Assert(unk20 == 0);
+    int unk24 <hidden=true>; Assert(unk24 == 0);
+    int unk28 <hidden=true>; Assert(unk28 == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+    int unk30 <hidden=true>; Assert(unk30 == 0);
+    int unk34;
+} Struct8 <bgcolor=cYellow, optimize=false>;
+
+//------------------------------------------------
+
+Header header;
+if (header.count1 > 0) {
+    FSeek(header.offset1);
+    struct { Struct1 struct1s[header.count1]; } struct1s;
+}
+if (header.count3 > 0) {
+    FSeek(header.offset3);
+    struct { Struct3 struct3s[header.count3]; } struct3s;
+}
+if (header.count4 > 0) {
+    FSeek(header.offset4);
+    struct { Struct4 struct4s[header.count4]; } struct4s;
+}
+if (header.count5 > 0) {
+    FSeek(header.offset5);
+    struct { Struct5 struct5s[header.count5]; } struct5s;
+}
+if (header.textureCount > 0) {
+    FSeek(header.texturesOffset);
+    struct { Texture textures[header.textureCount]; } textures;
+}
+if (header.stringCount > 0) {
+    FSeek(header.stringsOffset);
+    struct { StringWrapper strings[header.stringCount]; } strings;
+}
+if (header.count8 > 0) {
+    FSeek(header.offset8);
+    struct { Struct8 struct8s[header.count8]; } struct8s;
+}
+// Pad to 0x20
