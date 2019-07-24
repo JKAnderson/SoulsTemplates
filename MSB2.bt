@@ -4,8 +4,8 @@
 //      File: MSB2.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: DS2 map layouts
-//  Category: Dark Souls
+//   Purpose: SotFS map layouts
+//  Category: Dantelion
 // File Mask: *.msb
 //  ID Bytes: 4D 53 42 20 01 00 00 00 10 00 00 00 00 00 01 FF 05 00 00 00
 //   History: 
@@ -16,6 +16,8 @@
 #include "MSB2\Event.bt"
 #include "MSB2\Point.bt"
 #include "MSB2\Part.bt"
+#include "MSB2\PartsPose.bt"
+#include "MSB2\BoneName.bt"
 
 typedef struct {
     char magic[4]; Assert(magic == "MSB ");
@@ -50,7 +52,7 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        Model model;
+        Model models;
     }
     FSeek(param.nextParamOffset);
 } ModelParam <read=ReadModelParam, bgcolor=cLtGreen>;
@@ -65,7 +67,7 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        Event event;
+        Event events;
     }
     FSeek(param.nextParamOffset);
 } EventParam <read=ReadEventParam, bgcolor=cYellow>;
@@ -80,7 +82,7 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        Point point;
+        Point points;
     }
     FSeek(param.nextParamOffset);
 } PointParam <read=ReadPointParam, bgcolor=cAqua>;
@@ -94,7 +96,7 @@ typedef struct {
     Param param("ROUTE_PARAM_ST");
     Assert(param.count == 1);
     FSeek(param.nextParamOffset);
-} RouteParam <read=ReadRouteParam, bgcolor=cRed>;
+} RouteParam <read=ReadRouteParam, bgcolor=cLtGray, fgcolor=cBlack>;
 
 string ReadRouteParam(RouteParam& routeParam) {
     return ReadParam(routeParam.param);
@@ -117,7 +119,7 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        Part part;
+        Part parts;
     }
     FSeek(param.nextParamOffset);
 } PartsParam <read=ReadPartsParam, bgcolor=cLtBlue>;
@@ -132,10 +134,10 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        
+        PartsPose partsPoses;
     }
     FSeek(param.nextParamOffset);
-} MapstudioPartsPose <read=ReadMapstudioPartsPose, bgcolor=cLtGray, fgcolor=cBlack>;
+} MapstudioPartsPose <read=ReadMapstudioPartsPose, bgcolor=cDkGreen>;
 
 string ReadMapstudioPartsPose(MapstudioPartsPose& partsPose) {
     return ReadParam(partsPose.param);
@@ -147,10 +149,10 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        
+        BoneName boneNames;
     }
     Assert(param.nextParamOffset == 0);
-} MapstudioBoneName <read=ReadMapstudioBoneName, bgcolor=cLtGray, fgcolor=cBlack>;
+} MapstudioBoneName <read=ReadMapstudioBoneName, bgcolor=cGreen>;
 
 string ReadMapstudioBoneName(MapstudioBoneName& boneName) {
     return ReadParam(boneName.param);
