@@ -80,7 +80,7 @@ typedef struct {
         byte unk2F; Assert(unk2F == 0);
         short unk30;
         short unk32;
-        byte unk34; Assert(unk34 == 0);
+        byte unk34;
         byte unk35;
         byte unk36;
         byte unk37;
@@ -103,6 +103,9 @@ typedef struct {
         int unk0C; Assert(unk0C == 0);
         int unk10;
         int unk14;
+    } else if (type == 5) {
+        short unk0A; Assert(unk0A == 0);
+        int unk0C; Assert(unk0C == 0);
     } else {
         Assert(false, "Unknown type in entry");
     }
@@ -110,14 +113,10 @@ typedef struct {
 
 wstring ReadEntry(Entry& entry) {
     string str;
-    if (entry.type == 1) {
-        SPrintf(str, "%i | ", entry.type);
-    } else if (entry.type == 2) {
-        SPrintf(str, "%i | ", entry.type);
-    } else if (entry.type == 3) {
-        SPrintf(str, "%i | ", entry.type);
-    } else if (entry.type == 4) {
+    if (entry.type == 4) {
         SPrintf(str, "%i %8X %8X | ", entry.type, entry.unk10, entry.unk14);
+    } else {
+        SPrintf(str, "%i | ", entry.type);
     }
     return str + entry.absolutePath.str + " | " + entry.relativePath.str;
 }
