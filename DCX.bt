@@ -5,7 +5,7 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: FromSoft compression format
-//  Category: Dark Souls
+//  Category: Dantelion
 // File Mask: *.dcx
 //  ID Bytes: 44 43 58 00
 //   History: 
@@ -14,27 +14,56 @@
 BigEndian();
 
 typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int dataOffset;
+    int dataLength;
+    int unk0C; Assert(unk0C == 1);
+} Block <bgcolor=cLtGreen, optimize=false>;
+
+typedef struct {
     char dcx[4]; Assert(dcx == "DCX\0");
-    int unk04;
-    int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
+    int unk04; Assert(unk04 == 0x10000);
+    int unk08; Assert(unk08 == 0x18);
+    int unk0C; Assert(unk0C == 0x24);
+    int unk10; Assert(unk10 == 0x24);
+    int dcsSize <format=hex>; // From after "DCS" to dca end
     char dcs[4]; Assert(dcs == "DCS\0");
     uint uncompressedSize <format=hex>;
     uint compressedSize <format=hex>;
     char dcp[4]; Assert(dcp == "DCP\0");
     char format[4];
-    int unk2C;
-    int unk30;
+    int unk2C; Assert(unk2C == 0x20);
+    int unk30; Assert(unk30 == 0x9000000);
     int unk34;
-    int unk38;
-    int unk3C;
+    int unk38; Assert(unk38 == 0);
+    int unk3C; Assert(unk3C == 0);
     int unk40;
     char dca[4]; Assert(dca == "DCA\0");
-    int unk48;
+    int dcaSize; // From before "DCA" to dca end
+    
+    if (format == "EDGE") {
+        char egdt[4]; Assert(egdt == "EgdT");
+        int unk50; Assert(unk50 == 0x10100);
+        int unk54; Assert(unk54 == 0x24);
+        int unk58; Assert(unk58 == 0x10);
+        int unk5C; Assert(unk5C == 0x10000);
+        int lastBlockUncompressedSize;
+        int egdtSize; // From before "EgdT" to dca end
+        int blockCount;
+        int unk6C; Assert(unk6C == 0x100000);
+        Block blocks[blockCount];
+    }
 } Header <bgcolor=cLtRed>;
 
-
 Header header;
-ubyte bytes[header.compressedSize] <bgcolor=cLtGreen>;
+
+if (header.format == "DFLT") {
+    ubyte bytes[header.compressedSize] <bgcolor=cAqua>;
+} else if (header.format == "EDGE") {
+    local quad dataStart <format=hex> = FTell();
+    local int i <hidden=true>;
+    for (i = 0; i < header.blockCount; i++) {
+        FSeek(dataStart + header.blocks[i].dataOffset);
+        struct { ubyte data[header.blocks[i].dataLength]; } data <bgcolor=cAqua>;
+    }
+}
