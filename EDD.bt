@@ -71,7 +71,7 @@ typedef struct {
     Varint block4Count; Assert(block4Count.val == header.block4Count);
     Varint machinesOffset <format=hex>;
     int machineCount; Assert(machineCount == header.machineCount);
-    int unkB0[4] <bgcolor=cBlack, fgcolor=cWhite>;
+    int unkB0[4] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
     if (VARINT_LONG) {
         int unk98; Assert(unk98 == 0);
     }

@@ -31,7 +31,7 @@ typedef struct {
     byte unk2D;
     short unk2E;
     if (version == 0x30)
-        Assert(unk2E == 0x66 || 0x67 || 0x68);
+        Assert(unk2E == 0x66 || unk2E == 0x67 || unk2E == 0x68);
     else
         Assert(unk2E == 0xC9);
 

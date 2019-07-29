@@ -11,6 +11,8 @@
 //   History: 
 //------------------------------------------------
 
+LittleEndian();
+
 #include "Util.bt"
 
 typedef struct {
@@ -122,8 +124,10 @@ if (header.count14 > 0) UnkStructC unkCs[header.count14];
 FSeek(header.offset38);
 if (header.count18 > 0) UnkStructD unkDs[header.count18];
 
-local int i;
-for (i = 0; i < header.count08; i++) {
-    FSeek(header.offsets40[i]);
-    UnkStructE unkEs;
-}
+struct {
+    local int i <hidden=true>;
+    for (i = 0; i < header.count08; i++) {
+        FSeek(header.offsets40[i]);
+        UnkStructE unkEs;
+    }
+} unkEs;

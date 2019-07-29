@@ -100,7 +100,7 @@ typedef struct {
 
 string ReadVarint(Varint& v) {
     string s;
-    SPrintf(s, "%Xh", v.val);
+    SPrintf(s, "%Xh | %d", v.val, v.val);
     return s;
 }
 

@@ -151,6 +151,8 @@ typedef struct {
     int vagrantEntityIDs[3];
     short mapNameID;
     short disableStart;
+    
+    // Below here is not present in a few test maps from DSR
     int disableBonfireEntityID;
     int unk2C <hidden=true>; Assert(unk2C == -1);
     int unk30 <hidden=true>; Assert(unk30 == -1);

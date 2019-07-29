@@ -27,9 +27,10 @@ struct Header {
         Assert(numberOfDarkSoulses2 == numberOfDarkSoulses1);
     int unk10 <format=hex>; Assert(unk10 == 0x54);
     int dataSize;
-    int unk18; Assert(unk18 == 6);
+    int blockCount; Assert(blockCount == 6);
+
     int dataHeaderSize <format=hex>; Assert(dataHeaderSize == (VARINT_LONG ? 0x48 : 0x2C));
-    int unk20; Assert(unk20 == 1);
+    int dataHeaderCount; Assert(dataHeaderCount == 1);
     int stateGroupSize <format=hex>; Assert(stateGroupSize == (VARINT_LONG ? 0x20 : 0x10));
     int stateGroupCount;
     int stateSize <format=hex>; Assert(stateSize == (VARINT_LONG ? 0x48 : 0x24));
@@ -40,6 +41,7 @@ struct Header {
     int commandCallCount;
     int commandArgSize <format=hex>; Assert(commandArgSize == (VARINT_LONG ? 0x10 : 0x8));
     int commandArgCount;
+
     int conditionOffsetsOffset <format=hex>;
     int conditionOffsetCount;
     // Please note that this is not actually the name offset, it's the end of the
@@ -58,10 +60,7 @@ local quad dataStart = FTell();
 
 struct DataHeader {
     int unk6C; Assert(unk6C == 1);
-    int unk70 <format=hex>;
-    int unk74 <format=hex>;
-    int unk78 <format=hex>;
-    int unk7C <format=hex>;
+    int unk70[4] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
     if (VARINT_LONG) {
         int unk80; Assert(unk80 == 0);
     }
