@@ -30,14 +30,14 @@ typedef struct {
 
     quad nameOffset <format=hex>; Assert(nameOffset == 0x80);
     PartType type;
-    short id;
+    short index;
     int modelIndex;
     Vector3 position;
     Vector3 rotation;
     Vector3 scale;
     uint drawGroupsMaybe[4];
-    int unk44;
-    int unk48;
+    int unk44; // On collisions, these 4 values match the 4 values in navmesh type data
+    int unk48; // Nvm groups?
     int unk4C;
     int unk50;
     uint dispGroupsMaybe[4];
@@ -48,7 +48,7 @@ typedef struct {
     quad unk78; Assert(unk78 == 0);
     
     FSeek(start + nameOffset);
-    wchar_t name[0x10];
+    wstring name;
     
     FSeek(start + typeDataOffset);
     switch (type) {
@@ -62,21 +62,31 @@ typedef struct {
 
 wstring ReadPart(Part& part) {
     string str;
-    SPrintf(str, "%i ", part.type);
+    if (false && part.type == PartTypeMapPiece) {
+        SPrintf(str, "%i %2i %i ", part.type, part.mapPiece.unk00, part.mapPiece.unk02);
+    } else if (false && part.type == PartTypeObject) {
+        SPrintf(str, "%i %8Xh %8Xh ", part.type, part.object.unk00, part.object.unk04);
+    } else if (part.type == PartTypeNavmesh) {
+        SPrintf(str, "%i %8Xh %8Xh %8Xh %8Xh ", part.type, part.navmesh.unk00, part.navmesh.unk04, part.navmesh.unk08, part.navmesh.unk0C);
+    } else if (false && part.type == PartTypeConnectCollision) {
+        SPrintf(str, "%i %8Xh %8Xh ", part.type, part.connectCollision.unk08, part.connectCollision.unk0C);
+    } else {
+        SPrintf(str, "%i %8Xh %8Xh %8Xh %8Xh ", part.type, part.unk44, part.unk48, part.unk4C, part.unk50);
+    }
     return str + part.name;
 }
 
 
 typedef struct {
-    short unk00;
-    short unk02;
+    short unk00; // Usually -1, sometimes 0, 1
+    short unk02; // Usually 0, sometimes 1, 2
     int unk04 <hidden=true>; Assert(unk04 == 0);
 } PartMapPiece;
 
 
 typedef struct {
-    int unk00;
-    int unk04;
+    int unk00; // Usually one of these has value and the other doesn't, but not always
+    int unk04; // Also they're probably 4 shorts
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
 } PartObject;
@@ -129,5 +139,5 @@ typedef struct {
     int collisionIndex;
     byte mapID[4];
     int unk08;
-    int unk0C;
+    int unk0C; // 0 or 1?
 } PartConnectCollision;

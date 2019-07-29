@@ -26,18 +26,21 @@ typedef struct {
 
     quad nameOffset <format=hex>; Assert(nameOffset == 0x20);
     ModelType type;
-    short id;
+    short index;
     int unk0C; Assert(unk0C == 0);
     quad offset10 <format=hex>;
     quad unk18; Assert(unk18 == 0);
     
     FSeek(start + nameOffset);
     wstring name;
-    
-    if (offset10 != 0) {
+
+    if (type == ModelTypeObject) {
+        Assert(offset10 != 0);
         FSeek(start + offset10);
         int unkX00; Assert(unkX00 == 0);
         int unkX04; Assert(unkX04 == 0);
+    } else {
+        Assert(offset10 == 0);
     }
 } Model <read=ReadModel>;
 
@@ -45,7 +48,7 @@ wstring ReadModel(Model& model) {
     string str;
     SPrintf(str, "%i ", model.type);
     if (model.offset10 != 0) {
-        SPrintf(str, "%s%i %i ", str, model.unkX00, model.unkX04);
+        SPrintf(str, "%s ", str);
     }
     return str + model.name;
 }

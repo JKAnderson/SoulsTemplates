@@ -19,6 +19,8 @@
 #include "MSB2\PartsPose.bt"
 #include "MSB2\BoneName.bt"
 
+LittleEndian();
+
 typedef struct {
     char magic[4]; Assert(magic == "MSB ");
     int unk04; Assert(unk04 == 1);
