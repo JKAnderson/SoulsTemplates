@@ -224,7 +224,15 @@ typedef struct {
 //------------------------------------------------
 
 Header header;
-struct { Dummy dummies[header.dummyCount]; } dummies;
-struct { Material materials[header.materialCount]; } materials;
-struct { Bone bones[header.boneCount]; } bones;
-struct { Mesh meshes[header.meshCount]; } meshes;
+if (header.dummyCount > 0) {
+    struct { Dummy dummies[header.dummyCount]; } dummies;
+}
+if (header.materialCount > 0) {
+    struct { Material materials[header.materialCount]; } materials;
+}
+if (header.boneCount > 0) {
+    struct { Bone bones[header.boneCount]; } bones;
+}
+if (header.meshCount > 0) {
+    struct { Mesh meshes[header.meshCount]; } meshes;
+}

@@ -22,7 +22,7 @@ if (ReadString(6, 1) == "B")
 typedef struct {
     char magic[6]; Assert(magic == "FLVER\0");
     char endian[2]; Assert(endian == "B\0" || endian == "L\0");
-    uint version <format=hex>; Assert(version >= 0x20000);
+    uint version <format=hex>; Assert(version >= 0x20000 && version < 0x30000);
     uint dataOffset <format=hex>;
     uint dataLength <format=hex>;
     int dummyCount;
@@ -32,24 +32,23 @@ typedef struct {
     int vertexBufferCount;
     Vector3 boundingBoxMin;
     Vector3 boundingBoxMax;
-    int unk40;
+    int trueFaceCount; // Does not include shadow meshes or degenerate faces
     int totalFaceCount;
     byte vertexIndexSize;
     byte unicode;
     byte unk4A;
-    byte unk4B;
-    short unk4C;
-    short unk4E;
+    byte unk4B <hidden=true>; Assert(unk4B == 0);
+    int primitiveRestartConstant; // Educated guess, hard to confirm
     int faceSetCount;
     int bufferLayoutCount;
     int textureCount;
     byte unk5C;
     byte unk5D;
-    byte unk5E; Assert(unk5E == 0);
-    byte unk5F; Assert(unk5F == 0);
+    byte unk5E <hidden=true>; Assert(unk5E == 0);
+    byte unk5F <hidden=true>; Assert(unk5F == 0);
     int unk60 <hidden=true>; Assert(unk60 == 0);
     int unk64 <hidden=true>; Assert(unk64 == 0);
-    int flags68;
+    int unk68;
     int unk6C <hidden=true>; Assert(unk6C == 0);
     int unk70 <hidden=true>; Assert(unk70 == 0);
     int unk74 <hidden=true>; Assert(unk74 == 0);
@@ -60,14 +59,14 @@ typedef struct {
 
 typedef struct {
     Vector3 position;
-    int unk0C;
+    ubyte color[4];
     Vector3 forward;
     short referenceID;
     short dummyBoneIndex;
     Vector3 upward;
     short attachBoneIndex;
     byte unk2E;
-    byte unk2F;
+    byte useUpwardVector;
     int unk30;
     int unk34;
     int unk38 <hidden=true>; Assert(unk38 == 0);
@@ -144,12 +143,12 @@ wstring ReadBone(Bone& bone) {
 
 typedef struct (Header& header) {
     byte dynamic; Assert(dynamic == 0 || dynamic == 1);
-    byte unk01; Assert(unk01 == 0);
-    byte unk02; Assert(unk02 == 0);
-    byte unk03; Assert(unk03 == 0);
+    byte unk01 <hidden=true>; Assert(unk01 == 0);
+    byte unk02 <hidden=true>; Assert(unk02 == 0);
+    byte unk03 <hidden=true>; Assert(unk03 == 0);
     int materialIndex;
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
     int defaultBoneIndex;
     int boneCount;
     uint boundingBoxOffset <format=hex>;
