@@ -26,7 +26,7 @@ typedef struct {
     int materialCount;
     int boneCount;
     int meshCount;
-    int unk20; Assert(unk20 == meshCount);
+    int unk20;
     Vector3 boundingBoxMin;
     Vector3 boundingBoxMax;
     int trueFaceCount;
@@ -124,12 +124,7 @@ typedef struct {
     int unk64 <hidden=true>; Assert(unk64 == 0);
     int unk68 <hidden=true>; Assert(unk68 == 0);
     int unk6C <hidden=true>; Assert(unk6C == 0);
-    
-    // Not sure if I had a reason to call these shorts
-    local int i <hidden=true>;
-    for (i = 0; i < 16; i++) {
-        short unk70 <hidden=true>; Assert(unk70 == -1);
-    }
+    short unk70[16]; // In Enchanted Arms c0010, these are indices to bones for facial expressions
 } Bone <read=ReadBone, bgcolor=cLtBlue, optimize=false>;
 
 string ReadBone(Bone& bone) {
@@ -141,19 +136,25 @@ string ReadBone(Bone& bone) {
 
 typedef struct {
     Vector3 position;
-    int unk0C <format=hex>;
-    int unk10 <format=hex>;
-    int unk14 <format=hex>;
+    int normal; // xyzw 10 10 10 2 low-high
+    int tangent;
+    int bitangent;
     ubyte color[4];
     Vector2 uvs[4];
-    int unk3C; // 0
-} Vertex1_0 <bgcolor=cPurple>;
+    int unk3C; // Two shorts?
+} Vertex1_0 <read=ReadVertex1_0, bgcolor=cPurple>;
+
+string ReadVertex1_0(Vertex1_0& vert) {
+    string str;
+    SPrintf(str, "%8Xh", vert.unk3C);
+    return str;
+}
 
 typedef struct {
     Vector3 position;
-    int unk0C <format=hex>;
-    int unk10 <format=hex>;
-    int unk14 <format=hex>;
+    int normal; // xyzw 10 10 10 2 low-high
+    int tangent;
+    int bitangent;
     ubyte color[4];
     Vector2 uvs[4];
     short boneIndices[4];
@@ -181,10 +182,12 @@ typedef struct {
     int length <format=hex>;
     int offset <format=hex>;
     
-    local quad pos <hidden=true> = FTell();
-    FSeek(header.dataStart + offset);
-    ubyte block[length] <format=hex>;
-    FSeek(pos);
+    if (length > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(header.dataStart + offset);
+        ubyte block[length] <format=hex>;
+        FSeek(pos);
+    }
 } UnkBlock <optimize=false>;
 
 
@@ -202,9 +205,7 @@ typedef struct {
     int bufferOffset <format=hex>;
     
     if (vertexFormat == 2) {
-        struct { UnkBlock unkBlocks[14]; } unkBlocks;
-        quad zero1 <hidden=true>; Assert(zero1 == 0);
-        quad zero2 <hidden=true>; Assert(zero2 == 0);
+        struct { UnkBlock unkBlocks[16]; } unkBlocks;
     }
     
     local quad pos <hidden=true> = FTell();
