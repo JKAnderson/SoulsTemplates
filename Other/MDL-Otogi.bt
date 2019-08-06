@@ -11,7 +11,9 @@
 //   History: 
 //------------------------------------------------
 
-#include "Util.bt"
+#include "..\Util.bt"
+
+LittleEndian();
 
 typedef struct {
     int fileSize <format=hex>;
@@ -27,7 +29,7 @@ typedef struct {
     int vertexCountA;
     int vertexCountB;
     int vertexCountC;
-    int vertexCountD;
+    int vertexCountD; Assert(vertexCountD == 0);
     int count30;
     int count34;
     int textureCount;
@@ -45,7 +47,7 @@ typedef struct {
 
 
 typedef struct {
-    byte unk00;
+    byte unk00; // Index in unk34s?
     byte unk01;
     short vertexCount;
     int indexCount;
@@ -67,12 +69,12 @@ typedef struct {
 
 
 typedef struct {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
+    float unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
+    float unk14;
     float unk18;
     float unk1C;
     float unk20;
@@ -81,9 +83,9 @@ typedef struct {
     int unk2C;
     int unk30;
     int facesetCountA;
-    int facesetCountB;
+    int facesetCountB; 
     int facesetCountC;
-    int facesetCountD;
+    int facesetCountD; Assert(facesetCountD == 0);
     int facesetsOffsetA <format=hex>;
     int facesetsOffsetB <format=hex>;
     int facesetsOffsetC <format=hex>;
@@ -95,14 +97,14 @@ typedef struct {
     float unk64;
     float unk68;
     float unk6C;
-    int unk70;
-    int unk74;
-    int unk78;
-    int unk7C;
-    int unk80;
-    int unk84;
-    int unk88;
-    int unk8C;
+    int unk70 <hidden=true>; Assert(unk70 == 0);
+    int unk74 <hidden=true>; Assert(unk74 == 0);
+    int unk78 <hidden=true>; Assert(unk78 == 0);
+    int unk7C <hidden=true>; Assert(unk7C == 0);
+    int unk80 <hidden=true>; Assert(unk80 == 0);
+    int unk84 <hidden=true>; Assert(unk84 == 0);
+    int unk88 <hidden=true>; Assert(unk88 == 0);
+    int unk8C <hidden=true>; Assert(unk8C == 0);
     
     local quad pos <hidden=true> = FTell();
     if (facesetCountA > 0) {
@@ -111,7 +113,7 @@ typedef struct {
     }
     if (facesetCountB > 0) {
         FSeek(facesetsOffsetB);
-        //FacesetB facesetsB[facesetCountB];
+        Faceset facesetsB[facesetCountB];
     }
     if (facesetCountC > 0) {
         FSeek(facesetsOffsetC);
@@ -126,11 +128,11 @@ typedef struct {
 
 
 typedef struct {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
-    int unk10;
+    float unk00;
+    float unk04;
+    float unk08;
+    float unk0C;
+    float unk10;
     float unk14;
     int unk18;
     int unk1C;
@@ -180,16 +182,16 @@ typedef struct {
 
 typedef struct {
     Vector3 position;
-    float unk0C; // Normal?
-    int unk10; Assert(unk10 == 0); // 0
-    int unk14; Assert(unk14 == 0); // 0
-    int unk18; // Color?
+    int unk0C; // Normal?
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == -1); // Color?
     Vector2 uvs[4];
 } VertexA <read=ReadVertexA, bgcolor=cAqua, optimize=false>;
 
 string ReadVertexA(VertexA& vert) {
     string str;
-    SPrintf(str, "%f", vert.unk0C);
+    SPrintf(str, "%8Xh %12i", vert.unk0C, vert.unk0C);
     return str;
 }
 
@@ -199,7 +201,24 @@ typedef struct {
     int unk0C;
     int unk10; Assert(unk10 == 0);
     int unk14; Assert(unk14 == 0);
-    int unk18;
+    int unk18; Assert(unk18 == -1);
+    Vector2 uvs[4];
+    int unk3C; // Seen: 0, 4
+} VertexB <read=ReadVertexB, bgcolor=cAqua, optimize=false>;
+
+string ReadVertexB(VertexB& vert) {
+    string str;
+    SPrintf(str, "%8Xh", vert.unk3C);
+    return str;
+}
+
+
+typedef struct {
+    Vector3 position;
+    int unk0C;
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18; Assert(unk18 == -1);
     Vector2 uvs[4];
     int unk3C;
     float unk40;
@@ -218,11 +237,15 @@ short indices[header.indexCount] <bgcolor=cLtBlue>;
 FSeek(header.verticesOffsetA);
 struct { VertexA verticesA[header.vertexCountA]; } verticesA;
 
-FSeek(header.verticesOffsetB);
-//Unk28 unk28s[header.verticesCountB];
+if (header.vertexCountB > 0) {
+    FSeek(header.verticesOffsetB);
+    struct { VertexB verticesB[header.vertexCountB]; } verticesB;
+}
 
-FSeek(header.verticesOffsetC);
-struct { VertexC verticesC[header.vertexCountC]; } verticesC;
+if (header.vertexCountC > 0) {
+    FSeek(header.verticesOffsetC);
+    struct { VertexC verticesC[header.vertexCountC]; } verticesC;
+}
 
 FSeek(header.offset54);
 Unk30 unk30s[header.count30];
