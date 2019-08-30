@@ -25,16 +25,16 @@ else
 typedef struct {
     char magic[4]; Assert(magic == "EVD\0");
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
-    byte unk05; Assert(unk05 == 0 || unk05 == -1);
-    byte unk06; Assert(unk06 == 0 || unk06 == 1);
+    byte is64bit; Assert(is64bit == 0 || is64bit == -1);
+    byte unicode; Assert(unicode == 0 || unicode == 1);
     byte unk07; Assert(unk07 == 0 || unk07 == -1);
-    int unk08; Assert(unk08 == 0xCC || unk08 == 0xCD);
+    int version; Assert(version == 0xCC || version == 0xCD);
     int fileSize;
 
     local GAME game;
-    if (unk08 == 0xCD)
+    if (version == 0xCD)
         game = DS3;
-    else if (unk05 == -1)
+    else if (is64bit == -1)
         game = BB;
     else
         game = DS1;
