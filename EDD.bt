@@ -16,6 +16,15 @@ local int VARINT_LONG = 0;
 
 LittleEndian();
 
+void RelativeAlign(quad start, int align, int should) {
+    if (should) {
+        local quad rel = FTell() - start;
+        if (rel % align > 0) {
+            FSkip(align - rel % align);
+        }
+    }
+}
+
 //------------------------------------------------
 
 typedef struct {
@@ -33,13 +42,13 @@ typedef struct {
     int dataHeaderCount; Assert(dataHeaderCount == 1);
     int stringHeaderSize <format=hex>; Assert(stringHeaderSize == (VARINT_LONG ? 0x10 : 8));
     int stringCount;
-    int block3Size; Assert(block3Size == 4);
+    int block3Size <format=hex>; Assert(block3Size == 4);
     int block3Count; Assert(block3Count == 0);
     int block4Size <format=hex>; Assert(block4Size == 8);
     int block4Count;
     int conditionSize <format=hex>; Assert(conditionSize == (VARINT_LONG ? 0x10 : 8));
     int conditionCount;
-    int block6Size; Assert(block6Size == (VARINT_LONG ? 0x10 : 8));
+    int block6Size <format=hex>; Assert(block6Size == (VARINT_LONG ? 0x10 : 8));
     int block6Count; Assert(block6Count == 0);
     int block7Size <format=hex>; Assert(block7Size == (VARINT_LONG ? 0x18 : 0x10));
     int block7Count;
@@ -65,11 +74,11 @@ typedef struct {
 
 typedef struct {
     Varint unk94; Assert(unk94.val == 0);
-    Varint block7Offset <format=hex>;
+    Varint block7Offset;
     Varint block7Count; Assert(block7Count.val == header.block7Count);
-    Varint block4Offset <format=hex>;
+    Varint block4Offset;
     Varint block4Count; Assert(block4Count.val == header.block4Count);
-    Varint machinesOffset <format=hex>;
+    Varint machinesOffset;
     int machineCount; Assert(machineCount == header.machineCount);
     int unkB0[4] <format=hex, bgcolor=cBlack, fgcolor=cWhite>;
     if (VARINT_LONG) {
@@ -149,17 +158,17 @@ typedef struct {
 
 typedef struct {
     Varint id;
-    Varint nameIndexOffset <format=hex>;
+    Varint nameIndexOffset;
     Varint nameCount; Assert(nameCount.val == 1);
-    Varint entryCommandsOffset <format=hex>;
+    Varint entryCommandsOffset;
     Varint entryCommandCount;
-    Varint exitCommandsOffset <format=hex>;
+    Varint exitCommandsOffset;
     Varint exitCommandCount;
-    Varint whileCommandsOffset <format=hex>;
+    Varint whileCommandsOffset;
     Varint whileCommandCount;
-    Varint block9Offset <format=hex>;
+    Varint block9Offset;
     Varint block9Count;
-    Varint conditionsOffset <format=hex>;
+    Varint conditionsOffset;
     Varint conditionCount;
     Varint unk34; Assert(unk34.val == -1);
     Varint unk38; Assert(unk38.val == 0);
@@ -186,7 +195,7 @@ typedef struct {
     Varint unk1C; Assert(unk1C.val == 0);
     Varint unk20; Assert(unk20.val == -1);
     Varint unk24; Assert(unk24.val == 0);
-    Varint statesOffset <format=hex>;
+    Varint statesOffset;
     Varint stateCount;
     
     local wstring name = strings.strings[nameIndex].str;
@@ -214,6 +223,7 @@ if (header.block7Count > 0) {
 }
 if (header.commandCount > 0) {
     struct { Command commands[header.commandCount]; } commands;
+    RelativeAlign(dataStart, 8, VARINT_LONG);
 }
 if (header.block9Count > 0) {
     struct { Block9 block9s[header.block9Count]; } block9Group;
