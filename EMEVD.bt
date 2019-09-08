@@ -11,10 +11,12 @@
 //   History: 
 //------------------------------------------------
 
+// Change this to 1 to read linked file names as Shift-JIS
+local int DS2 = 0;
 local int VARINT_LONG = ReadByte(5) == -1;
 #include "Util.bt"
 
-enum GAME { DS1, BB, DS3 };
+enum GAME { DS1, DS1BE, BB, DS3, SDT };
 enum <int> BONFIRE_TYPE { NONE = 0, RESTART = 1, END = 2 };
 
 if (ReadByte(4))
@@ -22,22 +24,30 @@ if (ReadByte(4))
 else
     LittleEndian();
 
+//------------------------------------------------
+
 typedef struct {
     char magic[4]; Assert(magic == "EVD\0");
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
-    byte is64bit; Assert(is64bit == 0 || is64bit == -1);
-    byte unicode; Assert(unicode == 0 || unicode == 1);
+    byte is64Bit; Assert(is64Bit == 0 || is64Bit == -1);
+    byte unk06; Assert(unk06 == 0 || unk06 == 1);
     byte unk07; Assert(unk07 == 0 || unk07 == -1);
     int version; Assert(version == 0xCC || version == 0xCD);
-    int fileSize;
+    int fileSize <format=hex>;
 
     local GAME game;
-    if (version == 0xCD)
-        game = DS3;
-    else if (is64bit == -1)
-        game = BB;
-    else
+    if (!bigEndian && !is64Bit && !unk06 && !unk07 && version == 0xCC)
         game = DS1;
+    else if (bigEndian && !is64Bit && !unk06 && !unk07 && version == 0xCC)
+        game = DS1BE;
+    else if (!bigEndian && is64Bit && !unk06 && !unk07 && version == 0xCC)
+        game = BB;
+    else if (!bigEndian && is64Bit && unk06 && unk07 && version == 0xCD)
+        game = DS3;
+    else if (!bigEndian && is64Bit && unk06 && unk07 && version == 0xCD)
+        game = SDT;
+    else
+        Assert(false, "Unknown EMEVD format.");
 
     Varint eventCount;
     Varint eventsOffset;
@@ -68,21 +78,21 @@ typedef struct {
     quad unk08; Assert(unk08 == 0);
     quad unk10; Assert(unk10 == -1);
     quad unk18; Assert(unk18 == 1);
-} EventLayer;
+} EventLayer <bgcolor=cBlue>;
 
 
-typedef struct (Header& header) {
+typedef struct {
     int instructionClass;
     int instructionIndex;
     Varint argumentsLength;
     Varint argumentsOffset;
     Varint eventLayerOffset;
-    if (header.game == DS1)
+    if (header.game < BB)
         Assert(eventLayerOffset.val == -1);
     else if (header.game == BB)
         Assert(eventLayerOffset.val == 0xFFFFFFFF); // @ me, I dare you
 
-    if (header.game == DS1) {
+    if (header.game < BB) {
         int unk14 <hidden=true>; Assert(unk14 == 0);
     }
     
@@ -91,27 +101,27 @@ typedef struct (Header& header) {
         FSeek(header.argumentsOffset.val + argumentsOffset.val);
         byte arguments[argumentsLength.val] <bgcolor=cBlack, fgcolor=cWhite>;
     }
-    if (header.game == DS3 && eventLayerOffset.val != -1) {
+    if (header.game >= DS3 && eventLayerOffset.val != -1) {
         FSeek(header.eventLayersOffset.val + eventLayerOffset.val);
-        EventLayer eventLayer <bgcolor=cBlue>;
+        EventLayer eventLayer;
     }
     FSeek(pos);
-} Instruction <read=ReadInstruction, optimize=false>;
+} Instruction <read=ReadInstruction, bgcolor=cAqua, optimize=false>;
 
 string ReadInstruction(Instruction& inst) {
     string str;
-    SPrintf(str, "%4i[%2i]", inst.instructionClass, inst.instructionIndex);
+    SPrintf(str, "%6i[%2i]", inst.instructionClass, inst.instructionIndex);
     return str;
 }
 
 
-typedef struct (Header& header) {
+typedef struct {
     Varint instructionIndex;
     Varint targetStartByte;
     Varint sourceStartByte;
     int length;
     int unk10;
-} Parameter <read=ReadParam, optimize=false>;
+} Parameter <read=ReadParam, bgcolor=cPurple, optimize=false>;
 
 string ReadParam(Parameter& param) {
     string str;
@@ -121,28 +131,28 @@ string ReadParam(Parameter& param) {
 }
 
 
-typedef struct (Header& header) {
+typedef struct {
     Varint id;
     Varint instructionCount;
     Varint instructionsOffset;
     Varint parameterCount;
     Varint parametersOffset;
     BONFIRE_TYPE bonfireType;
-    int unk18; Assert(unk18 == 0);
+    int unk18 <hidden=true>; Assert(unk18 == 0);
     
     local quad pos <hidden=true> = FTell();
     FSeek(header.instructionsOffset.val + instructionsOffset.val);
     struct {
-        Instruction instructions(header)[instructionCount.val];
-    } instructions <bgcolor=cAqua>;
+        Instruction instructions[instructionCount.val];
+    } instructions;
     FSeek(header.parametersOffset.val + parametersOffset.val);
     if (parameterCount.val > 0) {
     struct {
-        Parameter parameters(header)[parameterCount.val];
-    } parameters <bgcolor=cPurple>;
+        Parameter parameters[parameterCount.val];
+    } parameters;
     }
     FSeek(pos);
-} Event <read=ReadEvent, optimize=false>;
+} Event <read=ReadEvent, bgcolor=cLtGreen, optimize=false>;
 
 string ReadEvent(Event& event) {
     string str;
@@ -151,28 +161,33 @@ string ReadEvent(Event& event) {
 }
 
 
-typedef struct (Header& header) {
+typedef struct {
     Varint stringOffset;
     local quad pos <hidden=true> = FTell();
     FSeek(header.stringsOffset.val + stringOffset.val);
-    if (header.game == DS3) {
-        wstring path <bgcolor=cLtGreen>;
-    } else {
+    if (DS2) {
         string path <bgcolor=cLtGreen>;
+    } else {
+        wstring path <bgcolor=cLtGreen>;
     }
     FSeek(pos);
-} LinkedFile <optimize=false>;
+} LinkedFile <bgcolor=cRed, optimize=false>;
 
+//------------------------------------------------
 
 Header header <bgcolor=cLtRed>;
+
 FSeek(header.eventsOffset.val);
 struct {
-    Event events(header)[header.eventCount.val];
-} events <bgcolor=cLtGreen>;
+    Event events[header.eventCount.val];
+} events;
 
 if (header.linkedFileCount.val > 0) {
 FSeek(header.linkedFilesOffset.val);
 struct {
-    LinkedFile linkedFiles(header)[header.linkedFileCount.val];
-} linkedFiles <bgcolor=cRed>;
+    LinkedFile linkedFiles[header.linkedFileCount.val];
+} linkedFiles;
 }
+
+FSeek(header.instructionsOffset.val);
+struct { Instruction instructions[header.instructionCount.val]; } instructions;
