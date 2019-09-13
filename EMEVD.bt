@@ -42,7 +42,7 @@ typedef struct {
         game = DS1BE;
     else if (!bigEndian && is64Bit && !unk06 && !unk07 && version == 0xCC)
         game = BB;
-    else if (!bigEndian && is64Bit && unk06 && unk07 && version == 0xCD)
+    else if (!bigEndian && is64Bit && unk06 && !unk07 && version == 0xCD)
         game = DS3;
     else if (!bigEndian && is64Bit && unk06 && unk07 && version == 0xCD)
         game = SDT;
