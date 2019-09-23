@@ -11,6 +11,8 @@
 //   History: 
 //------------------------------------------------
 
+#include "Util.bt"
+
 if (ReadByte(9))
     BigEndian();
 else
@@ -65,14 +67,7 @@ typedef struct (Header& header) {
         int id;
     }
     if (header.format == 0x2E || header.format == 0x54 || header.format == 0x74) {
-        int nameOffset <format=hex>;
-        local quad pos <hidden=true> = FTell();
-        FSeek(nameOffset);
-        if (header.unicode)
-            wstring name <bgcolor=cGreen>;
-        else
-            string name <bgcolor=cGreen>;
-        FSeek(pos);
+        OffsetString name(0, header.unicode);
     }
     
     if (compressedSize > 0) {
@@ -84,7 +79,7 @@ typedef struct (Header& header) {
 } File <read=ReadFile, bgcolor=cLtGreen, optimize=false>;
 
 wstring ReadFile(File& file) {
-    return file.name;
+    return file.name.str;
 }
 
 
