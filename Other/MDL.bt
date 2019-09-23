@@ -204,23 +204,23 @@ string ReadVertex(Vertex& vert) {
 }
 
 typedef struct {
-    local int i <hidden=true>;
-
-    Vector3 positions[10];
-    int unk78[18] <hidden=true>;
-    int unkC0[10]; // Normals?
-    int unkE8[38] <hidden=true>;
-    int unk180; Assert(unk180 == -1);
+    Vector3 positions[16];
+    int normals[16];
+    int tangents[16];
+    int bitangents[16];
+    ubyte color[4] <format=hex>;
     Vector2 uvs[4];
-    int unk1A4;
+    short unk1A4;
+    short unk1A6;
     float unk1A8;
     float unk1AC;
-    
-    for (i = 0; i < 18; i++)
-        Assert(unk78[i] == 0);
-    for (i = 0; i < 38; i++)
-        Assert(unkE8[i] == 0);
-} VertexD <bgcolor=cAqua, optimize=false>;
+} VertexD <read=ReadVertexD, bgcolor=cAqua, optimize=false>;
+
+string ReadVertexD(VertexD& vert) {
+    string str;
+    SPrintf(str, "%2i %2i", vert.unk1A4, vert.unk1A6);
+    return str;
+}
 
 //------------------------------------------------
 

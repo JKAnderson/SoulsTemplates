@@ -37,7 +37,7 @@ typedef struct {
     byte vertexIndexSize;
     byte unicode;
     byte unk4A;
-    byte unk4B <hidden=true>; Assert(unk4B == 0);
+    byte unk4B; // Only non-0 in Steel Battalion
     int primitiveRestartConstant; // Educated guess, hard to confirm
     int faceSetCount;
     int bufferLayoutCount;
@@ -46,8 +46,8 @@ typedef struct {
     byte unk5D;
     byte unk5E <hidden=true>; Assert(unk5E == 0);
     byte unk5F <hidden=true>; Assert(unk5F == 0);
-    int unk60 <hidden=true>; Assert(unk60 == 0);
-    int unk64 <hidden=true>; Assert(unk64 == 0);
+    int unk60; // Only non-0 in Steel Battalion
+    int unk64; // Only non-0 in Steel Battalion
     int unk68;
     int unk6C <hidden=true>; Assert(unk6C == 0);
     int unk70 <hidden=true>; Assert(unk70 == 0);
@@ -90,7 +90,7 @@ typedef struct {
     }
 } GXItem <optimize=false>;
 
-typedef struct (Header& header) {
+typedef struct {
     OffsetString name(0, header.unicode);
     OffsetString mtd(0, header.unicode);
     int textureCount;
@@ -106,7 +106,8 @@ typedef struct (Header& header) {
         struct {
             do {
                 GXItem gxItem;
-            } while(gxItem.id != 0x7FFFFFFF);
+            // 7F used in most games, FF used in Steel Battalion
+            } while(gxItem.id != 0x7FFFFFFF && gxItem.id != 0xFFFFFFFF);
         } gxItems;
         FSeek(pos);
     }
@@ -117,7 +118,7 @@ wstring ReadMaterial(Material& mat) {
 }
 
 
-typedef struct (Header& header) {
+typedef struct {
     Vector3 translation;
     OffsetString name(0, header.unicode);
     Vector3 rotation;
@@ -141,7 +142,7 @@ wstring ReadBone(Bone& bone) {
 }
 
 
-typedef struct (Header& header) {
+typedef struct {
     byte dynamic; Assert(dynamic == 0 || dynamic == 1);
     byte unk01 <hidden=true>; Assert(unk01 == 0);
     byte unk02 <hidden=true>; Assert(unk02 == 0);
@@ -212,7 +213,7 @@ typedef struct {
     AnnoyingMember members(start)[memberCount];
 } AnnoyingIndices;
 
-typedef struct (Header& header) {
+typedef struct {
     uint flags <format=hex>;
     byte triangleStrip;
     byte cullBackFaces;
@@ -221,7 +222,7 @@ typedef struct (Header& header) {
     int vertexCount;
     uint vertexIndicesOffset <format=hex>;
     
-    if (header.version > 0x20005) {
+    if (header.version > 0x2000F) {
         int vertexIndicesLength <format=hex>;
         int unk14 <hidden=true>; Assert(unk14 == 0);
         int vertexIndexSize;
@@ -236,7 +237,7 @@ typedef struct (Header& header) {
     local quad pos <hidden=true> = FTell();
     FSeek(header.dataOffset + vertexIndicesOffset);
     if (actualVertexIndexSize == 8) {
-        // Only used in AC V as far as I know
+        // Often used in PS3 models
         AnnoyingIndices vertexIndices;
     } else if (actualVertexIndexSize == 16) {
         ushort vertexIndices[vertexCount];
@@ -253,22 +254,28 @@ string ReadFaceSet(FaceSet& fs) {
 }
 
 
-typedef struct (Header& header) {
-    int bufferIndex;
+typedef struct (int size) {
+    ubyte data[size];
+} Vertex <optimize=false>;
+
+typedef struct {
+    int bufferIndex; // In Steel Battalion this looks like byte, byte, short
     int layoutIndex;
     int vertexSize;
     int vertexCount;
-    int unk10 <hidden=true>; Assert(unk10 == 0);
-    int unk14 <hidden=true>; Assert(unk14 == 0);
+    int unk10; // These two 0 everywhere except Steel Battalion
+    int unk14;
     uint verticesLength <format=hex>; // 0 in version 20005
     uint bufferOffset <format=hex>;
     
-    local quad pos <hidden=true> = FTell();
-    FSeek(header.dataOffset + bufferOffset);
-    struct {
-        ubyte vertex[vertexSize];
-    } vertices[vertexCount] <optimize=false>;
-    FSeek(pos);
+    // When this is not the case, verticesLength and bufferOffset look
+    // like something completely different
+    if (unk10 == 0 && unk14 == 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(header.dataOffset + bufferOffset);
+        struct { Vertex vertices(vertexSize)[vertexCount]; } vertices;
+        FSeek(pos);
+    }
 } VertexBuffer <bgcolor=cLtBlue, optimize=false>;
 
 
@@ -299,7 +306,7 @@ typedef struct {
 } BufferLayout <bgcolor=cBlue, optimize=false>;
 
 
-typedef struct (Header& header) {
+typedef struct {
     OffsetString path(0, header.unicode);
     OffsetString type(0, header.unicode);
     Vector2 scale;
@@ -317,10 +324,32 @@ wstring ReadTexture(Texture& tex) {
 
 
 typedef struct {
+    int unk00; Assert(unk00 == 0);
+    int unk04; Assert(unk04 == 0);
+    int unk08; Assert(unk08 == 0);
+    int unk0C; Assert(unk0C == 0);
+    float unk10; // First 3 maybe not floats
+    float unk14;
+    float unk18;
+    float unk1C;
+    float unk20;
+    float unk24;
+    float unk28;
+    int unk2C; Assert(unk2C == 0);
+} SteelBattalionUnk1 <bgcolor=cLtPurple, optimize=false>;
+
+
+typedef struct {
+    short unk00;
+    short unk04;
+} SteelBattalionUnk2 <bgcolor=cPurple>;
+
+
+typedef struct {
     short unk00[4];
     int index;
     int unk0C <hidden=true>; Assert(unk0C == 0);
-} UnkThingMember <optimize=false>;
+} SekiroUnkMember <optimize=false>;
 
 typedef struct {
     short count1;
@@ -335,11 +364,11 @@ typedef struct {
     
     local quad pos <hidden=true> = FTell();
     FSeek(offset1);
-    struct { UnkThingMember members1[count1]; } members1;
+    struct { SekiroUnkMember members1[count1]; } members1;
     FSeek(offset2);
-    struct { UnkThingMember members2[count2]; } members2;
+    struct { SekiroUnkMember members2[count2]; } members2;
     FSeek(pos);
-} UnkThing <bgcolor=cDkPurple, optimize=false>;
+} SekiroUnk <bgcolor=cDkPurple, optimize=false>;
 
 //------------------------------------------------
 
@@ -347,18 +376,22 @@ Header header;
 if (header.dummyCount > 0)
     struct { Dummy dummies[header.dummyCount]; } dummies;
 if (header.materialCount > 0)
-    struct { Material materials(header)[header.materialCount]; } materials;
+    struct { Material materials[header.materialCount]; } materials;
 if (header.boneCount > 0)
-    struct { Bone bones(header)[header.boneCount]; } bones;
+    struct { Bone bones[header.boneCount]; } bones;
 if (header.meshCount > 0)
-    struct { Mesh meshes(header)[header.meshCount]; } meshes;
+    struct { Mesh meshes[header.meshCount]; } meshes;
 if (header.faceSetCount > 0)
-    struct { FaceSet faceSets(header)[header.faceSetCount]; } faceSets;
+    struct { FaceSet faceSets[header.faceSetCount]; } faceSets;
 if (header.vertexBufferCount > 0)
-    struct { VertexBuffer vertexBuffers(header)[header.vertexBufferCount]; } vertexBuffers;
+    struct { VertexBuffer vertexBuffers[header.vertexBufferCount]; } vertexBuffers;
 if (header.bufferLayoutCount > 0)
     struct { BufferLayout bufferLayouts[header.bufferLayoutCount]; } bufferLayouts;
 if (header.textureCount > 0)
-    struct { Texture textures(header)[header.textureCount]; } textures;
+    struct { Texture textures[header.textureCount]; } textures;
+if (header.unk60 > 0)
+    struct { SteelBattalionUnk1 steelBattalionUnk1s[header.unk60]; } steelBattalionUnk1s;
+if (header.unk64 > 0)
+    SteelBattalionUnk2 steelBattalionUnk2s[header.unk64];
 if (header.version >= 0x2001A)
-    UnkThing unkThing;
+    SekiroUnk sekiroUnk;
