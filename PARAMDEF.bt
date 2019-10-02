@@ -5,92 +5,98 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: 
-//  Category: Dark Souls
+//  Category: Dantelion
 // File Mask: *.paramdef
 //  ID Bytes: 
 //   History: 
 //------------------------------------------------
 
 LittleEndian();
-if (ReadInt() != FileSize())
+if (ReadByte(0x2C) == -1)
     BigEndian();
 
+//------------------------------------------------
+
 typedef struct {
-    int fileSize <format=hex>; Assert(fileSize == FileSize());
-    short version; Assert(version == 0x30 || version == 0xFF);
-    short unk06;
+    int fileSize <format=hex>;
+    short unk04; Assert(unk04 == 0x30 || unk04 == 0xFF);
+    short unk06; // Seen: 0, 1, 3
     short entryCount;
-    short entrySize <format=hex>;
-    if (version == 0x30)
-        Assert(entrySize == 0x6C || entrySize == 0xAC || entrySize == 0xB0);
-    else
-        Assert(entrySize == 0xD0);
+    short entrySize <format=hex>; Assert(entrySize == 0x6C || entrySize == 0x8C
+        || entrySize == 0xAC || entrySize == 0xB0 || entrySize == 0xD0);
 
     char paramID[0x20] <bgcolor=cRed>;
-    byte unk2C;
-    byte unk2D;
-    short unk2E;
-    if (version == 0x30)
-        Assert(unk2E == 0x66 || unk2E == 0x67 || unk2E == 0x68);
-    else
-        Assert(unk2E == 0xC9);
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
+    byte unicode; Assert(unicode == 0 || unicode == 1);
+    short version; Assert(version == 101 || version == 102 || version == 103
+        || version == 104 || version == 201);
 
-    if (version == 0xFF) {
-        quad entryStart <format=hex>; Assert(entryStart == 0x38);
+    if (version >= 201) {
+        quad entriesStart <format=hex>; Assert(entriesStart == 0x38);
     }
 } Header <bgcolor=cLtRed>;
 
 
-typedef struct (Header& header) {
-    if (header.version == 0x30)
-        char guiName[0x40] <bgcolor=cGreen>;
+typedef struct {
+    if (header.unicode)
+        wchar_t displayName[0x20] <bgcolor=cGreen>;
     else
-        wchar_t guiName[0x20] <bgcolor=cGreen>;
+        char displayName[0x40] <bgcolor=cGreen>;
 
-    char guiType[0x8] <bgcolor=cGreen>;
-    char guiFormat[0x8] <bgcolor=cGreen>;
+    char displayType[0x8] <bgcolor=cGreen>;
+    char displayFormat[0x8] <bgcolor=cGreen>;
     float defaultValue;
     float minValue;
     float maxValue;
     float increment;
-    int guiDisplayMode;
-    int guiByteCount;
+    int editFlags; // 1 - Wrap, 4 - Lock
+    int byteCount;
     
-    if (header.version == 0x30)
+    if (header.version < 201)
         int descriptionOffset <format=hex>;
     else
         quad descriptionOffset <format=hex>;
-    
+
     if (descriptionOffset != 0) {
         local quad pos <hidden=true> = FTell();
         FSeek(descriptionOffset);
-        if (header.version == 0x30)
-            string description;
+        if (header.unicode)
+            wstring description <bgcolor=cGreen>;
         else
-            wstring description;
+            string description <bgcolor=cGreen>;
         FSeek(pos);
     }
 
-    char internalValue[0x20] <bgcolor=cGreen>;
-    char internalName[0x20] <bgcolor=cGreen>;
-    if (header.entrySize > 0xAC)
-        int id;
+    char internalType[0x20] <bgcolor=cGreen>;
+    
+    if (header.version >= 102) {
+        char internalName[0x20] <bgcolor=cGreen>;
+    }
 
-    if (header.version == 0xFF) {
-        int unkB4; Assert(unkB4 == 0);
-        int unkB8; Assert(unkB8 == 0);
-        int unkBC; Assert(unkBC == 0);
-        int unkC0; Assert(unkC0 == 0);
-        int unkC4; Assert(unkC4 == 0);
-        int unkC8; Assert(unkC8 == 0);
-        int unkCC; Assert(unkCC == 0);
+    if (header.version >= 104) {
+        int sortID;
+    }
+
+    if (header.version >= 201) {
+        int unkB4 <hidden=true>; Assert(unkB4 == 0);
+        int unkB8 <hidden=true>; Assert(unkB8 == 0);
+        int unkBC <hidden=true>; Assert(unkBC == 0);
+        int unkC0 <hidden=true>; Assert(unkC0 == 0);
+        int unkC4 <hidden=true>; Assert(unkC4 == 0);
+        int unkC8 <hidden=true>; Assert(unkC8 == 0);
+        int unkCC <hidden=true>; Assert(unkCC == 0);
     }
 } Entry <read=ReadEntry, bgcolor=cLtGreen, optimize=false>;
 
 string ReadEntry(Entry& entry) {
-    return entry.internalValue + " " + entry.guiName;
+    string str = entry.internalType;
+    if (exists(entry.internalName))
+        str += " - " + entry.internalName;
+    str += " | " + entry.displayType + " - " + entry.displayName;
+    return str;
 }
 
+//------------------------------------------------
 
 Header header;
-Entry entries(header)[header.entryCount];
+struct { Entry entries[header.entryCount]; } entries <open=true>;
