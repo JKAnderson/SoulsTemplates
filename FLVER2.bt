@@ -222,7 +222,7 @@ typedef struct {
     int vertexCount;
     uint vertexIndicesOffset <format=hex>;
     
-    if (header.version > 0x2000F) {
+    if (header.version > 0x20005) {
         int vertexIndicesLength <format=hex>;
         int unk14 <hidden=true>; Assert(unk14 == 0);
         int vertexIndexSize;

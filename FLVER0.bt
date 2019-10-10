@@ -245,8 +245,10 @@ typedef struct {
     else if (header.vertexIndexSize == 32)
         int vertexIndices[vertexIndexCount] <bgcolor=cYellow>;
     
-    FSeek(vertexBuffersHeaderOffset1);
-    VertexBuffers vertexBuffers1;
+    if (vertexBuffersHeaderOffset1 != 0) {
+        FSeek(vertexBuffersHeaderOffset1);
+        VertexBuffers vertexBuffers1;
+    }
     
     if (vertexBuffersHeaderOffset2 != 0) {
         FSeek(vertexBuffersHeaderOffset2);
