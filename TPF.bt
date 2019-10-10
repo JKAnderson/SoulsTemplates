@@ -83,7 +83,9 @@ typedef struct (Header& header) {
 } Texture <read=ReadTexture, bgcolor=cLtGreen, optimize=false>;
 
 wstring ReadTexture(Texture& tex) {
-    return tex.name;
+    string str;
+    SPrintf(str, "%3i ", tex.format);
+    return str + tex.name;
 }
 
 
