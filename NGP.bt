@@ -5,129 +5,188 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: DS2, something to do with navmeshes
-//  Category: Dark Souls
+//  Category: Katana
 // File Mask: *.ngp
 //  ID Bytes: 4E 56 47 32
 //   History: 
 //------------------------------------------------
 
-LittleEndian();
-
 #include "Util.bt"
+
+LittleEndian();
+if (ReadShort(4) == 0x100)
+    BigEndian();
+
+local int VARINT_LONG = ReadShort(4) == 2;
+
+//------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "NVG2");
-    int unk04; Assert(unk04 == 2);
-    int count08;
+    short version; Assert(version == 1 || version == 2);
+    short unk06; Assert(unk06 == 0);
+    int meshCount;
     int count0C;
     int count10;
     int count14;
     int count18;
-    byte unk1C; Assert(unk1C == -1);
-    byte unk1D; Assert(unk1D == -1);
-    byte unk1E; Assert(unk1E == -1);
-    byte unk1F;
-    quad offset20 <format=hex>;
-    quad offset28 <format=hex>;
-    quad offset30 <format=hex>;
-    quad offset38 <format=hex>;
-    quad offsets40[count08] <format=hex>;
+    int unk1C; // Low 3 bytes always FF
+    Varint offset20 <format=hex>;
+    Varint offset28 <format=hex>;
+    Varint offset30 <format=hex>;
+    Varint offset38 <format=hex>;
+    Varint meshOffsets[meshCount] <optimize=true>;
 } Header <bgcolor=cLtRed>;
 
 
 typedef struct {
-    byte unk00[0x24];
-} UnkStructA <bgcolor=cLtGreen>;
+    Vector3 unk00;
+    float unk0C;
+    int unk10;
+    short unk14;
+    short unk16;
+    short unk18;
+    short unk1A;
+    short unk1C;
+    short unk1E;
+    short unk20;
+    short unk22;
+} StructA <bgcolor=cLtGreen>;
 
 
 typedef struct {
-    byte unk00[0x0C];
-} UnkStructB <bgcolor=cAqua>;
-
-
-typedef struct {
-    short unk00;
-    short unk02;
-} UnkStructC <bgcolor=cLtBlue>;
-
-
-typedef struct {
-    short unk00;
-} UnkStructD <bgcolor=cYellow>;
-
-
-typedef struct {
-    short unk00; Assert(unk00 == -1);
-    short unk02;
-    int thisLength;
+    int unk00;
+    int unk04;
     int unk08;
-    int unk0C; Assert(unk0C == 0);
+} StructB <bgcolor=cAqua>;
+
+
+typedef struct {
+    short unk00;
+    short unk02;
+} StructC <bgcolor=cLtBlue>;
+
+
+typedef struct {
+    short unk00;
+} StructD <bgcolor=cYellow>;
+
+
+typedef struct {
+    short v1;
+    short v2;
+    short v3;
+    short unk06; // Index of E4, but sometimes short.MinValue + n
+    short unk08;
+    short unk0A;
+} Face;
+
+typedef struct {
+    short unk00;
+    short unk02;
+    short unk04;
+    short unk06;
+    short unk08;
+    short unk0A;
+    short unk0C;
+    short unk0E;
+} StructE4;
+
+typedef struct {
+    float unk00;
+    short unk04; // Index of other E5
+    short unk06; // Index of other E5
+    short unk08;
+    short unk0A; // Index in section 6?
+} StructE5 <read=ReadStructE5>;
+
+string ReadStructE5(StructE5& e5) {
+    string str;
+    SPrintf(str, "%7.3f %3i %3i %3i %3i",
+        e5.unk00, e5.unk04, e5.unk06, e5.unk08, e5.unk0A);
+    return str;
+}
+
+typedef struct {
+    int unk00; // Low 2 bytes always FF
+    int thisLength <format=hex>;
+    int unk08;
+    if (header.version == 2) {
+        int unk0C <hidden=true>; Assert(unk0C == 0);
+    }
     Vector3 boundingBoxMin;
     Vector3 boundingBoxMax;
     int vertexCount;
-    short count2C;
+    short faceCount;
     short count30;
     short unk30;
     short unk32;
-    int unk34; Assert(unk34 == 1);
-    int unk38; Assert(unk38 == 0);
-    int unk3C; Assert(unk3C == 0);
-    quad verticesOffset <format=hex>;
-    quad offset48 <format=hex>;
-    quad offset50 <format=hex>;
-    quad offset58 <format=hex>;
-    quad offset60 <format=hex>;
-    quad offset68 <format=hex>;
+    byte unk34; Assert(unk34 == 1);
+    byte unk35; Assert(unk35 == 0);
+    byte unk36; Assert(unk36 == 0);
+    byte unk37; Assert(unk37 == 0);
+    if (header.version == 2) {
+        int unk38 <hidden=true>; Assert(unk38 == 0);
+        int unk3C <hidden=true>; Assert(unk3C == 0);
+    }
+    Varint verticesOffset <format=hex>;
+    Varint offset48 <format=hex>;
+    Varint facesOffset <format=hex>;
+    Varint offset58 <format=hex>;
+    Varint offset60 <format=hex>;
+    Varint offset68 <format=hex>;
     
-    FSeek(verticesOffset);
+    FSeek(verticesOffset.val);
     Vector3 vertices[vertexCount] <bgcolor=cBlack>;
     // Pad to 8
     
-    FSeek(offset48);
-    int unkSection2[count2C] <bgcolor=cWhite>;
+    FSeek(offset48.val);
+    int unkSection2[faceCount] <bgcolor=cWhite>; // Always just 7s?
     // Pad to 8
     
-    FSeek(offset50);
-    struct {
-        short v1;
-        short v2;
-        short v3;
-        short unk06;
-        short unk08;
-        short unk0A;
-    } faces[count2C] <bgcolor=cBlack>;
+    FSeek(facesOffset.val);
+    Face faces[faceCount] <bgcolor=cBlack>;
     // Pad to 8
     
-    FSeek(offset58);
-    struct {
-        byte unk00[0x10];
-    } unkSection4[count30] <bgcolor=cWhite>;
+    FSeek(offset58.val);
+    StructE4 unkSection4[count30] <bgcolor=cWhite>;
     // Pad to 8
     
-    FSeek(offset60);
-    // ???
+    FSeek(offset60.val);
+    //StructE5 unkSection5[???] <bgcolor=cBlack>;
     // Pad to 8
     
-    FSeek(offset68);
-    // ???
+    FSeek(offset68.val);
+    //StructE6 unkSection6[???] <bgcolor=cWhite>;
     // Pad to 8
-} UnkStructE <bgcolor=cLtPurple>;
+} Mesh <bgcolor=cLtPurple>;
 
+//------------------------------------------------
 
 Header header;
-FSeek(header.offset20);
-if (header.count0C > 0) UnkStructA unkAs[header.count0C];
-FSeek(header.offset28);
-if (header.count10 > 0) UnkStructB unkBs[header.count10];
-FSeek(header.offset30);
-if (header.count14 > 0) UnkStructC unkCs[header.count14];
-FSeek(header.offset38);
-if (header.count18 > 0) UnkStructD unkDs[header.count18];
+if (header.count0C > 0) {
+    FSeek(header.offset20.val);
+    StructA structAs[header.count0C];
+}
+if (header.count10 > 0) {
+    FSeek(header.offset28.val);
+    StructB structBs[header.count10];
+}
+if (header.count14 > 0) {
+    FSeek(header.offset30.val);
+    StructC structCs[header.count14];
+}
+if (header.count18 > 0) {
+    FSeek(header.offset38.val);
+    StructD structDs[header.count18];
+}
 
+// Just so 010 doesn't complain about struct ending before it started on DX9 files
+FSeek(0);
 struct {
     local int i <hidden=true>;
-    for (i = 0; i < header.count08; i++) {
-        FSeek(header.offsets40[i]);
-        UnkStructE unkEs;
+    for (i = 0; i < header.meshCount; i++) {
+        FSeek(header.meshOffsets[i].val);
+        Mesh meshes;
     }
-} unkEs;
+} meshes;
