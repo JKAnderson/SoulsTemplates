@@ -3,33 +3,39 @@
 //
 //      File: MQB.bt
 //   Authors: TKGP
-//   Version: 1.01
-//   Purpose: DS3 cutscene definition files
-//  Category: Dark Souls
+//   Version: 
+//   Purpose: BB/DS3/SDT cutscene definitions
+//  Category: Dantelion
 // File Mask: *.mqb
-//  ID Bytes: 4D 51 42 20 00 00 00 00 CC 00 00 00 24 00 00 00
+//  ID Bytes: 4D 51 42 20
 //   History: 
+//------------------------------------------------
+
+LittleEndian();
+
 //------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "MQB ");
     int unk04; Assert(unk04 == 0);
-    int unk08; Assert(unk08 == 0xCC);
-    int unk0C; Assert(unk0C == 0x24);
+    int version; Assert(version == 0xCB || version == 0xCC);
+    int unk0C; Assert(unk0C == (version == 0xCB ? 0x20 : 0x24)); // Name offset? Header size?
     int resourceStringsOffset <format=hex>;
     int unk14; Assert(unk14 == 1);
     int unk18; Assert(unk18 == 0);
     int unk1C; Assert(unk1C == 0);
-    int unk20; Assert(unk20 == 0);
+    if (version >= 0xCC) {
+        int unk20; Assert(unk20 == 0);
+    }
     wchar_t name[0x20] <fgcolor=cGreen>;
-    float framerate; // Framerate of events; always 30 in vanilla
+    float framerate; // Framerate of event playback; always 30 in vanilla
     int resourceCount;
     int cutCount;
-    int unk70; Assert(unk70 == 0);
-    int unk74; Assert(unk74 == 0);
-    int unk78; Assert(unk78 == 0);
-    int unk7C; Assert(unk7C == 0);
-    int unk80; Assert(unk80 == 0);
+    int unkX70 <hidden=true>; Assert(unkX70 == 0);
+    int unkX74 <hidden=true>; Assert(unkX74 == 0);
+    int unkX78 <hidden=true>; Assert(unkX78 == 0);
+    int unkX7C <hidden=true>; Assert(unkX7C == 0);
+    int unkX80 <hidden=true>; Assert(unkX80 == 0);
 } Header <read=ReadHeader>;
 
 wstring ReadHeader(Header& header) {
@@ -42,9 +48,9 @@ wstring ReadHeader(Header& header) {
 typedef struct {
     wchar_t str[0x20] <fgcolor=cGreen>;
     int parentIndex; // Not really sure, but seems right; -1 for none
-    int index;
-    int unk48; // Not another index
-    int unk4C; Assert(unk4C == 0);
+    int index; // String index?
+    int unk48; // Not another index, probably type or jumptable; maybe 2 bytes
+    int unk4C <hidden=true>; Assert(unk4C == 0);
 } Resource <read=ReadResource>;
 
 wstring ReadResource(Resource& resource) {
@@ -64,7 +70,7 @@ wstring ReadResources(Resources& resources) {
     SPrintf(str, "[%i]", resources.count);
     return str;
 }
-
+ 
 
 // floats that are always 0 were sometimes -0
 // ints that are always 0 are probably floats too but always +0 so I can't tell
@@ -149,7 +155,7 @@ typedef struct {
 typedef struct {
     wchar_t name[0x20] <fgcolor=cGreen>;
     //  1 - bool
-    //  3 - 
+    //  3 - byte?
     //  4 - short
     //  6 - int
     //  7 - 
@@ -159,17 +165,17 @@ typedef struct {
     int type; Assert(type == 1 || type == 3 || type == 4 || type == 6
         || type == 7 || type == 8 || type == 10 || type == 13);
     int unk44; Assert(unk44 == (type == 13 ? 3 : 0));
-    int unk48 <format=hex>;
+    int value <format=hex>;
     int unk4C; Assert(unk4C == 0);
     int unk1Offset <format=hex>;
     int unk1Count;
     if (type != 8 && type != 13)
         Assert(unk1Offset == 0 && unk1Count == 0);
-    int unk58; Assert(unk58 == 0);
-    int unk5C; Assert(unk5C == 0);
+    int unk58 <hidden=true>; Assert(unk58 == 0);
+    int unk5C <hidden=true>; Assert(unk5C == 0);
     
     if (type == 10) {
-        wchar_t str[unk48 / 2] <fgcolor=cLtGreen>;
+        wchar_t str[value / 2] <fgcolor=cLtGreen>;
     } else if (type == 13) {
         int unk60 <format=hex>;
     }
@@ -185,7 +191,7 @@ typedef struct {
 wstring ReadParam(Param& param) {
     string str;
     SPrintf(str, "%2i %i %8X %i %5X %i ", param.type, param.unk44,
-        param.unk48, param.unk4C, param.unk1Offset, param.unk1Count);
+        param.value, param.unk4C, param.unk1Offset, param.unk1Count);
     return str + param.name;
 }
 
@@ -213,12 +219,12 @@ typedef struct {
         // 0x20 - 
         // 0x40 - use cam correction, 4 floats at unkfloats 0x38
         int unkFloatsCount;
-        int unkX08; Assert(unkX08 == 0);
-        int unkX0C; Assert(unkX0C == 0);
-        int unkX10; Assert(unkX10 == 0);
-        int unkX14; Assert(unkX14 == 0);
-        int unkX18; Assert(unkX18 == 0);
-        int unkX1C; Assert(unkX1C == 0);
+        int unkX08 <hidden=true>; Assert(unkX08 == 0);
+        int unkX0C <hidden=true>; Assert(unkX0C == 0);
+        int unkX10 <hidden=true>; Assert(unkX10 == 0);
+        int unkX14 <hidden=true>; Assert(unkX14 == 0);
+        int unkX18 <hidden=true>; Assert(unkX18 == 0);
+        int unkX1C <hidden=true>; Assert(unkX1C == 0);
         
         UnkFloats unkFloats[unkFloatsCount] <bgcolor=cDkAqua, optimize=false>;
 } Entry <read=ReadEntry>;
@@ -237,11 +243,11 @@ typedef struct {
     int unk40;
     int unk44; Assert(unk44 == 0);
     int unk48;
-    int unk4C; Assert(unk4C == 0);
-    int unk50; Assert(unk50 == 0);
-    int unk54; Assert(unk54 == 0);
-    int unk58; Assert(unk58 == 0);
-    int unk5C; Assert(unk5C == 0);
+    int unk4C <hidden=true>; Assert(unk4C == 0);
+    int unk50 <hidden=true>; Assert(unk50 == 0);
+    int unk54 <hidden=true>; Assert(unk54 == 0);
+    int unk58 <hidden=true>; Assert(unk58 == 0);
+    int unk5C <hidden=true>; Assert(unk5C == 0);
 } UnkGroupStr <read=ReadUnkGroupStr, optimize=false>;
 
 wstring ReadUnkGroupStr(UnkGroupStr& ugs) {
@@ -284,8 +290,8 @@ typedef struct {
     int unk4C; Assert(unk4C == 0);
     int groupCount;
     int groupsOffset <format=hex>;
-    int unk58; Assert(unk58 == 0);
-    int unk5C; Assert(unk5C == 0);
+    int unk58 <hidden=true>; Assert(unk58 == 0);
+    int unk5C <hidden=true>; Assert(unk5C == 0);
     
     struct Entries {
         Entry entries[entryCount] <optimize=false>;
@@ -318,7 +324,7 @@ wstring ReadCuts(Cuts& cuts) {
 
 
 typedef struct {
-    int offset;
+    int offset <format=hex>;
     if (offset != 0) {
         local quad pos <hidden=true> = FTell();
         FSeek(offset);
@@ -345,6 +351,7 @@ wstring ReadResourceStrings(ResourceStrings& resourceStrings) {
     return str;
 }
 
+//------------------------------------------------
 
 Header header <bgcolor=cLtRed>;
 Resources resources(header.resourceCount) <bgcolor=cAqua>;
