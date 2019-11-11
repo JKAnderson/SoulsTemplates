@@ -28,7 +28,7 @@ struct PartConnectCollision;
 typedef struct {
     local quad start <hidden=true> = FTell();
 
-    quad nameOffset <format=hex>; Assert(nameOffset == 0x80);
+    Varint nameOffset;
     PartType type;
     short index;
     int modelIndex;
@@ -44,13 +44,16 @@ typedef struct {
     int unk64;
     int unk68;
     int unk6C;
-    quad typeDataOffset <format=hex>;
-    quad unk78; Assert(unk78 == 0);
+    Varint typeDataOffset;
+    if (VARINT_LONG) {
+        quad unk78 <hidden=true>; Assert(unk78 == 0);
+    }
     
-    FSeek(start + nameOffset);
+    FSeek(start + nameOffset.val);
     wstring name;
+    // Pad to 0x2C in DS2, 0x20 in Scholar?
     
-    FSeek(start + typeDataOffset);
+    FSeek(start + typeDataOffset.val);
     switch (type) {
         case PartTypeMapPiece: PartMapPiece mapPiece; break;
         case PartTypeObject: PartObject object; break;
@@ -80,7 +83,9 @@ wstring ReadPart(Part& part) {
 typedef struct {
     short unk00; // Usually -1, sometimes 0, 1
     short unk02; // Usually 0, sometimes 1, 2
-    int unk04 <hidden=true>; Assert(unk04 == 0);
+    if (VARINT_LONG) {
+        int unk04 <hidden=true>; Assert(unk04 == 0);
+    }
 } PartMapPiece;
 
 

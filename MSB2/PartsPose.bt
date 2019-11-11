@@ -27,10 +27,16 @@ string ReadBone(Bone& bone) {
 
 
 typedef struct {
+    local quad start <hidden=true> = FTell();
+
     short partsIndex;
     short boneCount;
-    int unk04 <hidden=true>; Assert(unk04 == 0);
-    quad unk08 <hidden=true>; Assert(unk08 == 0x10);
+    if (VARINT_LONG) {
+        int unk04 <hidden=true>; Assert(unk04 == 0);
+    }
+    Varint bonesOffset;
+    
+    FSeek(start + bonesOffset.val);
     Bone bones[boneCount];
 } PartsPose <read=ReadPartsPose>;
 

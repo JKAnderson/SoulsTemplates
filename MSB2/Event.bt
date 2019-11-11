@@ -32,16 +32,21 @@ struct EventCheapMode;
 typedef struct {
     local quad start <hidden=true> = FTell();
     
-    quad nameOffset <format=hex>;
+    Varint nameOffset; Assert(nameOffset.val == 0x18);
     int eventID;
     EventType type;
     short index;
-    quad typeDataOffset <format=hex>;
+    Varint typeDataOffset;
+    if (!VARINT_LONG) {
+        int unk10 <hidden=true>; Assert(unk10 == 0);
+        int unk14 <hidden=true>; Assert(unk14 == 0);
+    }
+    // Total size 0x18 either way
     
-    FSeek(start + nameOffset);
+    FSeek(start + nameOffset.val);
     wstring name;
     
-    FSeek(start + typeDataOffset);
+    FSeek(start + typeDataOffset.val);
     switch (type) {
         case EventTypeLight: EventLight light; break;
         case EventTypeShadow: EventShadow shadow; break;

@@ -14,7 +14,6 @@
 enum <short> ModelType {
     ModelTypeMapPiece = 0,
     ModelTypeObject = 1,
-    //ModelTypeEnemy = 2,
     ModelTypeCollision = 3,
     ModelTypeNavmesh = 4,
 };
@@ -24,31 +23,29 @@ struct ModelMapPiece;
 typedef struct {
     local quad start <hidden=true> = FTell();
 
-    quad nameOffset <format=hex>; Assert(nameOffset == 0x20);
+    Varint nameOffset;
     ModelType type;
     short index;
-    int unk0C; Assert(unk0C == 0);
-    quad offset10 <format=hex>;
-    quad unk18; Assert(unk18 == 0);
+    if (VARINT_LONG) {
+        int unk0C <hidden=true>; Assert(unk0C == 0);
+    }
+    Varint offset10;
+    Varint unk18; Assert(unk18.val == 0);
     
-    FSeek(start + nameOffset);
+    FSeek(start + nameOffset.val);
     wstring name;
 
     if (type == ModelTypeObject) {
-        Assert(offset10 != 0);
-        FSeek(start + offset10);
-        int unkX00; Assert(unkX00 == 0);
-        int unkX04; Assert(unkX04 == 0);
+        Assert(offset10.val != 0);
+        FSeek(start + offset10.val);
+        Varint unkX00; Assert(unkX00.val == 0);
     } else {
-        Assert(offset10 == 0);
+        Assert(offset10.val == 0);
     }
 } Model <read=ReadModel>;
 
 wstring ReadModel(Model& model) {
     string str;
     SPrintf(str, "%i ", model.type);
-    if (model.offset10 != 0) {
-        SPrintf(str, "%s ", str);
-    }
     return str + model.name;
 }

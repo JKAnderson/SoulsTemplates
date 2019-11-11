@@ -48,7 +48,7 @@ struct ShapeBox;
 typedef struct {
     local quad start <hidden=true> = FTell();
     
-    quad nameOffset <format=hex, hidden=true>;
+    Varint nameOffset; Assert(nameOffset.val == 0x80);
     short unk08;
     PointType pointType;
     ShapeType shapeType;
@@ -56,8 +56,8 @@ typedef struct {
     short unk0E;
     Vector3 position;
     Vector3 rotation;
-    quad baseDataOffset1 <format=hex>; Assert(baseDataOffset1 != 0);
-    quad baseDataOffset2 <format=hex>; Assert(baseDataOffset2 != 0);
+    Varint baseDataOffset1 <format=hex>; Assert(baseDataOffset1.val != 0);
+    Varint baseDataOffset2 <format=hex>; Assert(baseDataOffset2.val != 0);
     int unk38; Assert(unk38 == -1);
     int unk3C <hidden=true>; Assert(unk3C == 0);
     int unk40 <hidden=true>; Assert(unk40 == 0);
@@ -68,30 +68,36 @@ typedef struct {
     int unk54 <hidden=true>; Assert(unk54 == 0);
     int unk58 <hidden=true>; Assert(unk58 == 0);
     int unk5C <hidden=true>; Assert(unk5C == 0);
-    quad shapeDataOffset <format=hex>;
-    quad typeDataOffset <format=hex>;
+    Varint shapeDataOffset <format=hex>;
+    Varint typeDataOffset <format=hex>;
     quad unk70 <hidden=true>; Assert(unk70 == 0);
     quad unk78 <hidden=true>; Assert(unk78 == 0);
+    if (!VARINT_LONG) {
+        quad pad1 <hidden=true>; Assert(pad1 == 0);
+        quad pad2 <hidden=true>; Assert(pad2 == 0);
+        int pad3 <hidden=true>; Assert(pad3 == 0);
+    }
+    // Total size 0x80 either way
     
-    FSeek(start + nameOffset);
+    FSeek(start + nameOffset.val);
     wstring name;
     // Pad to 4
     
-    FSeek(start + baseDataOffset1);
+    FSeek(start + baseDataOffset1.val);
     int unkA00; Assert(unkA00 == 0);
     
-    FSeek(start + baseDataOffset2);
+    FSeek(start + baseDataOffset2.val);
     int unkB00; Assert(unkB00 == 0);
     // Pad to 8
     
     if (shapeType == ShapeTypePoint) {
-        Assert(shapeDataOffset == 0);
+        Assert(shapeDataOffset.val == 0);
     } else {
-        Assert(shapeDataOffset != 0);
+        Assert(shapeDataOffset.val != 0);
     }
     
-    if (shapeDataOffset != 0) {
-        FSeek(start + shapeDataOffset);
+    if (shapeDataOffset.val != 0) {
+        FSeek(start + shapeDataOffset.val);
         switch (shapeType) {
             case ShapeTypeCircle: ShapeCircle circle; break;
             case ShapeTypeSphere: ShapeSphere sphere; break;
@@ -100,19 +106,19 @@ typedef struct {
             case ShapeTypeBox: ShapeBox box; break;
         }
         
-        if (typeDataOffset != 0) {
-            Assert(FTell() - start == typeDataOffset);
+        if (typeDataOffset.val != 0) {
+            Assert(FTell() - start == typeDataOffset.val);
         }
     }
     
     if (pointType == PointType0 || pointType == PointTypeStartPoint) {
-        Assert(typeDataOffset == 0);
+        Assert(typeDataOffset.val == 0);
     } else {
-        Assert(typeDataOffset != 0);
+        Assert(typeDataOffset.val != 0);
     }
     
-    if (typeDataOffset != 0) {
-        FSeek(start + typeDataOffset);
+    if (typeDataOffset.val != 0) {
+        FSeek(start + typeDataOffset.val);
         switch (pointType) {
             case PointType0: break;
             case PointTypeLight: PointLight light; break;
