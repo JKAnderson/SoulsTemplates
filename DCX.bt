@@ -13,6 +13,8 @@
 
 BigEndian();
 
+//------------------------------------------------
+
 typedef struct {
     int unk00; Assert(unk00 == 0);
     int dataOffset;
@@ -22,19 +24,22 @@ typedef struct {
 
 typedef struct {
     char dcx[4]; Assert(dcx == "DCX\0");
-    int unk04; Assert(unk04 == 0x10000);
+    int unk04; Assert(unk04 == 0x10000 || unk04 == 0x11000);
     int unk08; Assert(unk08 == 0x18);
     int unk0C; Assert(unk0C == 0x24);
-    int unk10; Assert(unk10 == 0x24);
-    int dcsSize <format=hex>; // From after "DCS" to dca end
+    int unk10; Assert(unk10 == 0x24 || unk10 == 0x44);
+    int unk14; // In EDGE, size from 0x20 to end of block headers
     char dcs[4]; Assert(dcs == "DCS\0");
     uint uncompressedSize <format=hex>;
     uint compressedSize <format=hex>;
     char dcp[4]; Assert(dcp == "DCP\0");
-    char format[4];
+    char format[4]; Assert(format == "DFLT" || format == "EDGE" || format == "KRAK");
     int unk2C; Assert(unk2C == 0x20);
-    int unk30; Assert(unk30 == 0x9000000);
-    int unk34;
+    byte unk30; Assert(unk30 == 6|| unk30 == 8 || unk30 == 9);
+    byte unk31 <hidden=true>; Assert(unk31 == 0);
+    byte unk32 <hidden=true>; Assert(unk32 == 0);
+    byte unk33 <hidden=true>; Assert(unk33 == 0);
+    int unk34; Assert(unk34 == 0 || unk34 == 0x10000); // Block size for EDGE?
     int unk38; Assert(unk38 == 0);
     int unk3C; Assert(unk3C == 0);
     int unk40;
@@ -55,9 +60,11 @@ typedef struct {
     }
 } Header <bgcolor=cLtRed>;
 
-Header header;
+//------------------------------------------------
 
-if (header.format == "DFLT") {
+Header header <open=true>;
+
+if (header.format == "DFLT" || header.format == "KRAK") {
     ubyte bytes[header.compressedSize] <bgcolor=cAqua>;
 } else if (header.format == "EDGE") {
     local quad dataStart <format=hex> = FTell();

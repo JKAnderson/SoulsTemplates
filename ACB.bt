@@ -14,12 +14,16 @@
 #include "Util.bt"
 
 LittleEndian();
+if (ReadUInt(0xC) > FileSize())
+    BigEndian();
 
 //------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "ACB\0");
-    int unk04 <format=hex>; Assert(unk04 == 0x0102);
+    byte unk04; Assert(unk04 == 2);
+    byte unk05; Assert(unk05 == 1);
+    short unk06 <hidden=true>; Assert(unk06 == 0);
     int entryCount;
     int offset0C <format=hex>;
 } Header <bgcolor=cLtRed>;
@@ -42,7 +46,7 @@ wstring ReadNestedOffsetString(NestedOffsetString& nos) {
 
 
 typedef struct {
-    short unk00; Assert(unk00 == -1);
+    short unk00; //Assert(unk00 == -1);
     short stringCount;
     int stringsOffset <format=hex>; Assert(stringsOffset == FTell());
     if (stringCount > 0) {
@@ -56,7 +60,10 @@ typedef struct {
     OffsetString relativePath(0, 1);
     short type;
     
-    if (type == 1) {
+    if (type == 0) {
+        short unk0A; Assert(unk0A == 0);
+        int unk0C; Assert(unk0C == 0);
+    } else if (type == 1) {
         short unk0A; Assert(unk0A == 0);
         int unk0C; Assert(unk0C == 0);
     } else if (type == 2) {
@@ -77,7 +84,7 @@ typedef struct {
         byte unk2C;
         byte fixToCamera;
         byte unk2E;
-        byte unk2F; Assert(unk2F == 0);
+        byte unk2F;
         short unk30;
         short unk32;
         byte unk34;

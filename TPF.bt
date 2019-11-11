@@ -11,8 +11,6 @@
 //   History: 
 //------------------------------------------------
 
-// Switch claims to be platform 4, but it has PC amounts of texture info
-local int SWITCH = 0;
 enum <byte> PLATFORM { PC = 0, X360 = 1, PS3 = 2, PS4 = 4, Xbone = 5 };
 
 if (ReadByte(0xC) == 1 || ReadByte(0xC) == 2)
@@ -20,19 +18,20 @@ if (ReadByte(0xC) == 1 || ReadByte(0xC) == 2)
 else
     LittleEndian();
 
+//------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "TPF\0");
     int dataSize <format=hex>;
-    int texCount;
+    int textureCount;
     PLATFORM platform;
     byte unk0D;
     byte encoding;
-    byte unk0F; Assert(unk0F == 0);
+    byte unk0F <hidden=true>; Assert(unk0F == 0);
 } Header <bgcolor=cLtRed>;
 
 
-typedef struct (Header& header) {
+typedef struct {
     uint dataOffset <format=hex>;
     int dataSize <format=hex>;
     byte format;
@@ -40,7 +39,7 @@ typedef struct (Header& header) {
     byte mipmaps;
     byte unk0B;
     
-    if (header.platform == PC || SWITCH) {
+    if (header.platform == PC) {
         uint nameOffset <format=hex>;
         int unk10;
     } else {
@@ -88,8 +87,18 @@ wstring ReadTexture(Texture& tex) {
     return str + tex.name;
 }
 
+typedef struct (int count) {
+    local int count <hidden=true> = count;
+    Texture textures[count];
+} Textures <read=ReadTextures>;
+
+string ReadTextures(Textures& textures) {
+    string str;
+    SPrintf(str, "[%i]", textures.count);
+    return str;
+}
+
+//------------------------------------------------
 
 Header header;
-struct {
-    Texture textures(header)[header.texCount];
-} textures;
+Textures textures(header.textureCount) <open=true>;
