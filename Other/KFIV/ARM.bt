@@ -28,7 +28,7 @@ typedef struct {
     int mixLength <format=hex>;
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int unk10 <hidden=true>; Assert(unk10 == 0);
-    int tx2Offset <format=hex>;
+    int tx2Offset <format=hex>; Assert(tx2Offset == 0x40);
     int om2Offset <format=hex>;
     int mixOffset <format=hex>;
     int unk20 <hidden=true>; Assert(unk20 == 0);
