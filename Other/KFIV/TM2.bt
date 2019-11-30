@@ -1,0 +1,36 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: TM2.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: King's Field IV .tm2 files
+//  Category: KFIV
+// File Mask: *.tm2
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+// To use this template from another template, define TM2_LIBRARY before including,
+// then instantiate type TM2.
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int fileSize <format=hex>;
+} TM2Header <bgcolor=cLtRed>;
+
+//------------------------------------------------
+
+#ifdef TM2_LIBRARY
+typedef struct {
+#endif
+
+TM2Header header;
+ubyte data[header.fileSize - 4] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
+
+#ifdef TM2_LIBRARY
+} TM2;
+#endif

@@ -1,0 +1,61 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: TX2.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: King's Field IV textures
+//  Category: KFIV
+// File Mask: *.tx2
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+// To use this template from another template, define TX2_LIBRARY before including,
+// then instantiate type TX2.
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int fileSize <format=hex>;
+    int textureCount;
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+} TX2Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int offset <format=hex>;
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+} TX2TextureOffset <bgcolor=cLtGreen, optimize=false>;
+
+
+typedef struct {
+    int unk00;
+} TX2Texture <bgcolor=cGreen, optimize=false>;
+
+//------------------------------------------------
+
+#ifdef TX2_LIBRARY
+typedef struct {
+#endif
+
+local quad fileStart <hidden=true> = FTell();
+TX2Header header;
+struct { TX2TextureOffset offsets[header.textureCount]; } offsets;
+
+struct {
+    local int i <hidden=true>;
+    for (i = 0; i < header.textureCount; i++) {
+        FSeek(fileStart + offsets.offsets[i].offset);
+        TX2Texture textures;
+    }
+} textures;
+
+#ifdef TX2_LIBRARY
+} TX2;
+#endif

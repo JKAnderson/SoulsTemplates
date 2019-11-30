@@ -1,0 +1,36 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: OMD.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: King's Field IV .omd files
+//  Category: KFIV
+// File Mask: *.omd
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+// To use this template from another template, define OMD_LIBRARY before including,
+// then instantiate type OMD.
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int fileSize <format=hex>;
+} OMDHeader <bgcolor=cLtRed>;
+
+//------------------------------------------------
+
+#ifdef OMD_LIBRARY
+typedef struct {
+#endif
+
+OMDHeader header;
+ubyte data[header.fileSize - 4] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
+
+#ifdef OMD_LIBRARY
+} OMD;
+#endif
