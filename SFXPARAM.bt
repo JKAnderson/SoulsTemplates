@@ -4,8 +4,8 @@
 //      File: SFXPARAM.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: 
-//  Category: 
+//   Purpose: DS2 special-purpose SFX params
+//  Category: Dantelion
 // File Mask: *.sfxparam
 //  ID Bytes: 73 66 78
 //   History: 
@@ -33,6 +33,12 @@ typedef struct {
     int unk04; // 0
 } DRow <bgcolor=cLtGreen>;
 
+string ReadDRow(DRow& row) {
+    string str;
+    return SPrintf(str, "%9i", row.id);
+}
+
+
 typedef struct {
     int id;
     float unk04;
@@ -50,7 +56,12 @@ typedef struct {
     float unk34;
     float unk38;
     float unk3C;
-} PRow <bgcolor=cLtGreen>;
+} PRow <read=ReadPRow, bgcolor=cLtGreen>;
+
+string ReadPRow(PRow& row) {
+    string str;
+    return SPrintf(str, "%9i", row.id);
+}
 
 //------------------------------------------------
 
