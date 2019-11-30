@@ -1,18 +1,18 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.2 Binary Template
 //
-//      File: MIX.bt
+//      File: HD.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: King's Field IV .mix files
+//   Purpose: King's Field IV .hd files; may also apply to .sq
 //  Category: KFIV
-// File Mask: *.mix
+// File Mask: *.hd
 //  ID Bytes: 
 //   History: 
 //------------------------------------------------
 
-// To use this template from another template, define MIX_LIBRARY before including,
-// then instantiate type MIX.
+// To use this template from another template, define HD_LIBRARY before including,
+// then instantiate type HD.
 
 // This template is just a stub to fill out container formats.
 
@@ -21,18 +21,25 @@ LittleEndian();
 //------------------------------------------------
 
 typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+    int unk10;
+    int unk14;
+    int unk18;
     int fileSize <format=hex>;
-} MIXHeader <bgcolor=cLtRed>;
+} HDHeader <bgcolor=cLtRed>;
 
 //------------------------------------------------
 
-#ifdef MIX_LIBRARY
+#ifdef HD_LIBRARY
 typedef struct {
 #endif
 
-MIXHeader header;
-ubyte data[header.fileSize - 4] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
+HDHeader header;
+ubyte data[header.fileSize - 0x20] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
 
-#ifdef MIX_LIBRARY
-} MIX;
+#ifdef HD_LIBRARY
+} HD;
 #endif

@@ -19,6 +19,8 @@
 #include "TX2.bt"
 #define OMD_LIBRARY
 #include "OMD.bt"
+#define HD_LIBRARY
+#include "HD.bt"
 
 LittleEndian();
 
@@ -30,9 +32,9 @@ typedef struct {
     int mixOffset <format=hex>;
     int tx2Offset <format=hex>;
     int omdOffset <format=hex>;
-    int offset14 <format=hex>;
-    int offset18 <format=hex>;
-    int length1C <format=hex>; // Appears to be length of offset18 data
+    int hdOffset <format=hex>;
+    int bdOffset <format=hex>;
+    int bdLength <format=hex>; // Because .bd doesn't store its own file size
 } Header <bgcolor=cLtRed>;
 
 //------------------------------------------------
@@ -46,7 +48,7 @@ FSeek(header.tx2Offset);
 TX2 tx2;
 FSeek(header.omdOffset);
 OMD omd;
-FSeek(header.offset14);
-// ???
-FSeek(header.offset18);
-// ???
+FSeek(header.hdOffset);
+HD hd;
+FSeek(header.bdOffset);
+ubyte bd[header.bdLength] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
