@@ -45,6 +45,7 @@ typedef struct {
 #endif
 
 local quad fileStart <hidden=true> = FTell();
+
 TX2Header header;
 struct { TX2TextureOffset offsets[header.textureCount]; } offsets;
 
@@ -55,6 +56,10 @@ struct {
         TX2Texture textures;
     }
 } textures;
+
+Assert(FTell() - fileStart <= header.fileSize,
+    "TX2 read past end of file.");
+FSeek(fileStart + header.fileSize);
 
 #ifdef TX2_LIBRARY
 } TX2;
