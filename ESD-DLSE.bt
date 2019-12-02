@@ -1,0 +1,114 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: ESD-DLSE.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: DeS ESD
+//  Category: Dantelion
+// File Mask: *.esd
+//  ID Bytes: 44 4C 53 45 [+22] 45 7A 53 74 61 74 65 50 72 6F 6A 65 63 74
+//   History: 
+//------------------------------------------------
+
+// !!!
+// THIS TEMPLATE IS EXTREMELY UNFINISHED AND USELESS
+// !!!
+
+BigEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int length;
+    char str[length];
+} PrefixString <read=ReadPrefixString, optimize=false>;
+
+string ReadPrefixString(PrefixString& ps) {
+    return ps.str;
+}
+
+
+typedef struct (string assertType) {
+    short type; Assert(classNames.classNames[type - 1].str == assertType);
+    int version;
+} Block <read=ReadBlock, bgcolor=cBlack, fgcolor=cWhite>;
+
+string ReadBlock(Block& block) {
+    string str;
+    SPrintf(str, "%i %i", block.type, block.version);
+    return str;
+}
+
+
+typedef struct {
+    short type; Assert(classNames.classNames[type - 1].str == "buffer");
+    int length <format=hex>;
+    ubyte data[length] <format=hex>;
+} Buffer <bgcolor=cWhite, fgcolor=cBlack>;
+
+
+typedef struct {
+    char magic[4]; Assert(magic == "DLSE");
+    short unk04; Assert(unk04 == 2);
+    short unk06;
+    int unk08;
+    int unk0C;
+    int unk10;
+    short classCount;
+} Header <bgcolor=cLtRed>;
+
+
+struct DLVector;
+
+
+typedef struct {
+    Block block("EzStateMapState");
+    
+} EzStateMapState <bgcolor=cGreen>;
+
+
+typedef struct {
+    Block block("EzStateMap");
+    int unk00;
+    
+} EzStateMap <bgcolor=cLtGreen>;
+
+
+typedef struct {
+    Block block("EzStateProject");
+    DLVector stateMaps("EzStateMap");
+} EzStateProject <bgcolor=cAqua>;
+
+
+typedef struct {
+    Block block("EzStateExternalEventT<ES_EVENT_PARAM_NUM_6>");
+    int unk00;
+    int unk04;
+    Buffer buffers[unk04 - 1];
+} EzStateExternalEvent;
+
+
+typedef struct (string itemType) {
+    short type; Assert(classNames.classNames[type - 1].str == "DLVector");
+    int count;
+    
+    local int i <hidden=true>;
+    for (i = 0; i < count; i++) {
+        short itemTypeID <hidden=true>; Assert(classNames.classNames[itemTypeID - 1].str == itemType);
+        int id <hidden=true>; Assert(id == i + 1);
+        if (itemType == "EzStateMap") {
+            EzStateMap stateMaps;
+        } else if (itemType == "EzStateMapState") {
+            EzStateMapState states;
+        } else {
+            Assert(false);
+        }
+    }
+} DLVector;
+
+//------------------------------------------------
+
+Header header;
+struct { PrefixString classNames[header.classCount]; } classNames <bgcolor=cRed>;
+EzStateProject project;
