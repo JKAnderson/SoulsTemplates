@@ -1,0 +1,41 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: MAP1.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: First struct in King's Field IV .map containers
+//  Category: KFIV
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+// To use this template from another template, define MAP1_LIBRARY before including,
+// then instantiate type MAP1.
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int fileSize <format=hex>;
+} MAP1Header <bgcolor=cLtRed>;
+
+//------------------------------------------------
+
+#ifdef MAP1_LIBRARY
+typedef struct {
+#endif
+
+local quad fileStart <hidden=true> = FTell();
+
+MAP1Header header;
+
+Assert(FTell() - fileStart <= header.fileSize,
+    "MAP1 read past end of file.");
+FSeek(fileStart + header.fileSize);
+
+#ifdef MAP1_LIBRARY
+} MAP1 <optimize=false>;
+#endif

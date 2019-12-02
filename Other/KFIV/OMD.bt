@@ -25,7 +25,7 @@ typedef struct {
     short boneCount;
     short unk06;
     int unk08;
-    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int offset0C <format=hex>;
 } OMDHeader <bgcolor=cLtRed>;
 
 
@@ -97,16 +97,26 @@ typedef struct {
     int struct2Count;
     int unk2C <hidden=true>; Assert(unk2C == 0);
     
-    local quad pos <hidden=true> = FTell();
-    FSeek(fileStart + struct2Offset);
-    struct { OMDStruct2 struct2s[struct2Count]; } struct2s;
-    FSeek(pos);
+    if (struct2Count > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(fileStart + struct2Offset);
+        struct { OMDStruct2 struct2s[struct2Count]; } struct2s;
+        FSeek(pos);
+    }
 } OMDBone <read=ReadOMDBone, bgcolor=cAqua, optimize=false>;
 
 string ReadOMDBone(OMDBone& bone) {
     string str;
     return SPrintf(str, "[%i]", bone.struct2Count);
 }
+
+
+typedef struct {
+    int unk00;
+    int unk04;
+    int unk08;
+    int unk0C;
+} OMDStruct3 <bgcolor=cLtPurple>;
 
 //------------------------------------------------
 
@@ -118,6 +128,11 @@ local quad fileStart <hidden=true> = FTell();
 
 OMDHeader header;
 struct { OMDBone bones[header.boneCount]; } bones;
+
+if (header.offset0C != 0) {
+    FSeek(fileStart + header.offset0C);
+    OMDStruct3 struct3s[32];
+}
 
 Assert(FTell() - fileStart <= header.fileSize,
     "OMD read past end of file.");
