@@ -86,6 +86,8 @@ struct { MAP6 struct6s[header.count6]; } struct6s;
 FSeek(header.offset8);
 struct { Struct8 struct8s[header.count8]; } struct8s;
 FSeek(header.offset9);
-byte s7; // Textures
+// Textures
+ubyte struct9s[header.offset10 - header.offset9] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
 FSeek(header.offset10);
-byte s8; // Sounds
+// Sounds
+ubyte struct10s[header.fileSize - header.offset10] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
