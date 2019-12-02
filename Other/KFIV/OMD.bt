@@ -139,5 +139,5 @@ Assert(FTell() - fileStart <= header.fileSize,
 FSeek(fileStart + header.fileSize);
 
 #ifdef OMD_LIBRARY
-} OMD;
+} OMD <optimize=false>;
 #endif

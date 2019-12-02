@@ -41,5 +41,5 @@ HDHeader header;
 ubyte data[header.fileSize - 0x20] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
 
 #ifdef HD_LIBRARY
-} HD;
+} HD <optimize=false>;
 #endif

@@ -56,17 +56,17 @@ typedef struct {
 typedef struct {
     OMD omd;
     TX2 tx2;
-} Struct3 <bgcolor=cDkGreen, optimize=false>;
+} Struct3 <optimize=false>;
 
 typedef struct {
     OM2 om2;
     TX2 tx2;
-} Struct4 <bgcolor=cAqua, optimize=false>;
+} Struct4 <optimize=false>;
 
 typedef struct {
     OMD omd;
     TX2 tx2;
-} Struct8 <bgcolor=cAqua, optimize=false>;
+} Struct8 <optimize=false>;
 
 //------------------------------------------------
 

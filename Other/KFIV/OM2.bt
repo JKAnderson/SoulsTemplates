@@ -151,5 +151,5 @@ Assert(FTell() - fileStart <= header.fileSize,
 FSeek(fileStart + header.fileSize);
 
 #ifdef OM2_LIBRARY
-} OM2;
+} OM2 <optimize=false>;
 #endif

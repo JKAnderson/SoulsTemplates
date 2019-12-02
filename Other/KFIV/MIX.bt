@@ -34,5 +34,5 @@ MIXHeader header;
 ubyte data[header.fileSize - 4] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
 
 #ifdef MIX_LIBRARY
-} MIX;
+} MIX <optimize=false>;
 #endif
