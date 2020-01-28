@@ -222,7 +222,7 @@ typedef struct {
     int vertexCount;
     uint vertexIndicesOffset <format=hex>;
     
-    if (header.version > 0x20005) {
+    if (header.version > 0x2000E) {
         int vertexIndicesLength <format=hex>;
         int unk14 <hidden=true>; Assert(unk14 == 0);
         int vertexIndexSize;
@@ -265,7 +265,7 @@ typedef struct {
     int vertexCount;
     int unk10; // These two 0 everywhere except Steel Battalion
     int unk14;
-    uint verticesLength <format=hex>; // 0 in version 20005
+    uint verticesLength <format=hex>; // 0 in version 20005, non-0 in 20008
     uint bufferOffset <format=hex>;
     
     // When this is not the case, verticesLength and bufferOffset look
@@ -289,7 +289,7 @@ typedef struct {
 
 string ReadLayoutMember(LayoutMember& member) {
     string str;
-    SPrintf(str, "%2X %2X", member.type, member.semantic);
+    SPrintf(str, "Type %2Xh, Semantic %2Xh", member.type, member.semantic);
     return str;
 }
 
