@@ -92,18 +92,34 @@ typedef struct {
     short unk0E;
 } StructE4;
 
-typedef struct {
+struct StructE5;
+typedef struct (quad rootOffset, quad dataOffset) {
     float unk00;
-    short unk04; // Index of other E5
-    short unk06; // Index of other E5
-    short unk08;
-    short unk0A; // Index in section 6?
+    short leftIndex;
+    short rightIndex;
+    short dataCount;
+    short dataIndex;
+    
+    local quad pos <hidden=true> = FTell();
+    if (leftIndex != -1) {
+        FSeek(rootOffset + leftIndex * 0xC);
+        StructE5 left(rootOffset, dataOffset);
+    }
+    if (rightIndex != -1) {
+        FSeek(rootOffset + rightIndex * 0xC);
+        StructE5 right(rootOffset, dataOffset);
+    }
+    if (dataCount > 0) {
+        FSeek(dataOffset + dataIndex * 2);
+        ushort data[dataCount];
+    }
+    FSeek(pos);
 } StructE5 <read=ReadStructE5>;
 
 string ReadStructE5(StructE5& e5) {
     string str;
     SPrintf(str, "%7.3f %3i %3i %3i %3i",
-        e5.unk00, e5.unk04, e5.unk06, e5.unk08, e5.unk0A);
+        e5.unk00, e5.leftIndex, e5.rightIndex, e5.dataCount, e5.dataIndex);
     return str;
 }
 
@@ -153,11 +169,11 @@ typedef struct {
     // Pad to 8
     
     FSeek(offset60.val);
-    //StructE5 unkSection5[???] <bgcolor=cBlack>;
+    StructE5 rootStructE5(offset60.val, offset68.val) <bgcolor=cBlack>;
     // Pad to 8
     
-    FSeek(offset68.val);
-    //StructE6 unkSection6[???] <bgcolor=cWhite>;
+    // FSeek(offset68.val);
+    // Data for E5
     // Pad to 8
 } Mesh <bgcolor=cLtPurple>;
 
@@ -182,7 +198,7 @@ if (header.count18 > 0) {
 }
 
 // Just so 010 doesn't complain about struct ending before it started on DX9 files
-FSeek(0);
+FSeek(header.meshOffsets[0].val);
 struct {
     local int i <hidden=true>;
     for (i = 0; i < header.meshCount; i++) {
