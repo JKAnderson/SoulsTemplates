@@ -1,0 +1,28 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: Xray\XrayUtil.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Utility types and functions for Xray formats
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#ifndef _XRAY_UTIL
+    #define _XRAY_UTIL
+
+typedef struct (int assertID) {
+    int id; Assert(id == assertID);
+    uint length <format=hex>;
+    local uint end <format=hex> = FTell() + length;
+} Block <read=ReadBlock, bgcolor=cBlack, fgcolor=cWhite>;
+
+string ReadBlock(Block& block) {
+    string str;
+    return SPrintf(str, "%2i [%8Xh]", block.id, block.length);
+}
+
+#endif
