@@ -1,0 +1,90 @@
+//------------------------------------------------
+//--- 010 Editor v10.0 Binary Template
+//
+//      File: PARAM.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Universal param template
+//  Category: Dantelion
+// File Mask: *.param
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+LittleEndian();
+if (ReadByte(0x2C) == -1)
+    BigEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    uint stringsOffset <format=hex>;
+    ushort shortDataOffset <format=hex>;
+    short unk06;
+    short unk08;
+    ushort rowCount;
+    char fixedID[0x20];
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
+    // All uses of these two values below are highly speculative
+    byte format2D;
+    byte format2E;
+    // This is neither unicode nor 64-bit
+    byte format2F; Assert(format2F == 0 || format2F == -1);
+    
+    if ((format2D & 0x7F) >= 3) {
+        quad dataOffset <format=hex>;
+        quad padding <hidden=true>; Assert(padding == 0);
+    }
+    if ((format2D & 0x7F) >= 5) {
+        local quad idOffset <format=hex> = ReadInt64(0x10);
+        local quad pos <hidden=true> = FTell();
+        FSeek(idOffset);
+        string id;
+        FSeek(pos);
+    }
+} Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    if ((header.format2D & 0x7F) < 4) {
+        uint id;
+        uint dataOffset <format=hex>;
+        uint nameOffset <format=hex>;
+    } else {
+        quad id;
+        quad dataOffset <format=hex>;
+        quad nameOffset <format=hex>;
+    }
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(dataOffset);
+    ubyte data <bgcolor=cBlack, fgcolor=cWhite>;
+    if (nameOffset != 0) {
+        FSeek(nameOffset);
+        if (header.format2E >= 7) {
+            wstring name;
+        } else {
+            string name;
+        }
+    }
+    FSeek(pos);
+} Row <read=ReadRow, bgcolor=cLtGreen, optimize=false>;
+
+wstring ReadRow(Row& row) {
+    string str;
+    SPrintf(str, "%10i ", row.id);
+    if (exists(row.name)) {
+        if (header.format2E >= 7) {
+            return str + row.name;
+        } else {
+            return str + StringToWString(row.name, CHARSET_JAPANESE);
+        }
+    } else {
+        return str;
+    }
+}
+
+//------------------------------------------------
+
+Header header;
+struct { Row rows[header.rowCount]; } rows <open=true>;

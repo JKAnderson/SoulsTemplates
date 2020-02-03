@@ -88,12 +88,17 @@ typedef struct {
     }
 } Entry <read=ReadEntry, bgcolor=cLtGreen, optimize=false>;
 
-string ReadEntry(Entry& entry) {
-    string str = entry.internalType;
+wstring ReadEntry(Entry& entry) {
+    string str;
+    SPrintf(str, "%i ", entry.editFlags);
+    str += entry.internalType;
     if (exists(entry.internalName))
         str += " - " + entry.internalName;
-    str += " | " + entry.displayType + " - " + entry.displayName;
-    return str;
+    str += " | " + entry.displayType + " - ";
+    if (header.unicode)
+        return str + entry.displayName;
+    else
+        return str + StringToWString(entry.displayName, CHARSET_JAPANESE);
 }
 
 //------------------------------------------------
