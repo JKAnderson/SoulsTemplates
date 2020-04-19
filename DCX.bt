@@ -25,8 +25,8 @@ typedef struct {
 typedef struct {
     char dcx[4]; Assert(dcx == "DCX\0");
     int unk04; Assert(unk04 == 0x10000 || unk04 == 0x11000);
-    int unk08; Assert(unk08 == 0x18);
-    int unk0C; Assert(unk0C == 0x24);
+    int dcsOffset <format=hex>; Assert(dcsOffset == 0x18);
+    int dcpOffset <format=hex>; Assert(dcpOffset == 0x24);
     int unk10; Assert(unk10 == 0x24 || unk10 == 0x44);
     int unk14; // In EDGE, size from 0x20 to end of block headers
     char dcs[4]; Assert(dcs == "DCS\0");
