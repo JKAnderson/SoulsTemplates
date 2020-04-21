@@ -4,9 +4,9 @@
 //      File: PARAMDEF.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: 
+//   Purpose: Companion file that describes a param's row data structure
 //  Category: Dantelion
-// File Mask: *.paramdef
+// File Mask: *.def,*.paramdef
 //  ID Bytes: 
 //   History: 
 //------------------------------------------------
@@ -19,20 +19,22 @@ if (ReadByte(0x2C) == -1)
 
 typedef struct {
     int fileSize <format=hex>;
-    short unk04; Assert(unk04 == 0x30 || unk04 == 0xFF);
-    short unk06; // Seen: 0, 1, 3
-    short entryCount;
-    short entrySize <format=hex>; Assert(entrySize == 0x6C || entrySize == 0x8C
-        || entrySize == 0xAC || entrySize == 0xB0 || entrySize == 0xD0);
+    // Header size, or just a short fields offset? Who knows.
+    short headerSize <format=hex>; Assert(headerSize == 0x30 || headerSize == 0xFF);
+    // Incremented when the actual param data structure changes
+    short dataVersion;
+    short fieldCount;
+    short fieldSize <format=hex>; Assert(fieldSize == 0x6C || fieldSize == 0x8C
+        || fieldSize == 0xAC || fieldSize == 0xB0 || fieldSize == 0xD0);
 
     char paramID[0x20] <bgcolor=cRed>;
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
     byte unicode; Assert(unicode == 0 || unicode == 1);
-    short version; Assert(version == 101 || version == 102 || version == 103
-        || version == 104 || version == 201);
+    short formatVersion; Assert(formatVersion == 101 || formatVersion == 102
+        || formatVersion == 103 || formatVersion == 104 || formatVersion == 201);
 
-    if (version >= 201) {
-        quad entriesStart <format=hex>; Assert(entriesStart == 0x38);
+    if (formatVersion >= 201) {
+        quad fieldsOffset <format=hex>; Assert(fieldsOffset == 0x38);
     }
 } Header <bgcolor=cLtRed>;
 
@@ -49,10 +51,10 @@ typedef struct {
     float minValue;
     float maxValue;
     float increment;
-    int editFlags; // 1 - Wrap, 4 - Lock
+    enum <int> { EDIT_WRAP = 1, EDIT_LOCK = 4 } editFlags;
     int byteCount;
     
-    if (header.version < 201)
+    if (header.formatVersion < 201)
         int descriptionOffset <format=hex>;
     else
         quad descriptionOffset <format=hex>;
@@ -69,15 +71,15 @@ typedef struct {
 
     char internalType[0x20] <bgcolor=cGreen>;
     
-    if (header.version >= 102) {
+    if (header.formatVersion >= 102) {
         char internalName[0x20] <bgcolor=cGreen>;
     }
 
-    if (header.version >= 104) {
+    if (header.formatVersion >= 104) {
         int sortID;
     }
 
-    if (header.version >= 201) {
+    if (header.formatVersion >= 201) {
         int unkB4 <hidden=true>; Assert(unkB4 == 0);
         int unkB8 <hidden=true>; Assert(unkB8 == 0);
         int unkBC <hidden=true>; Assert(unkBC == 0);
@@ -86,22 +88,22 @@ typedef struct {
         int unkC8 <hidden=true>; Assert(unkC8 == 0);
         int unkCC <hidden=true>; Assert(unkCC == 0);
     }
-} Entry <read=ReadEntry, bgcolor=cLtGreen, optimize=false>;
+} Field <read=ReadField, bgcolor=cLtGreen, optimize=false>;
 
-wstring ReadEntry(Entry& entry) {
+wstring ReadField(Field &field) {
     string str;
-    SPrintf(str, "%i ", entry.editFlags);
-    str += entry.internalType;
-    if (exists(entry.internalName))
-        str += " - " + entry.internalName;
-    str += " | " + entry.displayType + " - ";
+    SPrintf(str, "%i ", field.editFlags);
+    str += field.internalType;
+    if (exists(field.internalName))
+        str += " - " + field.internalName;
+    str += " | " + field.displayType + " - ";
     if (header.unicode)
-        return str + entry.displayName;
+        return str + field.displayName;
     else
-        return str + StringToWString(entry.displayName, CHARSET_JAPANESE);
+        return str + StringToWString(field.displayName, CHARSET_JAPANESE);
 }
 
 //------------------------------------------------
 
 Header header;
-struct { Entry entries[header.entryCount]; } entries <open=true>;
+struct { Field fields[header.fieldCount]; } fields <open=true>;

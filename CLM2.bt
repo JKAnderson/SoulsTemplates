@@ -1,14 +1,19 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: 
-//   Authors: 
+//      File: CLM2.bt
+//   Authors: TKGP
 //   Version: 
-//   Purpose: 
-//  Category: 
-// File Mask: 
-//  ID Bytes: 
+//   Purpose: Cloth-related .clm2 files
+//  Category: Dantelion
+// File Mask: *.clm2
+//  ID Bytes: 43 4C 4D 32
 //   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+LittleEndian();
+
 //------------------------------------------------
 
 typedef struct {
@@ -27,22 +32,31 @@ typedef struct {
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
+    short unk00;
+    short unk02;
+} EntryItem <read=ReadEntryItem, bgcolor=cAqua>;
+
+string ReadEntryItem(EntryItem& item) {
+    string str;
+    return SPrintf(str, "%3i %3i", item.unk00, item.unk02);
+}
+
+
+typedef struct {
+    int unk00 <hidden=true>; Assert(unk00 == 0);
     int count;
     int offset;
-    int unk0C; Assert(unk0C == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
     
     if (count > 0) {
         local quad pos <hidden=true> = FTell();
         FSeek(offset);
-        struct {
-            short unk00;
-            short unk02;
-        } indices[count] <bgcolor=cAqua>;
+        EntryItem items[count];
         FSeek(pos);
     }
 } Entry <bgcolor=cLtGreen, optimize=false>;
 
+//------------------------------------------------
 
 Header header;
 Entry entries[header.count];

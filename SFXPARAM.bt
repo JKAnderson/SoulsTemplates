@@ -30,8 +30,8 @@ typedef struct {
 
 typedef struct {
     int id;
-    int unk04; // 0
-} DRow <bgcolor=cLtGreen>;
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+} DRow <read=ReadDRow, bgcolor=cLtGreen, optimize=false>;
 
 string ReadDRow(DRow& row) {
     string str;
@@ -44,7 +44,10 @@ typedef struct {
     float unk04;
     int unk08;
     int unk0C;
-    int unk10; // 4 bytes?
+    byte unk10; Assert(unk10 == 0 || unk10 == 1);
+    byte unk11; Assert(unk11 == 0 || unk11 == 1);
+    byte unk12; Assert(unk12 == 0 || unk12 == 1);
+    byte unk13; Assert(unk13 == 0 || unk13 == 1);
     int unk14;
     int unk18; // 2 shorts?
     int unk1C;
@@ -56,7 +59,7 @@ typedef struct {
     float unk34;
     float unk38;
     float unk3C;
-} PRow <read=ReadPRow, bgcolor=cLtGreen>;
+} PRow <read=ReadPRow, bgcolor=cLtGreen, optimize=false>;
 
 string ReadPRow(PRow& row) {
     string str;
@@ -67,6 +70,6 @@ string ReadPRow(PRow& row) {
 
 Header header;
 if (header.type == 'd')
-    DRow rows[header.rowCount];
+    struct { DRow rows[header.rowCount]; } rows <open=true>;
 else if (header.type == 'p')
-    PRow rows[header.rowCount];
+    struct { PRow rows[header.rowCount]; } rows <open=true>;

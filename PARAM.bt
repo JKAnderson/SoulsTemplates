@@ -4,13 +4,14 @@
 //      File: PARAM.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: Universal param template
+//   Purpose: A general-purpose configuration format
 //  Category: Dantelion
 // File Mask: *.param
 //  ID Bytes: 
 //   History: 
 //------------------------------------------------
 
+#include "Util.bt"
 LittleEndian();
 if (ReadByte(0x2C) == -1)
     BigEndian();
@@ -21,52 +22,70 @@ typedef struct {
     uint stringsOffset <format=hex>;
     ushort shortDataOffset <format=hex>;
     short unk06;
-    short unk08;
+    short paramdefDataVersion;
     ushort rowCount;
-    char fixedID[0x20];
+
+    // Aligning to 8 and filling up the size of the fixed string
+    if (ReadByte(0x2D) & 0x80) {
+        int typePad1 <hidden=true>; Assert(typePad1 == 0);
+        OffsetString paramType(1, 0);
+        quad typePad2 <hidden=true>; Assert(typePad2 == 0);
+        quad typePad3 <hidden=true>; Assert(typePad3 == 0);
+        int typePad4 <hidden=true>; Assert(typePad4 == 0);
+    } else {
+        char paramType[0x20];
+    }
+
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
     // All uses of these two values below are highly speculative
     byte format2D;
     byte format2E;
-    // This is neither unicode nor 64-bit
-    byte format2F; Assert(format2F == 0 || format2F == -1);
+    // Matches the paramdef version for paramdef version 101, otherwise 0 or -1
+    byte paramdefFormatVersion;
     
-    if ((format2D & 0x7F) >= 3) {
-        quad dataOffset <format=hex>;
-        quad padding <hidden=true>; Assert(padding == 0);
+    // format2D = 1 does not have this part, but 3 and 4 do
+    // Separate flags for int offset and quad offset are my best guess
+    if (format2D & (2 | 4)) {
+        if (format2D & 2) {
+            // Confirmed int via BE
+            int dataOffset <format=hex>;
+            int pad1 <hidden=true>; Assert(pad1 == 0);
+        } else if (format2D & 4) {
+            quad dataOffset <format=hex>;
+        }
+        quad pad2 <hidden=true>; Assert(pad2 == 0);
     }
-    if ((format2D & 0x7F) >= 5) {
-        local quad idOffset <format=hex> = ReadInt64(0x10);
-        local quad pos <hidden=true> = FTell();
-        FSeek(idOffset);
-        string id;
-        FSeek(pos);
-    }
-} Header <bgcolor=cLtRed>;
+} Header <read=ReadHeader, bgcolor=cLtRed>;
+
+string ReadHeader(Header& header) {
+    string str;
+    return SPrintf(str, "[%4i] %s", header.rowCount,
+        header.format2D & 0x80 ? header.paramType.str : header.paramType);
+}
 
 
 typedef struct {
-    if ((header.format2D & 0x7F) < 4) {
-        uint id;
-        uint dataOffset <format=hex>;
-        uint nameOffset <format=hex>;
-    } else {
+    if (header.format2D & 4) {
         quad id;
         quad dataOffset <format=hex>;
         quad nameOffset <format=hex>;
+    } else {
+        uint id;
+        uint dataOffset <format=hex>;
+        uint nameOffset <format=hex>;
     }
     
     local quad pos <hidden=true> = FTell();
-    FSeek(dataOffset);
-    ubyte data <bgcolor=cBlack, fgcolor=cWhite>;
     if (nameOffset != 0) {
         FSeek(nameOffset);
-        if (header.format2E >= 7) {
+        if (header.format2E & 1) {
             wstring name;
         } else {
             string name;
         }
     }
+    FSeek(dataOffset);
+    ubyte data <bgcolor=cBlack, fgcolor=cWhite>;
     FSeek(pos);
 } Row <read=ReadRow, bgcolor=cLtGreen, optimize=false>;
 
@@ -74,7 +93,7 @@ wstring ReadRow(Row& row) {
     string str;
     SPrintf(str, "%10i ", row.id);
     if (exists(row.name)) {
-        if (header.format2E >= 7) {
+        if (header.format2E & 1) {
             return str + row.name;
         } else {
             return str + StringToWString(row.name, CHARSET_JAPANESE);

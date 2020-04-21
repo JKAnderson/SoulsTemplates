@@ -1,28 +1,33 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: 
-//   Authors: 
+//      File: WALL.bt
+//   Authors: TKGP
 //   Version: 
-//   Purpose: 
-//  Category: 
-// File Mask: 
-//  ID Bytes: 
+//   Purpose: Sekiro .wall files
+//  Category: Dantelion
+// File Mask: *.wall
+//  ID Bytes: 03 00 00 00
 //   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+LittleEndian();
+
 //------------------------------------------------
 
 typedef struct {
     int unk00; Assert(unk00 == 3);
-    int unk1Count;
-    quad unk08; Assert(unk08 == 0x48);
+    int struct1Count;
+    quad struct1sOffset <format=hex>; Assert(struct1sOffset == 0x48);
     int id;
-    int unk14; Assert(unk14 == 0);
-    quad unk18;
-    quad unk20;
-    quad unk28;
-    int unk30;
-    int unk34;
-    int unk38;
+    int unk14 <hidden=true>; Assert(unk14 == 0);
+    quad entriesOffsetA <format=hex>;
+    quad entriesOffsetB <format=hex>;
+    quad entriesOffsetC <format=hex>;
+    int entryCountA;
+    int entryCountB;
+    int entryCountC;
     int unk3C;
     int unk40; Assert(unk40 == 1);
     int unk44; Assert(unk44 == 0);
@@ -30,33 +35,102 @@ typedef struct {
 
 
 typedef struct {
-    int unk00;
-    int unk04;
+    float unk00;
+    float unk04;
+} EntryA <read=ReadEntryA, bgcolor=cYellow>;
+
+string ReadEntryA(EntryA &entry) {
+    string str;
+    return SPrintf(str, "<%.3f, %.3f>", entry.unk00, entry.unk04);
+}
+
+
+struct EntryC;
+
+
+typedef struct {
+    quad entriesCOffset <format=hex>;
     int unk08;
     int unk0C;
     int unk10;
-    int unk14;
+    short unk14;
+    byte entryCountC;
+    byte unk17;
     int unk18;
     int unk1C;
     short unk20;
     short unk22;
     int unk24;
-} Unk1Entry <bgcolor=cAqua>;
+    
+    if (entryCountC > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(entriesCOffset);
+        struct { EntryC entriesC[entryCountC]; } entriesC;
+        FSeek(pos);
+    }
+} EntryB <read=ReadEntryB, bgcolor=cAqua, optimize=false>;
+
+string ReadEntryB(EntryB &entry) {
+    string str;
+    return SPrintf(str, "");
+}
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04; Assert(unk04 == 0);
-    quad offset;
-    int count;
-    int unk18; Assert(unk18 == 0);
+    quad entriesOffsetC <format=hex>;
+    int unk08;
+    int unk0C; Assert(unk0C == 0);
+    int unk10;
+    short unk14;
+    byte entryCountC;
+    byte unk17;
+    
+    if (entryCountC > 0) {
+        local quad pos <hidden=true> = FTell();
+        FSeek(entriesOffsetC);
+        struct { EntryC entriesC[entryCountC]; } entriesC;
+        FSeek(pos);
+    }
+} EntryC <read=ReadEntryC, bgcolor=cLtPurple, optimize=false>;
+
+string ReadEntryC(EntryC &entry) {
+    return "";
+}
+
+
+typedef struct {
+    int unk00 <hidden=true>; Assert(unk00 == 0);
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    quad entriesOffsetB <format=hex>;
+    int entryCountB;
+    int unk18 <hidden=true>; Assert(unk18 == 0);
     
     local quad pos <hidden=true> = FTell();
-    FSeek(offset);
-    Unk1Entry entries[count];
+    FSeek(entriesOffsetB);
+    struct { EntryB entriesB[entryCountB]; } entriesB;
     FSeek(pos);
-} Unk1 <bgcolor=cLtGreen, optimize=false>;
+} Struct1 <read=ReadStruct1, bgcolor=cLtGreen, optimize=false>;
 
+string ReadStruct1(Struct1 &struct1) {
+    return "";
+}
+
+//------------------------------------------------
 
 Header header;
-Unk1 unk1s[header.unk1Count];
+if (header.struct1Count > 0) {
+    FSeek(header.struct1sOffset);
+    Struct1 struct1s[header.struct1Count];
+}
+if (header.entryCountA > 0) {
+    FSeek(header.entriesOffsetA);
+    struct { EntryA entriesA[header.entryCountA]; } entriesA;
+}
+if (header.entryCountB > 0) {
+    FSeek(header.entriesOffsetB);
+    //struct { EntryB entriesB[header.entryCountB]; } entriesB;
+}
+if (header.entryCountC > 0) {
+    FSeek(header.entriesOffsetC);
+    //struct { EntryC entriesC[header.entryCountC]; } entriesC;
+}

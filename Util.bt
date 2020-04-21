@@ -43,6 +43,15 @@ string ReadVector2(Vector2& vec) {
     return str;
 }
 
+string ReadVector2Fmt(Vector2& vec, int width, int precision) {
+    string fmt;
+    SPrintf(fmt, "<%%%d.%df, %%%d.%df>",
+        width, precision, width, precision);
+    
+    string str;
+    return SPrintf(str, fmt, vec.x, vec.y);
+}
+
 
 typedef struct {
     float x;
@@ -54,6 +63,15 @@ string ReadVector3(Vector3& vec) {
     string str;
     SPrintf(str, "<%7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z);
     return str;
+}
+
+string ReadVector3Fmt(Vector3& vec, int width, int precision) {
+    string fmt;
+    SPrintf(fmt, "<%%%d.%df, %%%d.%df, %%%d.%df>",
+        width, precision, width, precision, width, precision);
+    
+    string str;
+    return SPrintf(str, fmt, vec.x, vec.y, vec.z);
 }
 
 
@@ -68,6 +86,15 @@ string ReadVector4(Vector4& vec) {
     string str;
     SPrintf(str, "<%7.2f, %7.2f, %7.2f, %7.2f>", vec.x, vec.y, vec.z, vec.w);
     return str;
+}
+
+string ReadVector4Fmt(Vector4& vec, int width, int precision) {
+    string fmt;
+    SPrintf(fmt, "<%%%d.%df, %%%d.%df, %%%d.%df, %%%d.%df>",
+        width, precision, width, precision, width, precision, width, precision);
+    
+    string str;
+    return SPrintf(str, fmt, vec.x, vec.y, vec.z, vec.w);
 }
 
 
