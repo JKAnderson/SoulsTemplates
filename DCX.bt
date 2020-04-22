@@ -35,7 +35,7 @@ typedef struct {
     char dcp[4]; Assert(dcp == "DCP\0");
     char format[4]; Assert(format == "DFLT" || format == "EDGE" || format == "KRAK");
     int unk2C; Assert(unk2C == 0x20);
-    byte unk30; Assert(unk30 == 6|| unk30 == 8 || unk30 == 9);
+    byte unk30; Assert(unk30 == 6|| unk30 == 8 || unk30 == 9); // Compression param?
     byte unk31 <hidden=true>; Assert(unk31 == 0);
     byte unk32 <hidden=true>; Assert(unk32 == 0);
     byte unk33 <hidden=true>; Assert(unk33 == 0);
