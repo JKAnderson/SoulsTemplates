@@ -5,40 +5,54 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: Dark Souls 2 UI configs
-//  Category: Dantelion
+//  Category: Katana
 // File Mask: *.flo
-//  ID Bytes: 00 00 02 00 [+4] A8 00 00 00 00 00 00 00
+//  ID Bytes: 
 //   History: 
 //------------------------------------------------
 
 #include "Util.bt"
 
+// This is a pretty stupid heuristic but it should be accurate
+local int VARINT_LONG = ReadInt(0xC) == 0;
+
 LittleEndian();
+if (ReadByte(VARINT_LONG ? 0x58 : 0x34))
+    BigEndian();
+
+struct Animator;
+struct Texture;
 
 //------------------------------------------------
 
 typedef struct {
-    short unk00; Assert(unk00 == 0);
-    short unk02; Assert(unk02 == 2);
-    int unk04;
-    quad offset1 <format=hex>;
-    quad offset2 <format=hex>;
-    quad offset3 <format=hex>;
-    quad offset4 <format=hex>;
-    quad offset5 <format=hex>;
-    quad texturesOffset <format=hex>;
-    quad stringsOffset <format=hex>;
-    quad offset8 <format=hex>;
-    short count1;
+    int unk00; Assert(unk00 == 0x20000);
+    // Many fields like this appear to just be padding in 64-bit,
+    // but they sometimes have pretty suspicious values
+    // so I can't be completely certain.
+    if (VARINT_LONG) {
+        int unk04;
+    }
+    Varint spriteSetsOffset <format=hex>;
+    Varint offset2 <format=hex>;
+    Varint nodesOffset <format=hex>;
+    Varint animatorsOffset <format=hex>;
+    Varint rootsOffset <format=hex>;
+    Varint texturesOffset <format=hex>;
+    Varint stringsOffset <format=hex>;
+    Varint textsOffset <format=hex>;
+    short spriteSetCount;
     short count2; Assert(count2 == 0);
-    short count3;
-    short count4;
-    short count5;
+    short nodeCount;
+    short animatorCount;
+    short rootCount;
     short textureCount;
     short stringCount;
-    short count8;
-    short unk58; Assert(unk58 == 0);
-    short unk5A;
+    short textCount;
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == 1);
+    byte unk59 <hidden=true>; Assert(unk59 == 0);
+    byte unk5A; Assert(unk5A == 30 || unk5A == 31 || unk5A == 60); // Framerate?
+    byte unk5B <hidden=true>; Assert(unk5B == 0);
     int unk5C <hidden=true>; Assert(unk5C == 0);
     int unk60 <hidden=true>; Assert(unk60 == 0);
     int unk64 <hidden=true>; Assert(unk64 == 0);
@@ -57,68 +71,72 @@ typedef struct {
     int unk98 <hidden=true>; Assert(unk98 == 0);
     int unk9C <hidden=true>; Assert(unk9C == 0);
     int unkA0 <hidden=true>; Assert(unkA0 == 0);
-    int unkA4;
+    if (VARINT_LONG) {
+        int unkA4;
+    }
 } Header <bgcolor=cLtRed>;
 
 
 typedef struct {
-    float x1;
-    float y1;
-    float x2;
-    float y2;
+    Vector2 v1;
+    Vector2 v2;
 } TexRegion <read=ReadTexRegion>;
 
-string ReadTexRegion(TexRegion& reg) {
+string ReadTexRegion(TexRegion &reg) {
     string str;
-    SPrintf(str, "(%f, %f) (%f, %f)", reg.x1, reg.y1, reg.x2, reg.y2);
-    return str;
+    return SPrintf(str, "%s %s", ReadVector2(reg.v1), ReadVector2(reg.v2));
 }
 
 
-struct Texture;
 typedef struct {
-    float unk00;
-    float unk04;
-    float unk08;
-    float unk0C;
-    float unk10;
-    float unk14;
+    Vector2 position;
+    Vector2 scale;
+    Vector2 skew;
     int unk18; Assert(unk18 == -1);
-    int unk1C <hidden=true>; Assert(unk1C == 0);
-    quad textureOffset <format=hex>;
-    int unk28;
-    int unk2C <hidden=true>; Assert(unk2C == 0);
-    quad texRegionOffset <format=hex>;
+    if (VARINT_LONG) {
+        int pad1C <hidden=true>; Assert(pad1C == 0);
+    }
+    Varint textureOffset <format=hex>;
+    short textureID;
+    short unk2A <hidden=true>; Assert(unk2A == 0);
+    if (VARINT_LONG) {
+        int pad2C <hidden=true>; Assert(pad2C == 0);
+    }
+    Varint texRegionOffset <format=hex>;
     int unk38 <hidden=true>; Assert(unk38 == 0);
     int unk3C <hidden=true>; Assert(unk3C == 0);
     
     local quad pos <hidden=true> = FTell();
-    FSeek(textureOffset);
+    FSeek(textureOffset.val);
     Texture texture;
-    FSeek(texRegionOffset);
+    FSeek(texRegionOffset.val);
     TexRegion texRegion;
     FSeek(pos);
-} Struct1_1 <optimize=false>;
+} Sprite <read=ReadSprite, bgcolor=cGreen, optimize=false>;
 
+string ReadSprite(Sprite &sp) {
+    return sp.texture.name.str;
+}
 
 typedef struct {
-    short unk00;
-    short struct1_1Count;
-    int unk04 <hidden=true>; Assert(unk04 == 0);
-    quad struct1_1sOffset <format=hex>;
+    short id;
+    short spriteCount;
+    if (VARINT_LONG) {
+        int pad04 <hidden=true>; Assert(pad04 == 0);
+    }
+    Varint spritesOffset <format=hex>;
     int unk10 <hidden=true>; Assert(unk10 == 0);
     int unk14 <hidden=true>; Assert(unk14 == 0);
     
     local quad pos <hidden=true> = FTell();
-    FSeek(struct1_1sOffset);
-    Struct1_1 struct1_1s[struct1_1Count];
+    FSeek(spritesOffset.val);
+    Sprite sprites[spriteCount];
     FSeek(pos);
-} Struct1 <read=ReadStruct1, bgcolor=cLtGreen, optimize=false>;
+} SpriteSet <read=ReadSpriteSet, bgcolor=cLtGreen, optimize=false>;
 
-string ReadStruct1(Struct1& struct1) {
+string ReadSpriteSet(SpriteSet &ss) {
     string str;
-    SPrintf(str, "%2i", struct1.unk00);
-    return str;
+    return SPrintf(str, "%3i", ss.id);
 }
 
 
@@ -132,114 +150,132 @@ typedef struct {
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
-} Struct3_2_1 <optimize=false>;
+} NodeItemB <read=ReadNodeItemB, optimize=false>;
 
-
-typedef struct {
-    quad struct3_2_1sOffset <format=hex>;
-    int struct3_2_1Count;
-    int unk0C <hidden=true>; Assert(unk0C == 0);
-    int unk10 <hidden=true>; Assert(unk10 == 0);
-    int unk14;
-    
-    local quad pos <hidden=true> = FTell();
-    FSeek(struct3_2_1sOffset);
-    struct { Struct3_2_1 struct3_2_1s[struct3_2_1Count]; } struct3_2_1s;
-    FSeek(pos);
-} Struct3_2;
-
-
-typedef struct {
-    int unk00;
-    int unk04;
-    int unk08 <hidden=true>; Assert(unk08 == 0);
-    int unk0C <hidden=true>; Assert(unk0C == 0);
-} Struct3_1_1 <optimize=false>;
-
-
-typedef struct {
-    quad struct3_1_1sOffset <format=hex>;
-    int struct3_1_1Count;
-    int unk0C <hidden=true>; Assert(unk0C == 0);
-    int unk10 <hidden=true>; Assert(unk10 == 0);
-    int unk14;
-    
-    local quad pos <hidden=true> = FTell();
-    FSeek(struct3_1_1sOffset);
-    struct { Struct3_1_1 struct3_1_1s[struct3_1_1Count]; } struct3_1_1s;
-    FSeek(pos);
-} Struct3_1 <optimize=false>;
-
-
-struct Struct4;
-typedef struct {
-    short unk00;
-    short struct4Count;
-    int unk04;
-    quad struct4sOffset <format=hex>;
-    int unk10;
-    int unk14; Assert(unk14 == 1);
-    quad struct3_1Offset <format=hex>;
-    quad struct3_2Offset <format=hex>;
-    int unk28 <hidden=true>; Assert(unk28 == 0);
-    int unk2C <hidden=true>; Assert(unk2C == 0);
-    int unk30 <hidden=true>; Assert(unk30 == 0);
-    int unk34 <hidden=true>; Assert(unk34 == 0);
-    int unk38 <hidden=true>; Assert(unk38 == 0);
-    int unk3C <hidden=true>; Assert(unk3C == 0);
-    int unk40 <hidden=true>; Assert(unk40 == 0);
-    int unk44 <hidden=true>; Assert(unk44 == 0);
-    
-    local quad pos <hidden=true> = FTell();
-    FSeek(struct4sOffset);
-    struct { Struct4 struct4s[struct4Count]; } struct4s;
-    
-    if (struct3_1Offset != 0) {
-        FSeek(struct3_1Offset);
-        Struct3_1 struct3_1;
-    }
-    if (struct3_2Offset != 0) {
-        FSeek(struct3_2Offset);
-        Struct3_2 struct3_2;
-    }
-    FSeek(pos);
-} Struct3 <read=ReadStruct3, bgcolor=cAqua, optimize=false>;
-
-string ReadStruct3(Struct3& struct3) {
+string ReadNodeItemB(NodeItemB &item) {
     string str;
-    SPrintf(str, "%2i %3i", struct3.unk00, struct3.unk10);
-    return str;
+    return SPrintf(str, "%3i %3i %3i %3i",
+        item.unk00, item.unk04, item.unk06, item.unk08);
 }
 
 
 typedef struct {
-    float unk00;
-    float unk04;
-    float unk08;
-    float unk0C;
-    float unk10;
-    float unk14;
+    Varint nodeItemsBOffset <format=hex>;
+    short nodeItemBCount;
+    short unk0A <hidden=true>; Assert(unk0A == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    if (VARINT_LONG) {
+        int unk14;
+    }
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(nodeItemsBOffset.val);
+    NodeItemB nodeItemsB[nodeItemBCount];
+    FSeek(pos);
+} NodeListB;
+
+
+typedef struct {
+    int unk00;
+    short unk04;
+    short unk06 <hidden=true>; Assert(unk06 == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+} NodeItemA <read=ReadNodeItemA, optimize=false>;
+
+string ReadNodeItemA(NodeItemA &item) {
+    string str;
+    return SPrintf(str, "%3i %3i", item.unk00, item.unk04);
+}
+
+
+typedef struct {
+    Varint nodeItemsAOffset <format=hex>;
+    short nodeItemACount;
+    short unk0A <hidden=true>; Assert(unk0A == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+    int unk10 <hidden=true>; Assert(unk10 == 0);
+    if (VARINT_LONG) {
+        int unk14;
+    }
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(nodeItemsAOffset.val);
+    NodeItemA nodeItemsA[nodeItemACount];
+    FSeek(pos);
+} NodeListA <optimize=false>;
+
+
+typedef struct {
+    short id;
+    short animatorCount;
+    if (VARINT_LONG) {
+        int unk04;
+    }
+    Varint animatorsOffset <format=hex>;
+    int unk10;
+    short unk14; Assert(unk14 == 1);
+    short unk16 <hidden=true>; Assert(unk16 == 0);
+    Varint nodeListAOffset <format=hex>;
+    Varint nodeListBOffset <format=hex>;
+    
+    // Dubious
+    Varint unk28 <hidden=true>; Assert(unk28.val == 0);
+    Varint unk2C <hidden=true>; Assert(unk2C.val == 0);
+    int unk30 <hidden=true>; Assert(unk30 == 0);
+    int unk34 <hidden=true>; Assert(unk34 == 0);
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(animatorsOffset.val);
+    struct { Animator animators[animatorCount]; } animators;
+    
+    if (nodeListAOffset.val != 0) {
+        FSeek(nodeListAOffset.val);
+        NodeListA nodeListA;
+    }
+    if (nodeListBOffset.val != 0) {
+        FSeek(nodeListBOffset.val);
+        NodeListB nodelistB;
+    }
+    FSeek(pos);
+} Node <read=ReadNode, bgcolor=cAqua, optimize=false>;
+
+string ReadNode(Node &node) {
+    string str;
+    return SPrintf(str, "%3i %3i", node.id, node.unk10);
+}
+
+
+typedef struct {
+    Vector2 translation;
+    Vector2 scale;
+    Vector2 skew;
     ubyte color[4]; // RGBA
-    int unk1C;
+    int unk1C; // Usually 0, possibly another color?
     int unk20;
     int unk24;
     int unk28 <hidden=true>; Assert(unk28 == 0);
     int unk2C <hidden=true>; Assert(unk2C == 0);
 } Frame <read=ReadFrame, optimize=false>;
 
-string ReadFrame(Frame& frame) {
+string ReadFrame(Frame &frame) {
     string str;
-    SPrintf(str, "%2X %2X %2X %2X",
-        frame.color[0], frame.color[1], frame.color[2], frame.color[3]);
-    return str;
+    return SPrintf(str, "[%2X %2X %2X %2X] %3i %3i %3i",
+        frame.color[0], frame.color[1], frame.color[2], frame.color[3],
+        frame.unk1C, frame.unk20, frame.unk24);
 }
 
 
 typedef struct {
-    short unk00;
+    short elementID;
     short frameCount;
-    int unk04;
-    quad framesOffset <format=hex>;
+    if (VARINT_LONG) {
+        int pad04 <hidden=true>; Assert(pad04 == 0);
+    }
+    Varint framesOffset <format=hex>;
     short unk10;
     short unk12;
     short unk14;
@@ -250,50 +286,58 @@ typedef struct {
     int unk24 <hidden=true>; Assert(unk24 == 0);
     
     local quad pos <hidden=true> = FTell();
-    FSeek(framesOffset);
+    FSeek(framesOffset.val);
     struct { Frame frames[frameCount]; } frames;
     FSeek(pos);
-} Struct4 <read=ReadStruct4, bgcolor=cLtBlue, optimize=false>;
+} Animator <read=ReadAnimator, bgcolor=cLtBlue, optimize=false>;
 
-string ReadStruct4(Struct4& struct4) {
+string ReadAnimator(Animator &anim) {
     string str;
-    SPrintf(str, "%i %i", struct4.unk00, struct4.frameCount);
-    return str;
+    return SPrintf(str, "%3i [%3i]", anim.elementID, anim.frameCount);
 }
 
 
 typedef struct {
-    int unk00;
-    int unk04;
-    quad struct3Offset <format=hex>;
-    float unk10;
-    float unk14;
-    int unk18;
-    int unk1C <hidden=true>; Assert(unk1C == 0);
-    int unk20 <hidden=true>; Assert(unk20 == 0);
-    int unk24;
-} Struct5 <read=ReadStruct5, bgcolor=cPurple, optimize=false>;
+    int id;
+    int nodeID;
+    Varint nodeOffset <format=hex>;
+    Vector2 position;
+    short unk18;
+    short unk1A; // byte byte?
+    int unk1C; // In SotfS these two are 0
+    int unk20; // In DX9 this looks like SotfS's unk24
+    if (VARINT_LONG) {
+        int unk24;
+    }
+    
+    local quad pos <hidden=true> = FTell();
+    FSeek(nodeOffset.val);
+    Node node;
+    FSeek(pos);
+} Root <read=ReadRoot, bgcolor=cPurple, optimize=false>;
 
-string ReadStruct5(Struct5& struct5) {
+string ReadRoot(Root &root) {
     string str;
-    SPrintf(str, "%i", struct5.unk00);
-    return str;
+    return SPrintf(str, "%3i", root.id);
 }
 
 
 typedef struct {
-    OffsetString name(1, 0);
-    int unk08;
+    OffsetString name(VARINT_LONG, 0);
+    short id;
+    short unk0A <hidden=true>; Assert(unk0A == 0);
     short unk0C <hidden=true>; Assert(unk0C == 0);
     short width; // These don't seem to actually do anything
     short height;
     short unk12 <hidden=true>; Assert(unk12 == 0);
-    int unk14;
+    if (VARINT_LONG) {
+        int unk14;
+    }
 } Texture <read=ReadTexture, bgcolor=cDkYellow, optimize=false>;
 
-string ReadTexture(Texture& tex) {
+string ReadTexture(Texture &tex) {
     string str;
-    SPrintf(str, "%2i ", tex.unk08);
+    SPrintf(str, "%3i ", tex.id);
     return str + tex.name.str;
 }
 
@@ -308,54 +352,65 @@ string ReadStringWrapper(StringWrapper& sw) {
 
 
 typedef struct {
-    int unk00;
-    short unk04;
+    short id;
+    short unk02 <hidden=true>; Assert(unk02 == 0);
+    short font;
     short unk06;
-    int unk08;
-    int unk0C;
+    short size;
+    short unk0A <hidden=true>; Assert(unk0A == 0);
+    short unk0C;
+    short unk0E <hidden=true>; Assert(unk0E == 0);
     short unk10;
-    short unk12;
-    short unk14;
-    short unk16;
-    int unk18 <hidden=true>; Assert(unk18 == 0);
-    int unk1C <hidden=true>; Assert(unk1C == 0);
+    ubyte color[4]; // RGBA
+    byte unk16;
+    byte unk17;
+    
+    // Dubious
+    Varint unk18 <hidden=true>; Assert(unk18.val == 0);
     int unk20 <hidden=true>; Assert(unk20 == 0);
     int unk24 <hidden=true>; Assert(unk24 == 0);
     int unk28 <hidden=true>; Assert(unk28 == 0);
     int unk2C <hidden=true>; Assert(unk2C == 0);
     int unk30 <hidden=true>; Assert(unk30 == 0);
-    int unk34;
-} Struct8 <bgcolor=cYellow, optimize=false>;
+    if (VARINT_LONG) {
+        int unk34;
+    }
+} Text <read=ReadText, bgcolor=cYellow, optimize=false>;
+
+string ReadText(Text &text) {
+    string str;
+    return SPrintf(str, "%3i", text.id);
+}
 
 //------------------------------------------------
 
 Header header;
-if (header.count1 > 0) {
-    FSeek(header.offset1);
-    struct { Struct1 struct1s[header.count1]; } struct1s;
+if (header.spriteSetCount > 0) {
+    FSeek(header.spriteSetsOffset.val);
+    struct { SpriteSet spriteSets[header.spriteSetCount]; } spriteSets;
 }
-if (header.count3 > 0) {
-    FSeek(header.offset3);
-    struct { Struct3 struct3s[header.count3]; } struct3s;
+if (header.nodeCount > 0) {
+    FSeek(header.nodesOffset.val);
+    struct { Node nodes[header.nodeCount]; } nodes;
 }
-if (header.count4 > 0) {
-    FSeek(header.offset4);
-    struct { Struct4 struct4s[header.count4]; } struct4s;
+if (header.animatorCount > 0) {
+    FSeek(header.animatorsOffset.val);
+    struct { Animator animators[header.animatorCount]; } animators;
 }
-if (header.count5 > 0) {
-    FSeek(header.offset5);
-    struct { Struct5 struct5s[header.count5]; } struct5s;
+if (header.rootCount > 0) {
+    FSeek(header.rootsOffset.val);
+    struct { Root roots[header.rootCount]; } roots;
 }
 if (header.textureCount > 0) {
-    FSeek(header.texturesOffset);
+    FSeek(header.texturesOffset.val);
     struct { Texture textures[header.textureCount]; } textures;
 }
 if (header.stringCount > 0) {
-    FSeek(header.stringsOffset);
+    FSeek(header.stringsOffset.val);
     struct { StringWrapper strings[header.stringCount]; } strings;
 }
-if (header.count8 > 0) {
-    FSeek(header.offset8);
-    struct { Struct8 struct8s[header.count8]; } struct8s;
+if (header.textCount > 0) {
+    FSeek(header.textsOffset.val);
+    struct { Text texts[header.textCount]; } texts;
 }
 // Pad to 0x20
