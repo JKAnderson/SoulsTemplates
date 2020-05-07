@@ -5,18 +5,25 @@
 //   Authors: TKGP
 //   Version: 
 //   Purpose: DS3 map layouts
-//  Category: Dark Souls
+//  Category: Dantelion
 // File Mask: *.msb
-//  ID Bytes: 4D 53 42 20 01 00 00 00 10 00 00 00 00 00 01 FF
+//  ID Bytes: 4D 53 42 20 01 00 00 00 10 00 00 00 00 00 01 FF 03 00 00 00
 //   History: 
 //------------------------------------------------
 
 #include "Util.bt"
-//#include "MSB3\Model.bt"
-//#include "MSB3\Event.bt"
-//#include "MSB3\Point.bt"
-//#include "MSB3\Route.bt"
+#include "MSB3\Model.bt"
+#include "MSB3\Event.bt"
+#include "MSB3\Point.bt"
+#include "MSB3\Route.bt"
+#include "MSB3\Layer.bt"
 #include "MSB3\Part.bt"
+#include "MSB3\PartsPose.bt"
+#include "MSB3\BoneName.bt"
+
+LittleEndian();
+
+//------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "MSB ");
@@ -29,8 +36,8 @@ typedef struct {
 } Header <bgcolor=cLtRed>;
 
 
-typedef struct (string assertName) {
-    int unk00;
+typedef struct (int assertVersion, string assertName) {
+    int version; Assert(version == assertVersion);
     int count;
     OffsetString name(1, 1); Assert(name.str == assertName);
     if (count > 1) {
@@ -41,17 +48,17 @@ typedef struct (string assertName) {
 
 string ReadParam(Param& param) {
     string str;
-    SPrintf(str, "[%4i] %2Xh %s", param.count, param.unk00, param.name.str);
+    SPrintf(str, "[%4i] %i %s", param.count - 1, param.version, param.name.str);
     return str;
 }
 
 
 typedef struct {
-    Param param("MODEL_PARAM_ST");
+    Param param(3, "MODEL_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        //Model model;
+        Model model;
     }
     FSeek(param.nextParamOffset);
 } ModelParam <read=ReadModelParam, bgcolor=cLtGreen>;
@@ -62,11 +69,11 @@ string ReadModelParam(ModelParam& modelParam) {
 
 
 typedef struct {
-    Param param("EVENT_PARAM_ST");
+    Param param(3, "EVENT_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        //Event event;
+        Event event;
     }
     FSeek(param.nextParamOffset);
 } EventParam <read=ReadEventParam, bgcolor=cYellow>;
@@ -77,11 +84,11 @@ string ReadEventParam(EventParam& eventParam) {
 
 
 typedef struct {
-    Param param("POINT_PARAM_ST");
+    Param param(3, "POINT_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        //Point point;
+        Point point;
     }
     FSeek(param.nextParamOffset);
 } PointParam <read=ReadPointParam, bgcolor=cAqua>;
@@ -92,11 +99,11 @@ string ReadPointParam(PointParam& pointParam) {
 
 
 typedef struct {
-    Param param("ROUTE_PARAM_ST");
+    Param param(3, "ROUTE_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        //Route route;
+        Route route;
     }
     FSeek(param.nextParamOffset);
 } RouteParam <read=ReadRouteParam, bgcolor=cRed>;
@@ -107,11 +114,11 @@ string ReadRouteParam(RouteParam& routeParam) {
 
 
 typedef struct {
-    Param param("LAYER_PARAM_ST");
+    Param param(3, "LAYER_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        
+        Layer layer;
     }
     FSeek(param.nextParamOffset);
 } LayerParam <read=ReadLayerParam, bgcolor=cLtGray, fgcolor=cBlack>;
@@ -122,7 +129,7 @@ string ReadLayerParam(LayerParam& layerParam) {
 
 
 typedef struct {
-    Param param("PARTS_PARAM_ST");
+    Param param(3, "PARTS_PARAM_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
@@ -137,11 +144,11 @@ string ReadPartsParam(PartsParam& partsParam) {
 
 
 typedef struct {
-    Param param("MAPSTUDIO_PARTS_POSE_ST");
+    Param param(0, "MAPSTUDIO_PARTS_POSE_ST");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        
+        PartsPose partsPose;
     }
     FSeek(param.nextParamOffset);
 } MapstudioPartsPose <read=ReadMapstudioPartsPose, bgcolor=cLtGray, fgcolor=cBlack>;
@@ -152,11 +159,11 @@ string ReadMapstudioPartsPose(MapstudioPartsPose& partsPose) {
 
 
 typedef struct {
-    Param param("MAPSTUDIO_BONE_NAME_STRING");
+    Param param(0, "MAPSTUDIO_BONE_NAME_STRING");
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i]);
-        
+        BoneName boneName;
     }
     Assert(param.nextParamOffset == 0);
 } MapstudioBoneName <read=ReadMapstudioBoneName, bgcolor=cLtGray, fgcolor=cBlack>;
@@ -165,6 +172,7 @@ string ReadMapstudioBoneName(MapstudioBoneName& boneName) {
     return ReadParam(boneName.param);
 }
 
+//------------------------------------------------
 
 Header header;
 ModelParam models;
