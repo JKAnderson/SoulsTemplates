@@ -1,7 +1,7 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: MSB1.bt
+//      File: MSB1\MSB1.bt
 //   Authors: Meowmaritus, TKGP
 //   Version: 
 //   Purpose: DS1 map layouts
@@ -11,38 +11,26 @@
 //   History: 
 //------------------------------------------------
 
-#include "Util.bt"
-#include "MSB1\Model.bt"
-#include "MSB1\Event.bt"
-#include "MSB1\Point.bt"
-#include "MSB1\Part.bt"
+#include "..\..\Util.bt"
+#include "..\MSB.bt"
+#include "Model.bt"
+#include "Event.bt"
+#include "Point.bt"
+#include "Part.bt"
 
+LittleEndian();
+local int VARINT_LONG = 0;
 
-typedef struct (string assertName) {
-    int unk00;
-    OffsetString name(0, 0); Assert(name.str == assertName);
-    int count;
-    if (count > 1) {
-        int offsets[count - 1] <format=hex>;
-    }
-    int nextParamOffset <format=hex>;
-} Param <read=ReadParam>;
-
-string ReadParam(Param& param) {
-    string str;
-    SPrintf(str, "[%4i] %2Xh %s", param.count, param.unk00, param.name.str);
-    return str;
-}
-
+//------------------------------------------------
 
 typedef struct {
-    Param param("MODEL_PARAM_ST");
+    Param param(-1, "MODEL_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
-        FSeek(param.offsets[i]);
+        FSeek(param.offsets[i].val);
         Model model;
     }
-    FSeek(param.nextParamOffset);
+    FSeek(param.nextParamOffset.val);
 } ModelParam <read=ReadModelParam, bgcolor=cLtGreen>;
 
 string ReadModelParam(ModelParam& modelParam) {
@@ -51,13 +39,13 @@ string ReadModelParam(ModelParam& modelParam) {
 
 
 typedef struct {
-    Param param("EVENT_PARAM_ST");
+    Param param(-1, "EVENT_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
-        FSeek(param.offsets[i]);
+        FSeek(param.offsets[i].val);
         Event event;
     }
-    FSeek(param.nextParamOffset);
+    FSeek(param.nextParamOffset.val);
 } EventParam <read=ReadEventParam, bgcolor=cYellow>;
 
 string ReadEventParam(EventParam& eventParam) {
@@ -66,13 +54,13 @@ string ReadEventParam(EventParam& eventParam) {
 
 
 typedef struct {
-    Param param("POINT_PARAM_ST");
+    Param param(-1, "POINT_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
-        FSeek(param.offsets[i]);
+        FSeek(param.offsets[i].val);
         Point point;
     }
-    FSeek(param.nextParamOffset);
+    FSeek(param.nextParamOffset.val);
 } PointParam <read=ReadPointParam, bgcolor=cAqua>;
 
 string ReadPointParam(PointParam& pointParam) {
@@ -81,19 +69,20 @@ string ReadPointParam(PointParam& pointParam) {
 
 
 typedef struct {
-    Param param("PARTS_PARAM_ST");
+    Param param(-1, "PARTS_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
-        FSeek(param.offsets[i]);
+        FSeek(param.offsets[i].val);
         Part part;
     }
-    Assert(param.nextParamOffset == 0);
+    Assert(param.nextParamOffset.val == 0);
 } PartsParam <read=ReadPartsParam, bgcolor=cLtBlue>;
 
 string ReadPartsParam(PartsParam& partsParam) {
     return ReadParam(partsParam.param);
 }
 
+//------------------------------------------------
 
 ModelParam models;
 EventParam events;
