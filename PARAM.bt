@@ -83,7 +83,7 @@ typedef struct {
         }
     }
     FSeek(dataOffset);
-    ubyte data <bgcolor=cBlack, fgcolor=cWhite>;
+    ubyte data <bgcolor=cBlack, fgcolor=cWhite>; // OpenParam mark.
     FSeek(pos);
 } Row <read=ReadRow, bgcolor=cLtGreen, optimize=false>;
 
