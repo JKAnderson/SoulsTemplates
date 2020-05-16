@@ -24,8 +24,20 @@ RunTemplate("PARAMDEF.bt");
 // Extract field information.
 int num_fields = header.fieldCount;
 int sizes[num_fields];
+char types[num_fields];
 int i;
 for (i = 0; i < num_fields; ++i) {
+    if (Strcmp("s8", fields.fields[i].displayType)) types[i] = 'b';
+    else if (Strcmp("u8", fields.fields[i].displayType)) types[i] = 'B';
+    else if (Strcmp("u16", fields.fields[i].displayType)) types[i] = 'h';
+    else if (Strcmp("s16", fields.fields[i].displayType)) types[i] = 'H';
+    else if (Strcmp("u32", fields.fields[i].displayType)) types[i] = 'i';
+    else if (Strcmp("s32", fields.fields[i].displayType)) types[i] = 'I';
+    else if (Strcmp("s64", fields.fields[i].displayType)) types[i] = 'q';
+    else if (Strcmp("u64", fields.fields[i].displayType)) types[i] = 'Q';
+    else if (Strcmp("f32", fields.fields[i].displayType)) types[i] = 'f';
+    else if (Strcmp("f64", fields.fields[i].displayType)) types[i] = 'd';
+    else types[i] = 's';
     sizes[i] = fields.fields[i].byteCount;
 }
 FileClose();
@@ -54,21 +66,18 @@ char field_name[];
 char field_str[];
 for (i = 0; i < num_fields; ++i) {
     SPrintf(field_name, "field_%d", i);
-    switch (sizes[i]) {
-        case 1:
-            SPrintf(field_str, "byte %s;\n", field_name);
-            break;
-        case 2:
-            SPrintf(field_str, "short %s;\n", field_name);
-            break;
-        case 4:
-            SPrintf(field_str, "int %s;\n", field_name);
-            break;
-        case 8:
-            SPrintf(field_str, "quad %s;\n", field_name);
-            break;
-        default:
-            SPrintf(field_str, "char %s[%d];\n", field_name, sizes[i]);
+    switch (types[i]) {
+        case 'b': SPrintf(field_str, "byte %s;\n", field_name); break;
+        case 'B': SPrintf(field_str, "unsigned byte %s;\n", field_name); break;
+        case 'h': SPrintf(field_str, "short %s;\n", field_name); break;
+        case 'H': SPrintf(field_str, "unsigned short %s;\n", field_name); break;
+        case 'i': SPrintf(field_str, "int %s;\n", field_name); break;
+        case 'I': SPrintf(field_str, "unsigned int %s;\n", field_name); break;
+        case 'q': SPrintf(field_str, "quad %s;\n", field_name); break;
+        case 'Q': SPrintf(field_str, "unsigned quad %s;\n", field_name); break;
+        case 'f': SPrintf(field_str, "float %s;\n", field_name); break;
+        case 'd': SPrintf(field_str, "double %s;\n", field_name); break;
+        default: SPrintf(field_str, "char %s[%d];\n", field_name, sizes[i]);
     }
     WriteString(offset, field_str);
     offset += Strlen(field_str);
