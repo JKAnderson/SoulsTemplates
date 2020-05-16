@@ -1,0 +1,88 @@
+//------------------------------------------------
+//--- 010 Editor v2.0 Script File
+//
+//      File: OpenParam.1sc
+//   Authors: dece
+//   Version: 1.0
+//   Purpose: Parse both PARAMDEF and PARAM files
+//  Category: Binary
+//
+// Run the PARAMDEF template on a PARAMDEF file, load the original
+// PARAM template to replace the original dummy parsing with PARAMDEF
+// aware types and run it on a PARAM file.
+//------------------------------------------------
+RequiresVersion(4.0);
+
+// Run PARAMDEF template.
+char paramdef_path[512];
+paramdef_path = InputOpenFileName("Open PARAMDEF");
+if (Strlen(paramdef_path) == 0)
+    return -1;
+FileOpen(paramdef_path);
+RunTemplate("PARAMDEF.bt");
+
+// Extract field information.
+int num_fields = header.fieldCount;
+int sizes[num_fields];
+int i;
+for (i = 0; i < num_fields; ++i) {
+    sizes[i] = fields.fields[i].byteCount;
+}
+FileClose();
+
+// Copy original PARAM.bt parts.
+char param_bt_path[512];
+param_bt_path = InputOpenFileName("Open PARAM binary template");
+FileOpen(param_bt_path);
+char param_bt[FileSize()];
+ReadBytes(param_bt, 0, FileSize());
+int match_size;
+int data_parsing_start = RegExSearch(param_bt, "^.*ubyte data.*// OpenParam mark.$", match_size);
+int data_parsing_end = data_parsing_start + match_size;
+char param_bt_before[];
+param_bt_before = SubStr(param_bt, 0, data_parsing_start);
+char param_bt_after[];
+param_bt_after = SubStr(param_bt, data_parsing_end);
+FileClose();
+
+// Generate new PARAM.bt file with accurate fields formats.
+FileNew();
+int offset = 0;
+WriteBytes(param_bt_before, 0, Strlen(param_bt_before));
+offset += Strlen(param_bt_before);
+char field_name[];
+char field_str[];
+for (i = 0; i < num_fields; ++i) {
+    SPrintf(field_name, "field_%d", i);
+    switch (sizes[i]) {
+        case 1:
+            SPrintf(field_str, "byte %s;\n", field_name);
+            break;
+        case 2:
+            SPrintf(field_str, "short %s;\n", field_name);
+            break;
+        case 4:
+            SPrintf(field_str, "int %s;\n", field_name);
+            break;
+        case 8:
+            SPrintf(field_str, "quad %s;\n", field_name);
+            break;
+        default:
+            SPrintf(field_str, "char %s[%d];\n", field_name, sizes[i]);
+    }
+    WriteString(offset, field_str);
+    offset += Strlen(field_str);
+}
+WriteBytes(param_bt_after, offset, Strlen(param_bt_after));
+char new_param_bt_path[512];
+new_param_bt_path = GetTempFileName();
+FileSave(new_param_bt_path);
+FileClose();
+
+// Run the new template on a PARAM file.
+char param_path[512];
+param_path = InputOpenFileName("Open PARAM");
+if (Strlen(param_path) == 0)
+    return -1;
+FileOpen(param_path);
+RunTemplate(new_param_bt_path);
