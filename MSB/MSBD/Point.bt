@@ -1,10 +1,10 @@
 //------------------------------------------------
 //--- 010 Editor v9.0.1 Binary Template
 //
-//      File: MSB1\Point.bt
-//   Authors: Meowmaritus, TKGP
+//      File: MSBD\Point.bt
+//   Authors: horkrux, TKGP
 //   Version: 
-//   Purpose: DS1 map layout regions
+//   Purpose: DeS MSB regions
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -25,23 +25,31 @@ typedef struct {
     int shapeDataOffset <format=hex>;
     int entityDataOffset <format=hex>;
     int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     string name;
     
+    Assert(baseDataOffset1 > 0);
     FSeek(start + baseDataOffset1);
     int unkA00 <hidden=true>; Assert(unkA00 == 0);
     
+    Assert(baseDataOffset2 > 0);
     FSeek(start + baseDataOffset2);
     int unkB00 <hidden=true>; Assert(unkB00 == 0);
     
+    Assert(entityDataOffset > 0);
     FSeek(start + entityDataOffset);
     int entityID;
+    int unkE04 <hidden=true>; Assert(unkE04 == 0);
+    int unkE08 <hidden=true>; Assert(unkE08 == 0);
+    int unkE0C <hidden=true>; Assert(unkE0C == 0);
     
     if (shapeType == ShapeTypePoint) {
         Assert(shapeDataOffset == 0);
     } else {
-        Assert(shapeDataOffset != 0);
+        Assert(shapeDataOffset > 0);
     }
     
     if (shapeDataOffset != 0) {
@@ -60,5 +68,5 @@ typedef struct {
 wstring ReadPoint(Point& point) {
     string str;
     SPrintf(str, "%i ", point.shapeType);
-    return str + point.name;
+    return str + StringToWString(point.name, CHARSET_JAPANESE);
 }

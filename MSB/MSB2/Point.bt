@@ -30,21 +30,6 @@ struct PointWind;
 struct PointEnvLight;
 struct PointFog;
 
-enum <byte> ShapeType {
-    ShapeTypePoint = 0,
-    ShapeTypeCircle = 1,
-    ShapeTypeSphere = 2,
-    ShapeTypeCylinder = 3,
-    ShapeTypeSquare = 4,
-    ShapeTypeBox = 5,
-};
-
-struct ShapeCircle;
-struct ShapeSphere;
-struct ShapeCylinder;
-struct ShapeSquare;
-struct ShapeBox;
-
 typedef struct {
     local quad start <hidden=true> = FTell();
     
@@ -104,6 +89,7 @@ typedef struct {
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
             case ShapeTypeSquare: ShapeSquare square; break;
             case ShapeTypeBox: ShapeBox box; break;
+            default: Assert(false);
         }
         
         if (typeDataOffset.val != 0) {
@@ -228,28 +214,3 @@ typedef struct {
     int unk1C <hidden=true>; Assert(unk1C == 0);
     int unk20 <hidden=true>; Assert(unk20 == 0);
 } PointFog;
-
-
-typedef struct {
-    float radius;
-} ShapeCircle;
-
-typedef struct {
-    float radius;
-} ShapeSphere;
-
-typedef struct {
-    float radius;
-    float height;
-} ShapeCylinder;
-
-typedef struct {
-    float width;
-    float depth;
-} ShapeSquare;
-
-typedef struct {
-    float width;
-    float depth;
-    float height;
-} ShapeBox;

@@ -49,23 +49,6 @@ struct Point23;
 struct PointPartsGroup;
 struct PointAutoDrawGroup;
 
-enum <int> ShapeType {
-    ShapeTypePoint = 0,
-    ShapeTypeCircle = 1, // Not used btw
-    ShapeTypeSphere = 2,
-    ShapeTypeCylinder = 3,
-    ShapeTypeSquare = 4,
-    ShapeTypeBox = 5,
-    ShapeTypeComposite = 6
-};
-
-struct ShapeCircle;
-struct ShapeSphere;
-struct ShapeCylinder;
-struct ShapeSquare;
-struct ShapeBox;
-struct ShapeComposite;
-
 typedef struct {
     local quad start <hidden=true> = FTell();
     
@@ -121,6 +104,7 @@ typedef struct {
             case ShapeTypeSquare: ShapeSquare square; break;
             case ShapeTypeBox: ShapeBox box; break;
             case ShapeTypeComposite: ShapeComposite composite; break;
+            default: Assert(false);
         }
     }
     
@@ -148,6 +132,7 @@ typedef struct {
             case PointType23: Point23 point23; break;
             case PointTypePartsGroup: PointPartsGroup partsGroup; break;
             case PointTypeAutoDrawGroup: PointAutoDrawGroup autoDrawGroup; break;
+            default: Assert(false);
         }
     }
 } Point <read=ReadPoint>;
@@ -157,38 +142,6 @@ wstring ReadPoint(Point& point) {
     SPrintf(str, "%i %i ", point.pointType, point.shapeType);
     return str + point.name;
 }
-
-
-typedef struct {
-    float radius;
-} ShapeCircle;
-
-typedef struct {
-    float radius;
-} ShapeSphere;
-
-typedef struct {
-    float radius;
-    float height;
-} ShapeCylinder;
-
-typedef struct {
-    float width;
-    float depth;
-} ShapeSquare;
-
-typedef struct {
-    float width;
-    float depth;
-    float height;
-} ShapeBox;
-
-typedef struct {
-    struct {
-        int pointIndex;
-        int unk04;
-    } pointIndices[8] <optimize=false>;
-} ShapeComposite;
 
 
 typedef struct {

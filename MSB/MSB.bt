@@ -42,3 +42,46 @@ string ReadParam(Param &param) {
     SPrintf(str, "[%4i] %2i %s", param.count - 1, param.version, param.name.str);
     return str;
 }
+
+
+enum <int> ShapeType {
+    ShapeTypeNone = -1,
+    ShapeTypePoint = 0,
+    ShapeTypeCircle = 1,
+    ShapeTypeSphere = 2,
+    ShapeTypeCylinder = 3,
+    ShapeTypeSquare = 4,
+    ShapeTypeBox = 5,
+    ShapeTypeComposite = 6
+};
+
+typedef struct {
+    float radius;
+} ShapeCircle;
+
+typedef struct {
+    float radius;
+} ShapeSphere;
+
+typedef struct {
+    float radius;
+    float height;
+} ShapeCylinder;
+
+typedef struct {
+    float width;
+    float depth;
+} ShapeSquare;
+
+typedef struct {
+    float width;
+    float depth;
+    float height;
+} ShapeBox;
+
+typedef struct {
+    struct {
+        int pointIndex;
+        int unk04;
+    } pointIndices[8] <optimize=false>;
+} ShapeComposite;

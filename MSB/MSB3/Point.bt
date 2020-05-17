@@ -43,23 +43,6 @@ struct PointEnvironmentMapEffectBox;
 struct PointMufflingBox;
 struct PointMufflingPortal;
 
-enum <int> ShapeType {
-    ShapeTypePoint = 0,
-    ShapeTypeCircle = 1, // Not used btw
-    ShapeTypeSphere = 2,
-    ShapeTypeCylinder = 3,
-    ShapeTypeSquare = 4,
-    ShapeTypeBox = 5,
-    ShapeTypeComposite = 6
-};
-
-struct ShapeCircle;
-struct ShapeSphere;
-struct ShapeCylinder;
-struct ShapeSquare;
-struct ShapeBox;
-struct ShapeComposite;
-
 //------------------------------------------------
 
 typedef struct {
@@ -111,7 +94,7 @@ typedef struct {
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
             case ShapeTypeSquare: ShapeSquare square; break;
             case ShapeTypeBox: ShapeBox box; break;
-            case ShapeTypeComposite: ShapeComposite composite; break;
+            default: Assert(false);
         }
     }
     
@@ -142,6 +125,7 @@ typedef struct {
             case PointTypeEnvironmentMapEffectBox: PointEnvironmentMapEffectBox environmentMapEffectBox; break;
             case PointTypeMufflingBox: PointMufflingBox mufflingBox; break;
             case PointTypeMufflingPortal: PointMufflingPortal mufflingPortal; break;
+            default: Assert(false);
         }
     }
 } Point <read=ReadPoint>;
@@ -151,38 +135,6 @@ wstring ReadPoint(Point& point) {
     SPrintf(str, "%2i %i ", point.pointType, point.shapeType);
     return str + point.name;
 }
-
-
-typedef struct {
-    float radius;
-} ShapeCircle;
-
-typedef struct {
-    float radius;
-} ShapeSphere;
-
-typedef struct {
-    float radius;
-    float height;
-} ShapeCylinder;
-
-typedef struct {
-    float width;
-    float depth;
-} ShapeSquare;
-
-typedef struct {
-    float width;
-    float depth;
-    float height;
-} ShapeBox;
-
-typedef struct {
-    struct {
-        int pointIndex;
-        int unk04;
-    } pointIndices[8] <open=true>;
-} ShapeComposite;
 
 
 typedef struct {
