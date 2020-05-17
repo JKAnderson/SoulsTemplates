@@ -90,7 +90,7 @@ wstring ReadEvent(Event& event) {
 
 
 typedef struct {
-    int unk00;
+    int pointLightID;
 } EventLight;
 
 
@@ -106,22 +106,18 @@ typedef struct {
 
 
 typedef struct {
-    float unk00;
-    float unk04;
-    float unk08;
+    Vector3 windVecMin;
     float unk0C;
-    float unk10;
-    float unk14;
-    float unk18;
+    Vector3 windVecMax;
     float unk1C;
-    float unk20;
-    float unk24;
-    float unk28;
-    float unk2C;
-    float unk30;
-    float unk34;
-    float unk38;
-    float unk3C;
+    float windSwingCycle0;
+    float windSwingCycle1;
+    float windSwingCycle2;
+    float windSwingCycle3;
+    float windSwingPow0;
+    float windSwingPow1;
+    float windSwingPow2;
+    float windSwingPow3;
 } EventWindSFX;
 
 
@@ -145,7 +141,8 @@ typedef struct {
 
 
 typedef struct {
-    short maxNum;
+    byte maxNum;
+    byte genType;
     short limitNum;
     short minGenNum;
     short maxGenNum;
@@ -193,7 +190,7 @@ typedef struct {
     int entityID;
     int partIndex;
     short objActParamID;
-    short unk0A;
+    short stateType;
     int eventFlagID;
 } EventObjAct;
 

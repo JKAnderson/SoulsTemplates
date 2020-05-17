@@ -100,7 +100,8 @@ typedef struct {
 
 
 typedef struct {
-    short maxNum;
+    byte maxNum;
+    byte genType;
     short limitNum;
     short minGenNum;
     short maxGenNum;
@@ -153,8 +154,8 @@ typedef struct {
 
 typedef struct {
     int hostEntityID;
-    int invasionEntityID;
-    int invasionRegionIndex;
+    int eventFlagID;
+    int activateGoodsID;
     int unk0C; // Sound ID?
     int unk10; // Map event ID?
     int unk14; // Flags?

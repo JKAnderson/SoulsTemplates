@@ -131,7 +131,8 @@ typedef struct {
 
 
 typedef struct {
-    short maxNum;
+    byte maxNum;
+    byte genType;
     short limitNum;
     short minGenNum;
     short maxGenNum;

@@ -32,7 +32,7 @@ struct PartCollision;
 struct PartConnectCollision;
 
 struct PartGparam;
-struct PartUnk4;
+struct PartSceneGparam;
 
 //------------------------------------------------
 
@@ -57,10 +57,11 @@ typedef struct {
     quad entityDataOffset <format=hex>;
     quad typeDataOffset <format=hex>;
     quad gparamOffset <format=hex>;
-    quad unkOffset4 <format=hex>;
+    quad sceneGparamOffset <format=hex>;
     
     FSeek(start + nameOffset);
     wstring name;
+
     FSeek(start + sibOffset);
     wstring sibPath;
     if (sibPath == "")
@@ -89,15 +90,13 @@ typedef struct {
 
         FSeek(start + gparamOffset);
         PartGparam gparam;
-        if (unkOffset4 != 0)
-            Assert(FTell() - start == unkOffset4);
     }
     
-    if (unkOffset4 != 0) {
-        Assert(FTell() - start == unkOffset4);
+    if (sceneGparamOffset != 0) {
+        Assert(FTell() - start == sceneGparamOffset);
 
         FSeek(start + unkOffset4);
-        PartUnk4 unk4;
+        PartSceneGparam sceneGparam;
     }
 } Part <read=ReadPart>;
 
@@ -142,8 +141,8 @@ typedef struct {
     int unk00 <hidden=true>; Assert(unk00 == 0);
     int unk04 <hidden=true>; Assert(unk04 == 0);
     int collisionPartIndex;
-    byte unk0C;
-    byte enableObjAnimNetSync;
+    byte breakTerm;
+    byte netSyncType;
     byte collisionFilter;
     byte setMainObjStructureBooleans;
     short animIDs[4];
@@ -157,8 +156,9 @@ typedef struct {
     int thinkParamID;
     int npcParamID;
     int talkID;
-    short unk14;
-    short chrManipAllocationParam;
+    byte pointMoveType;
+    byte unk15 <hidden=true>; Assert(unk15 == 0);
+    short platoonID;
     int charaInitID;
     int collisionPartIndex;
     short walkRouteIndex;
@@ -275,9 +275,9 @@ typedef struct {
     int unk30 <hidden=true>; Assert(unk30 == 0);
     int unk34 <hidden=true>; Assert(unk34 == 0);
     int unk38 <hidden=true>; Assert(unk38 == 0);
-    int unk3C;
+    byte eventIDs[4];
     float unk40;
     int unk44 <hidden=true>; Assert(unk44 == 0);
     int unk48 <hidden=true>; Assert(unk48 == 0);
     int unk4C <hidden=true>; Assert(unk4C == 0);
-} PartUnk4;
+} PartSceneGparam;

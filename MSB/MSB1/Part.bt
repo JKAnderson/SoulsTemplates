@@ -109,8 +109,10 @@ typedef struct {
 typedef struct {
     int unk00 <hidden=true>; Assert(unk00 == 0);
     int collisionIndex;
-    int unk08;
-    short unk0C;
+    byte breakTerm;
+    byte netSyncType;
+    short unk0A <hidden=true>; Assert(unk0A == 0);
+    short initAnimID;
     short unk0E;
     int unk10;
     int unk14 <hidden=true>; Assert(unk14 == 0);
@@ -123,14 +125,16 @@ typedef struct {
     int thinkParamID;
     int npcParamID;
     int talkID;
-    float unk14;
+    byte pointMoveType;
+    byte unk15 <hidden=true>; Assert(unk15 == 0);
+    short platoonID;
     int charaInitID;
     int collisionIndex;
     int unk20 <hidden=true>; Assert(unk20 == 0);
     int unk24 <hidden=true>; Assert(unk24 == 0);
     short movePointIndices[8];
-    int unk38;
-    int unk3C;
+    int initAnimID;
+    int damageAnimID;
 } PartEnemy;
 
 
