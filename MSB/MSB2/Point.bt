@@ -43,8 +43,8 @@ typedef struct {
     short unk0E;
     Vector3 position;
     Vector3 rotation;
-    Varint baseDataOffset1;
-    Varint baseDataOffset2;
+    Varint shortsAOffset;
+    Varint shortsBOffset;
     int unk38; Assert(unk38 == -1);
     int unk3C <hidden=true>; Assert(unk3C == 0);
     int unk40 <hidden=true>; Assert(unk40 == 0);

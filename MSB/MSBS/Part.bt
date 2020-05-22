@@ -218,7 +218,7 @@ typedef struct {
     int unk00 <hidden=true>; Assert(unk00 == 0);
     int unk04 <hidden=true>; Assert(unk04 == 0);
     int partIndex1;
-    byte breakTerm; Assert(
+    byte breakTerm;
     byte netSyncType;
     byte unk0E;
     byte setMainObjStructureBooleans;

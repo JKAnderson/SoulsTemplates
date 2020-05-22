@@ -111,7 +111,7 @@ typedef struct {
         || pointType == PointTypeWarpPoint || pointType == PointTypeActivationArea
         || pointType == PointTypeEvent || pointType == PointTypeLogic
         || pointType == PointTypeWindArea || pointType == PointTypeMufflingBox
-        || pointType == PointTypeMufflingPortal) {
+        || pointType == PointTypeMufflingPortal || pointType == PointTypeOther) {
         Assert(typeDataOffset == 0);
     } else if (pointType != PointTypeEnvironmentMapPoint) {
         Assert(typeDataOffset > 0);

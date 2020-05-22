@@ -116,7 +116,7 @@ typedef struct {
         }
     }
     
-    if (pointType == PointTypeWalkRoute || pointType == PointTypeWarpPoint
+    if (pointType == PointTypePatrolRoute || pointType == PointTypeWarpPoint
         || pointType == PointTypeActivationArea || pointType == PointTypeEvent
         || pointType == PointTypeLogic || pointType == PointTypeWindArea
         || pointType == PointTypeMufflingPlane || pointType == PointTypeOther) {

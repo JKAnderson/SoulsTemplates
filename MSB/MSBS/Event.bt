@@ -263,7 +263,7 @@ typedef struct {
 typedef struct {
     int unk00;
     int enemyPartIndices[8];
-    int talkIDs[8]
+    int talkIDs[8];
     short unk44;
     short unk46;
     int unk48;

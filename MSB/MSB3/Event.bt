@@ -74,7 +74,7 @@ typedef struct {
         case EventTypeMapOffset: EventMapOffset mapOffset; break;
         case EventTypePseudoMultiplayer: EventPseudoMultiplayer pseudoMultiplayer; break;
         case EventTypePatrolInfo: EventPatrolInfo patrolInfo; break;
-        case EventTypeGroupTour: EventPlatoonInfo platoonInfo; break;
+        case EventTypePlatoonInfo: EventPlatoonInfo platoonInfo; break;
         case EventTypeOther: EventOther other; break;
         default: Assert(false);
     }
