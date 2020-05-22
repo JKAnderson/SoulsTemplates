@@ -21,7 +21,12 @@
 #include "BoneName.bt"
 
 LittleEndian();
-local int VARINT_LONG = ReadString(0, 4) == "MSB ";
+local int VARINT_LONG = 0;
+if (ReadString(0, 4) == "MSB ") {
+    VARINT_LONG = 1;
+} else if (ReadUInt() > 0xFFFF) {
+    BigEndian();
+}
 
 //------------------------------------------------
 
@@ -97,7 +102,7 @@ typedef struct {
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);
-        Part parts;
+        Part parts(param.version);
     }
     FSeek(param.nextParamOffset.val);
 } PartsParam <read=ReadPartsParam, bgcolor=cLtBlue>;
@@ -108,7 +113,7 @@ string ReadPartsParam(PartsParam& partsParam) {
 
 
 typedef struct {
-    Param param(-1, "MAPSTUDIO_PARTS_POSE_ST", 1);
+    Param param(0, "MAPSTUDIO_PARTS_POSE_ST", 1);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);
@@ -123,7 +128,7 @@ string ReadMapstudioPartsPose(MapstudioPartsPose& partsPose) {
 
 
 typedef struct {
-    Param param(-1, "MAPSTUDIO_BONE_NAME_STRING", 1);
+    Param param(0, "MAPSTUDIO_BONE_NAME_STRING", 1);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);

@@ -57,16 +57,13 @@ typedef struct {
     if (shapeType == ShapeTypeNone || shapeType == ShapeTypePoint) {
         Assert(shapeDataOffset == 0);
     } else {
-        Assert(shapeDataOffset != 0);
-    }
-    
-    if (shapeDataOffset != 0) {
+        Assert(shapeDataOffset > 0);
         FSeek(start + shapeDataOffset);
         switch (shapeType) {
             case ShapeTypeCircle: ShapeCircle circle; break;
             case ShapeTypeSphere: ShapeSphere sphere; break;
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
-            case ShapeTypeSquare: ShapeSquare square; break;
+            case ShapeTypeRect: ShapeRect rect; break;
             case ShapeTypeBox: ShapeBox box; break;
             default: Assert(false);
         }

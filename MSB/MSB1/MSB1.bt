@@ -4,8 +4,8 @@
 //      File: MSB1\MSB1.bt
 //   Authors: Meowmaritus, TKGP
 //   Version: 
-//   Purpose: DS1 map layouts
-//  Category: Dark Souls
+//   Purpose: Dark Souls 1 map layouts
+//  Category: Dantelion
 // File Mask: *.msb
 //  ID Bytes: 
 //   History: 
@@ -19,12 +19,14 @@
 #include "Part.bt"
 
 LittleEndian();
-local int VARINT_LONG = 0;
+if (ReadUInt(4) > 0xFFFF)
+    BigEndian();
+local int VARINT_LONG <hidden=true> = 0;
 
 //------------------------------------------------
 
 typedef struct {
-    Param param(-1, "MODEL_PARAM_ST", 0);
+    Param param(0, "MODEL_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);
@@ -39,7 +41,7 @@ string ReadModelParam(ModelParam& modelParam) {
 
 
 typedef struct {
-    Param param(-1, "EVENT_PARAM_ST", 0);
+    Param param(0, "EVENT_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);
@@ -54,7 +56,7 @@ string ReadEventParam(EventParam& eventParam) {
 
 
 typedef struct {
-    Param param(-1, "POINT_PARAM_ST", 0);
+    Param param(0, "POINT_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);
@@ -69,7 +71,7 @@ string ReadPointParam(PointParam& pointParam) {
 
 
 typedef struct {
-    Param param(-1, "PARTS_PARAM_ST", 0);
+    Param param(0, "PARTS_PARAM_ST", 0);
     local int i <hidden=true>;
     for (i = 0; i < param.count - 1; i++) {
         FSeek(param.offsets[i].val);

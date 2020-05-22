@@ -95,7 +95,7 @@ typedef struct {
     if (sceneGparamOffset != 0) {
         Assert(FTell() - start == sceneGparamOffset);
 
-        FSeek(start + unkOffset4);
+        FSeek(start + sceneGparamOffset);
         PartSceneGparam sceneGparam;
     }
 } Part <read=ReadPart>;

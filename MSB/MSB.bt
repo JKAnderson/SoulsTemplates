@@ -39,7 +39,7 @@ typedef struct (int assertVersion, string assertName, int encoding) {
 
 string ReadParam(Param &param) {
     string str;
-    SPrintf(str, "[%4i] %2i %s", param.count - 1, param.version, param.name.str);
+    SPrintf(str, "[%5i] %2i %s", param.count - 1, param.version, param.name.str);
     return str;
 }
 
@@ -50,7 +50,7 @@ enum <int> ShapeType {
     ShapeTypeCircle = 1,
     ShapeTypeSphere = 2,
     ShapeTypeCylinder = 3,
-    ShapeTypeSquare = 4,
+    ShapeTypeRect = 4,
     ShapeTypeBox = 5,
     ShapeTypeComposite = 6
 };
@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {
     float width;
     float depth;
-} ShapeSquare;
+} ShapeRect;
 
 typedef struct {
     float width;

@@ -4,7 +4,7 @@
 //      File: MSB1\Model.bt
 //   Authors: Meowmaritus, TKGP
 //   Version: 
-//   Purpose: DS1 map layout models
+//   Purpose: DS1 MSB models
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -23,6 +23,8 @@ enum <int> ModelType {
     //ModelTypeDummyEnemy = 8
 };
 
+//------------------------------------------------
+
 typedef struct {
     local quad start <hidden=true> = FTell();
 
@@ -35,14 +37,27 @@ typedef struct {
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     string name;
+
+    Assert(sibOffset > 0);
     FSeek(start + sibOffset);
-    string sib;
+    string sibPath;
+    
+    switch (type) {
+        case ModelTypeMapPiece:
+        case ModelTypeObject:
+        case ModelTypeEnemy:
+        case ModelTypePlayer:
+        case ModelTypeCollision:
+        case ModelTypeNavmesh: break;
+        default: Assert(false);
+    }
 } Model <read=ReadModel>;
 
 wstring ReadModel(Model& model) {
     string str;
-    SPrintf(str, "%i ", model.type);
-    return str + model.name;
+    SPrintf(str, "%2i ", model.type);
+    return str + StringToWString(model.name, CHARSET_JAPANESE);
 }

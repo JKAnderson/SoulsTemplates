@@ -4,7 +4,7 @@
 //      File: MSBS\Event.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: Sekiro map layout events
+//   Purpose: Sekiro MSB events
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -15,27 +15,28 @@ enum <int> EventType {
     //EventTypeLight = 0,
     //EventTypeSound = 1,
     //EventTypeSFX = 2,
-    //EventTypeWindSFX = 3,
+    //EventTypeWind = 3,
     EventTypeTreasure = 4,
     EventTypeGenerator = 5,
     //EventTypeMessage = 6,
     EventTypeObjAct = 7,
     //EventTypeSpawnPoint = 8,
     EventTypeMapOffset = 9,
-    //EventTypeNavimesh = 10,
+    //EventTypeNavmesh = 10,
     //EventTypeEnvironment = 11,
     //EventTypePseudoMultiplayer = 12,
-    //EventType13 = 13,
-    EventTypeWalkRoute = 14,
-    EventTypeGroupTour = 15,
-    //EventType16 = 16,
-    EventType17 = 17,
-    EventType18 = 18,
-    EventType20 = 20,
-    EventType21 = 21,
+    //EventTypeWindSFX = 13,
+    EventTypePatrolInfo = 14,
+    EventTypePlatoonInfo = 15,
+    //EventTypeDarkSight = 16,
+    EventTypeResourceItemInfo = 17,
+    EventTypeGrassLodParam = 18,
+    //EventTypeAutoDrawGroupSettings = 19,
+    EventTypeSkitInfo = 20,
+    EventTypePlacementGroup = 21,
     EventTypePartsGroup = 22,
-    EventType23 = 23,
-    EventTypeAutoDrawGroup = 24,
+    EventTypeTalk = 23,
+    EventTypeAutoDrawGroupCollision = 24,
     EventTypeOther = -1,
 };
 
@@ -43,63 +44,65 @@ struct EventTreasure;
 struct EventGenerator;
 struct EventObjAct;
 struct EventMapOffset;
-struct EventWalkRoute;
-struct EventGroupTour;
-struct Event17;
-struct Event18;
-struct Event20;
-struct Event21;
-struct Event23;
-struct EventAutoDrawGroup;
+struct EventPatrolInfo;
+struct EventPlatoonInfo;
+struct EventResourceItemInfo;
+struct EventGrassLodParam;
+struct EventSkitInfo;
+struct EventPlacementGroup;
+struct EventTalk;
+struct EventAutoDrawGroupCollision;
+
+//------------------------------------------------
 
 typedef struct {
     local quad start <hidden=true> = FTell();
     
-    quad nameOffset <format=hex, hidden=true>;
+    quad nameOffset <format=hex>;
     int eventIndex;
     EventType type;
     int id;
     int unk14 <hidden=true>; Assert(unk14 == 0);
-    quad baseDataOffset <format=hex>;
+    quad entityDataOffset <format=hex>;
     quad typeDataOffset <format=hex>;
 
-    if (type == EventTypePartsGroup || type == EventTypeOther) {
-        Assert(typeDataOffset == 0);
-    } else {
-        Assert(typeDataOffset != 0);
-    }
-    
+    Assert(nameOffset > 0);    
     FSeek(start + nameOffset);
     wstring name;
     
-    FSeek(start + baseDataOffset);
+    Assert(entityDataOffset > 0);
+    FSeek(start + entityDataOffset);
     int partIndex;
     int pointIndex;
     int entityID;
     int unkB0C <hidden=true>; Assert(unkB0C == 0);
     
-    if (typeDataOffset != 0) {
+    if (type == EventTypePartsGroup || type == EventTypeOther) {
+        Assert(typeDataOffset == 0);
+    } else {
+        Assert(typeDataOffset > 0);
         FSeek(start + typeDataOffset);
         switch (type) {
             case EventTypeTreasure: EventTreasure treasure; break;
             case EventTypeGenerator: EventGenerator generator; break;
             case EventTypeObjAct: EventObjAct objAct; break;
             case EventTypeMapOffset: EventMapOffset mapOffset; break;
-            case EventTypeWalkRoute: EventWalkRoute walkRoute; break;
-            case EventTypeGroupTour: EventGroupTour groupTour; break;
-            case EventType17: Event17 event17; break;
-            case EventType18: Event18 event18; break;
-            case EventType20: Event20 event20; break;
-            case EventType21: Event21 event21; break;
-            case EventType23: Event23 event23; break;
-            case EventTypeAutoDrawGroup: EventAutoDrawGroup autoDrawGroup; break;
+            case EventTypePatrolInfo: EventPatrolInfo patrolInfo; break;
+            case EventTypePlatoonInfo: EventPlatoonInfo platoonInfo; break;
+            case EventTypeResourceItemInfo: EventResourceItemInfo resourceItemInfo; break;
+            case EventTypeGrassLodParam: EventGrassLodParam grassLodParam; break;
+            case EventTypeSkitInfo: EventSkitInfo skitInfo; break;
+            case EventTypePlacementGroup: EventPlacementGroup placementGroup; break;
+            case EventTypeTalk: EventTalk talk; break;
+            case EventTypeAutoDrawGroupCollision: EventAutoDrawGroupCollision autoDrawGroupCollision; break;
+            default: Assert(false);
         }
     }
 } Event <read=ReadEvent>;
 
 wstring ReadEvent(Event& event) {
     string str;
-    SPrintf(str, "%i ", event.type);
+    SPrintf(str, "%2i ", event.type);
     return str + event.name;
 }
 
@@ -138,7 +141,10 @@ typedef struct {
     short maxGenNum;
     float minInterval;
     float maxInterval;
-    int sessionCondition;
+    byte initialSpawnCount;
+    byte unk11 <hidden=true>; Assert(unk11 == 0);
+    byte unk12 <hidden=true>; Assert(unk12 == 0);
+    byte unk13 <hidden=true>; Assert(unk13 == 0);
     float unk14;
     float unk18;
     int unk1C <hidden=true>; Assert(unk1C == 0);
@@ -200,7 +206,7 @@ typedef struct {
     int unk94 <hidden=true>; Assert(unk94 == 0);
     int unk98 <hidden=true>; Assert(unk98 == 0);
     int unk9C <hidden=true>; Assert(unk9C == 0);
-} EventWalkRoute;
+} EventPatrolInfo;
 
 
 typedef struct {
@@ -209,7 +215,7 @@ typedef struct {
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int groupPartIndices[32];
-} EventGroupTour;
+} EventPlatoonInfo;
 
 
 typedef struct {
@@ -221,11 +227,11 @@ typedef struct {
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
-} Event17;
+} EventResourceItemInfo;
 
 
 typedef struct {
-    int unk00;
+    int grassLodRangeParamID;
     int unk04 <hidden=true>; Assert(unk04 == 0);
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
@@ -233,7 +239,7 @@ typedef struct {
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
-} Event18;
+} EventGrassLodParam;
 
 
 typedef struct {
@@ -246,32 +252,18 @@ typedef struct {
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
-} Event20;
+} EventSkitInfo;
 
 
 typedef struct {
     int partIndices[32];
-} Event21;
+} EventPlacementGroup;
 
 
 typedef struct {
     int unk00;
-    int unk04; // This has to be two arrays of 8
-    int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
-    int unk18; Assert(unk18 == -1);
-    int unk1C; Assert(unk1C == -1);
-    int unk20; Assert(unk20 == -1);
-    int unk24;
-    int unk28;
-    int unk2C;
-    int unk30;
-    int unk34;
-    int unk38; Assert(unk38 == 0);
-    int unk3C; Assert(unk3C == 0);
-    int unk40; Assert(unk40 == 0);
+    int enemyPartIndices[8];
+    int talkIDs[8]
     short unk44;
     short unk46;
     int unk48;
@@ -288,16 +280,16 @@ typedef struct {
     int unk74 <hidden=true>; Assert(unk74 == 0);
     int unk78 <hidden=true>; Assert(unk78 == 0);
     int unk7C <hidden=true>; Assert(unk7C == 0);
-} Event23;
+} EventTalk;
 
 
 typedef struct {
-    int unk00;
-    int unk04;
+    int autoDrawGroupPointIndex;
+    int owningCollisionName;
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int unk10 <hidden=true>; Assert(unk10 == 0);
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
-} EventAutoDrawGroup;
+} EventAutoDrawGroupCollision;

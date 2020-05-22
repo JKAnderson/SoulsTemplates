@@ -15,7 +15,7 @@ enum <int> EventType {
     EventTypeLight = 0,
     EventTypeSound = 1,
     EventTypeSFX = 2,
-    EventTypeWindSFX = 3,
+    EventTypeWind = 3,
     EventTypeTreasure = 4,
     EventTypeGenerator = 5,
     EventTypeMessage = 6,
@@ -24,10 +24,12 @@ enum <int> EventType {
 struct EventLight;
 struct EventSound;
 struct EventSFX;
-struct EventWindSFX;
+struct EventWind;
 struct EventTreasure;
 struct EventGenerator;
 struct EventMessage;
+
+//------------------------------------------------
 
 typedef struct {
     local quad start <hidden=true> = FTell();
@@ -36,7 +38,7 @@ typedef struct {
     int eventID;
     EventType type;
     int id;
-    int baseDataOffset <format=hex>;
+    int entityDataOffset <format=hex>;
     int typeDataOffset <format=hex>;
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
@@ -45,8 +47,8 @@ typedef struct {
     FSeek(start + nameOffset);
     string name;
     
-    Assert(baseDataOffset > 0);
-    FSeek(start + baseDataOffset);
+    Assert(entityDataOffset > 0);
+    FSeek(start + entityDataOffset);
     int partIndex;
     int pointIndex;
     int entityID;
@@ -58,7 +60,7 @@ typedef struct {
         case EventTypeLight: EventLight light; break;
         case EventTypeSound: EventSound sound; break;
         case EventTypeSFX: EventSFX sfx; break;
-        case EventTypeWindSFX: EventWindSFX windSFX; break;
+        case EventTypeWind: EventWind wind; break;
         case EventTypeTreasure: EventTreasure treasure; break;
         case EventTypeGenerator: EventGenerator generator; break;
         case EventTypeMessage: EventMessage message; break;
@@ -68,7 +70,7 @@ typedef struct {
 
 wstring ReadEvent(Event& event) {
     string str;
-    SPrintf(str, "%i ", event.type);
+    SPrintf(str, "%2i ", event.type);
     return str + StringToWString(event.name, CHARSET_JAPANESE);
 }
 
@@ -88,7 +90,7 @@ typedef struct {
 
 typedef struct {
     int unk00;
-    int ffxID;
+    int effectID;
 } EventSFX;
 
 
@@ -105,7 +107,7 @@ typedef struct {
     float windSwingPow1;
     float windSwingPow2;
     float windSwingPow3;
-} EventWindSFX;
+} EventWind;
 
 
 typedef struct {
@@ -132,7 +134,10 @@ typedef struct {
     short maxGenNum;
     float minInterval;
     float maxInterval;
-    int initialSpawnCount;
+    byte initialSpawnCount;
+    byte unk11 <hidden=true>; Assert(unk11 == 0);
+    byte unk12 <hidden=true>; Assert(unk12 == 0);
+    byte unk13 <hidden=true>; Assert(unk13 == 0);
     int unk14 <hidden=true>; Assert(unk14 == 0);
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);

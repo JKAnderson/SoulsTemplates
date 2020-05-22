@@ -4,7 +4,7 @@
 //      File: MSB2\PartsPose.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: SotFS map layout parts poses
+//   Purpose: DS2 MSB parts poses
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -36,6 +36,7 @@ typedef struct {
     }
     Varint bonesOffset;
     
+    Assert(bonesOffset.val > 0);
     FSeek(start + bonesOffset.val);
     Bone bones[boneCount];
 } PartsPose <read=ReadPartsPose>;

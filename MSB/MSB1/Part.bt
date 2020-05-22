@@ -4,7 +4,7 @@
 //      File: MSB1\Part.bt
 //   Authors: Meowmaritus, TKGP
 //   Version: 
-//   Purpose: DS1 map layout parts
+//   Purpose: DS1 MSB parts
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -15,7 +15,7 @@ enum <int> PartType {
     PartTypeMapPiece = 0,
     PartTypeObject = 1,
     PartTypeEnemy = 2,
-    //PartTypeItem = 3,
+    PartTypeItem = 3,
     PartTypePlayer = 4,
     PartTypeCollision = 5,
     //PartTypeNPCWander = 6,
@@ -26,6 +26,8 @@ enum <int> PartType {
     PartTypeConnectCollision = 11,
 };
 
+struct PartEntity;
+
 struct PartMapPiece;
 struct PartObject;
 struct PartEnemy;
@@ -33,6 +35,8 @@ struct PartPlayer;
 struct PartCollision;
 struct PartNavmesh;
 struct PartConnectCollision;
+
+//------------------------------------------------
 
 typedef struct {
     local quad start <hidden=true> = FTell();
@@ -51,34 +55,19 @@ typedef struct {
     int typeDataOffset <format=hex>;
     int unk60 <hidden=true>; Assert(unk60 == 0);
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     string name;
+    
+    Assert(sibOffset > 0);
     FSeek(start + sibOffset);
     string sib;
     
+    Assert(entityDataOffset > 0);
     FSeek(start + entityDataOffset);
-    int entityID;
-    byte lightID;
-    byte fogID;
-    byte scatterID;
-    byte lensFlareID;
-    byte shadowID;
-    byte dofID;
-    byte toneMapID;
-    byte toneCorrectID;
-    byte lanternID;
-    byte lodParamID;
-    byte unkE0E <hidden=true>; Assert(unkE0E == 0);
-    byte isShadowSrc;
-    byte isShadowDest;
-    byte isShadowOnly;
-    byte drawByReflectCam;
-    byte drawOnlyReflectCam;
-    byte useDepthBiasFloat;
-    byte disablePointLightEffect;
-    byte unkE16 <hidden=true>; Assert(unkE16 == 0);
-    byte unkE17 <hidden=true>; Assert(unkE17 == 0);
+    PartEntity entity;
     
+    Assert(typeDataOffset > 0);
     FSeek(start + typeDataOffset);
     switch (type) {
         case PartTypeMapPiece: PartMapPiece mapPiece; break;
@@ -90,14 +79,40 @@ typedef struct {
         case PartTypeCollision: PartCollision collision; break;
         case PartTypeNavmesh: PartNavmesh navmesh; break;
         case PartTypeConnectCollision: PartConnectCollision connectCollision; break;
+        default: Assert(false);
     }
 } Part <read=ReadPart>;
 
 wstring ReadPart(Part& part) {
     string str;
-    SPrintf(str, "%i ", part.type);
-    return str + part.name;
+    SPrintf(str, "%2i ", part.type);
+    return str + StringToWString(part.name, CHARSET_JAPANESE);
 }
+
+
+typedef struct {
+    int entityID;
+    byte lightID;
+    byte fogID;
+    byte scatterID;
+    byte lensFlareID;
+    byte shadowID;
+    byte dofID;
+    byte toneMapID;
+    byte toneCorrectID;
+    byte lanternID;
+    byte lodParamID;
+    byte unk0E <hidden=true>; Assert(unk0E == 0);
+    byte isShadowSrc;
+    byte isShadowDest;
+    byte isShadowOnly;
+    byte drawByReflectCam;
+    byte drawOnlyReflectCam;
+    byte useDepthBiasFloat;
+    byte disablePointLightEffect;
+    byte unk16 <hidden=true>; Assert(unk16 == 0);
+    byte unk17 <hidden=true>; Assert(unk17 == 0);
+} PartEntity;
 
 
 typedef struct {
@@ -113,8 +128,8 @@ typedef struct {
     byte netSyncType;
     short unk0A <hidden=true>; Assert(unk0A == 0);
     short initAnimID;
-    short unk0E;
-    int unk10;
+    short unk0E; // Always -1 or 0
+    int unk10; // Always -1 or 0
     int unk14 <hidden=true>; Assert(unk14 == 0);
 } PartObject;
 
@@ -154,7 +169,8 @@ typedef struct {
     int nvmGroups[4];
     int vagrantEntityIDs[3];
     short mapNameID;
-    short disableStart;
+    byte disableStart;
+    byte unk27;
     
     // Below here is not present in a few test maps from DSR
     int disableBonfireEntityID;

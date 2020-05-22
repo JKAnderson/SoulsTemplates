@@ -12,24 +12,28 @@
 //------------------------------------------------
 
 enum <int> PointType {
-    PointTypeGeneral = -1,
-    PointType0 = 0, // These are written between 15 and 17 for some reason
     PointTypeInvasionPoint = 1,
     PointTypeEnvironmentMapPoint = 2,
+    //PointTypeRegion3 = 3,
     PointTypeSound = 4,
     PointTypeSFX = 5,
     PointTypeWindSFX = 6,
+    //PointTypeRegion7 = 7,
     PointTypeSpawnPoint = 8,
     PointTypeMessage = 9,
-    PointTypeWalkRoute = 11,
-    PointType12 = 12,
+    //PointTypePseudoMultiplayer = 10,
+    PointTypePatrolRoute = 11,
+    PointTypeMovementPoint = 12,
     PointTypeWarpPoint = 13,
     PointTypeActivationArea = 14,
     PointTypeEvent = 15,
+    PointTypeLogic = 0,
     PointTypeEnvironmentMapEffectBox = 17,
     PointTypeWindArea = 18,
+    //PointTypeRegion19 = 19,
     PointTypeMufflingBox = 20,
     PointTypeMufflingPortal = 21,
+    PointTypeOther = -1,
 };
 
 struct PointInvasionPoint;
@@ -55,62 +59,62 @@ typedef struct {
     Vector3 position;
     Vector3 rotation;
     int unk2C;
-    quad baseDataOffset1 <format=hex>; Assert(baseDataOffset1 != 0);
-    quad baseDataOffset2 <format=hex>; Assert(baseDataOffset2 != 0);
+    quad shortsAOffset <format=hex>;
+    quad shortsBOffset <format=hex>;
     int unk40; Assert(unk40 == -1);
     int mapStudioLayer;
     quad shapeDataOffset <format=hex>;
-    quad baseDataOffset3 <format=hex>; Assert(baseDataOffset3 != 0);
+    quad entityDataOffset <format=hex>;
     quad typeDataOffset <format=hex>;
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     wstring name;
     
-    FSeek(start + baseDataOffset1);
-    short unk1Count;
-    if (unk1Count > 0) {
-        short unk1Indices[unk1Count];
+    Assert(shortsAOffset > 0);
+    FSeek(start + shortsAOffset);
+    short shortCountA;
+    if (shortCountA > 0) {
+        short shortsA[shortCountA];
     }
-    // pad to 4
+    // Pad to 4
     
-    FSeek(start + baseDataOffset2);
-    short unk2Count;
-    if (unk2Count > 0) {
-        short unk2Indices[unk2Count];
+    Assert(shortsBOffset > 0);
+    FSeek(start + shortsBOffset);
+    short shortCountB;
+    if (shortCountB > 0) {
+        short shortsB[shortCountB];
     }
-    // pad to 8
+    // Pad to 8
     
     if (shapeType == ShapeTypePoint) {
         Assert(shapeDataOffset == 0);
     } else {
-        Assert(shapeDataOffset != 0);
-    }
-    
-    if (shapeDataOffset != 0) {
+        Assert(shapeDataOffset > 0);
         FSeek(start + shapeDataOffset);
         switch (shapeType) {
             case ShapeTypeCircle: ShapeCircle circle; break;
             case ShapeTypeSphere: ShapeSphere sphere; break;
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
-            case ShapeTypeSquare: ShapeSquare square; break;
+            case ShapeTypeRect: ShapeRect rect; break;
             case ShapeTypeBox: ShapeBox box; break;
             default: Assert(false);
         }
     }
     
-    FSeek(start + baseDataOffset3);
+    FSeek(start + entityDataOffset);
     int activationPartIndex;
     int entityID;
-    // pad to 8
+    // Pad to 8
     
-    if (pointType == PointTypeGeneral || pointType == PointType0
-        || pointType == PointTypeWalkRoute || pointType == PointType12
+    if (pointType == PointTypePatrolRoute || pointType == PointTypeMovementPoint
         || pointType == PointTypeWarpPoint || pointType == PointTypeActivationArea
-        || pointType == PointTypeEvent || pointType == PointTypeWindArea
-        || pointType == PointTypeMufflingBox || pointType == PointTypeMufflingPortal) {
+        || pointType == PointTypeEvent || pointType == PointTypeLogic
+        || pointType == PointTypeWindArea || pointType == PointTypeMufflingBox
+        || pointType == PointTypeMufflingPortal) {
         Assert(typeDataOffset == 0);
     } else if (pointType != PointTypeEnvironmentMapPoint) {
-        Assert(typeDataOffset != 0);
+        Assert(typeDataOffset > 0);
     }
     
     if (typeDataOffset != 0
@@ -122,6 +126,7 @@ typedef struct {
             case PointTypeSFX: PointSFX sfx; break;
             case PointTypeWindSFX: PointWindSFX windSFX; break;
             case PointTypeSpawnPoint: PointSpawnPoint spawnPoint; break;
+            case PointTypeMessage: PointMessage message; break;
             case PointTypeEnvironmentMapEffectBox: PointEnvironmentMapEffectBox environmentMapEffectBox; break;
             case PointTypeMufflingBox: PointMufflingBox mufflingBox; break;
             case PointTypeMufflingPortal: PointMufflingPortal mufflingPortal; break;
@@ -132,7 +137,7 @@ typedef struct {
 
 wstring ReadPoint(Point& point) {
     string str;
-    SPrintf(str, "%2i %i ", point.pointType, point.shapeType);
+    SPrintf(str, "%2i %2i ", point.pointType, point.shapeType);
     return str + point.name;
 }
 
@@ -156,7 +161,7 @@ typedef struct {
 
 
 typedef struct {
-    int ffxID;
+    int effectID;
     int unk04; Assert(unk04 == -1);
     int unk08; Assert(unk08 == -1);
     int unk0C; Assert(unk0C == -1);
@@ -166,7 +171,7 @@ typedef struct {
 
 
 typedef struct {
-    int ffxID;
+    int effectID;
     int unk04; Assert(unk04 == -1);
     int unk08; Assert(unk08 == -1);
     int unk0C; Assert(unk0C == -1);

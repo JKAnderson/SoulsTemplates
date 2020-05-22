@@ -4,7 +4,7 @@
 //      File: MSBS\Part.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: Sekiro map layout parts
+//   Purpose: Sekiro MSB parts
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -41,15 +41,17 @@ struct PartGparam;
 struct PartSceneGparam;
 struct PartUnk7;
 
+//------------------------------------------------
+
 typedef struct {
     local quad start <hidden=true> = FTell();
 
-    quad nameOffset <format=hex, hidden=true>;
+    quad nameOffset <format=hex>;
     PartType type;
     int id;
     int modelIndex;
     int unk14 <hidden=true>; Assert(unk14 == 0);
-    quad sibOffset <format=hex, hidden=true>;
+    quad sibOffset <format=hex>;
     Vector3 position;
     Vector3 rotation;
     Vector3 scale;
@@ -58,8 +60,8 @@ typedef struct {
     int unk4C <hidden=true>; Assert(unk4C == 0);
     quad unkOffset1 <format=hex>;
     quad unkOffset2 <format=hex>;
-    quad entityDataOffset <format=hex>; Assert(entityDataOffset != 0);
-    quad typeDataOffset <format=hex>; Assert(typeDataOffset != 0);
+    quad entityDataOffset <format=hex>;
+    quad typeDataOffset <format=hex>;
     quad gparamOffset <format=hex>;
     quad sceneGparamOffset <format=hex>;
     quad unkOffset7 <format=hex>;
@@ -67,61 +69,37 @@ typedef struct {
     quad unk90 <hidden=true>; Assert(unk90 == 0);
     quad unk98 <hidden=true>; Assert(unk98 == 0);
     
-    if (type == PartTypeMapPiece || type == PartTypeObject || type == PartTypeEnemy
-        || type == PartTypeCollision) {
-        Assert(unkOffset1 != 0);
+    Assert(nameOffset > 0);
+    FSeek(start + nameOffset);
+    wstring name;
+
+    Assert(sibOffset > 0);
+    FSeek(start + sibOffset);
+    wstring sibPath;
+    
+    if (type == PartTypeMapPiece || type == PartTypeObject
+        || type == PartTypeEnemy || type == PartTypeCollision) {
+        Assert(unkOffset1 > 0);
+        FSeek(start + unkOffset1);
+        PartUnk1 unk1;
     } else {
         Assert(unkOffset1 == 0);
     }
     
     if (type == PartTypeCollision || type == PartTypeConnectCollision) {
-        Assert(unkOffset2 != 0);
+        Assert(unkOffset2 > 0);
+        FSeek(start + unkOffset2);
+        PartUnk2 unk2;
     } else {
         Assert(unkOffset2 == 0);
     }
     
-    if (type == PartTypeMapPiece || type == PartTypeObject || type == PartTypeEnemy
-        || type == PartTypeCollision || type == PartTypeDummyObject
-        || type == PartTypeDummyEnemy) {
-        Assert(gparamOffset != 0);
-    } else {
-        Assert(gparamOffset == 0);
-    }
-    
-    if (type == PartTypeCollision) {
-        Assert(sceneGparamOffset != 0);
-        Assert(sceneGparamOffset - gparamOffset == 0x20);
-    } else {
-        Assert(sceneGparamOffset == 0);
-    }
-    
-    if (type == PartTypeMapPiece) {
-        Assert(unkOffset7 != 0);
-        Assert(unkOffset7 - unkOffset5 == 0x20);
-    } else {
-        Assert(unkOffset7 == 0);
-    }
-    
-    FSeek(start + nameOffset);
-    wstring name;
-
-    FSeek(start + sibOffset);
-    wstring sib;
-    
-    if (unkOffset1 != 0) {
-        FSeek(start + unkOffset1);
-        PartUnk1 unk1;
-    }
-    
-    if (unkOffset2 != 0) {
-        FSeek(start + unkOffset2);
-        PartUnk2 unk2;
-    }
-    
+    Assert(entityDataOffset > 0);
     FSeek(start + entityDataOffset);
     PartEntity entity;
-    // pad to 8
+    // Pad to 8
     
+    Assert(typeDataOffset > 0);
     FSeek(start + typeDataOffset);
     switch (type) {
         case PartTypeMapPiece: PartMapPiece mapPiece; break;
@@ -132,27 +110,38 @@ typedef struct {
         case PartTypePlayer: PartPlayer player; break;
         case PartTypeCollision: PartCollision collision; break;
         case PartTypeConnectCollision: PartConnectCollision connectCollision; break;
+        default: Assert(false);
     }
     
-    if (gparamOffset != 0) {
+    if (type == PartTypeMapPiece || type == PartTypeObject || type == PartTypeEnemy
+        || type == PartTypeCollision || type == PartTypeDummyObject || type == PartTypeDummyEnemy) {
+        Assert(gparamOffset > 0);
         FSeek(start + gparamOffset);
         PartGparam gparam;
+    } else {
+        Assert(gparamOffset == 0);
     }
-
-    if (sceneGparamOffset != 0) {
+    
+    if (type == PartTypeCollision) {
+        Assert(sceneGparamOffset > 0);
         FSeek(start + sceneGparamOffset);
         PartSceneGparam sceneGparam;
+    } else {
+        Assert(sceneGparamOffset == 0);
     }
 
-    if (unkOffset7 != 0) {
+    if (type == PartTypeMapPiece) {
+        Assert(unkOffset7 > 0);
         FSeek(start + unkOffset7);
         PartUnk7 unk7;
+    } else {
+        Assert(unkOffset7 == 0);
     }
 } Part <read=ReadPart>;
 
 wstring ReadPart(Part& part) {
     string str;
-    SPrintf(str, "%i ", part.type);
+    SPrintf(str, "%2i ", part.type);
     return str + part.name;
 }
 
@@ -208,26 +197,26 @@ typedef struct {
     int dispGroups[8];
     short unk24;
     short unk26;
-    int unk28; Assert(unk28 == 0);
-    int unk2C; Assert(unk2C == 0);
-    int unk30; Assert(unk30 == 0);
-    int unk34; Assert(unk34 == 0);
-    int unk38; Assert(unk38 == 0);
-    int unk3C; Assert(unk3C == 0);
-    int unk40; Assert(unk40 == 0);
-    int unk44; Assert(unk44 == 0);
+    int unk28 <hidden=true>; Assert(unk28 == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+    int unk30 <hidden=true>; Assert(unk30 == 0);
+    int unk34 <hidden=true>; Assert(unk34 == 0);
+    int unk38 <hidden=true>; Assert(unk38 == 0);
+    int unk3C <hidden=true>; Assert(unk3C == 0);
+    int unk40 <hidden=true>; Assert(unk40 == 0);
+    int unk44 <hidden=true>; Assert(unk44 == 0);
 } PartUnk2;
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04; Assert(unk04 == 0);
+    int unk00 <hidden=true>; Assert(unk00 == 0);
+    int unk04 <hidden=true>; Assert(unk04 == 0);
 } PartMapPiece;
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04; Assert(unk04 == 0);
+    int unk00 <hidden=true>; Assert(unk00 == 0);
+    int unk04 <hidden=true>; Assert(unk04 == 0);
     int partIndex1;
     byte breakTerm; Assert(
     byte netSyncType;
@@ -296,18 +285,18 @@ typedef struct {
     int unkA8; Assert(unkA8 == -1);
     short unkAC; Assert(unkAC == -1);
     short unkAE; Assert(unkAE == 0xA);
-    int unkB0; Assert(unkB0 == 0);
-    int unkB4; Assert(unkB4 == 0);
-    int unkB8; Assert(unkB8 == 0);
-    int unkBC; Assert(unkBC == 0);
+    int unkB0 <hidden=true>; Assert(unkB0 == 0);
+    int unkB4 <hidden=true>; Assert(unkB4 == 0);
+    int unkB8 <hidden=true>; Assert(unkB8 == 0);
+    int unkBC <hidden=true>; Assert(unkBC == 0);
 } PartEnemy;
 
 
 typedef struct {
-    int unk00; Assert(unk00 == 0);
-    int unk04; Assert(unk04 == 0);
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
+    int unk00 <hidden=true>; Assert(unk00 == 0);
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
 } PartPlayer;
 
 
@@ -342,16 +331,16 @@ typedef struct {
     int unk4C;
     float unk50;
     float unk54;
-    int unk58; Assert(unk58 == 0);
-    int unk5C; Assert(unk5C == 0);
+    int unk58 <hidden=true>; Assert(unk58 == 0);
+    int unk5C <hidden=true>; Assert(unk5C == 0);
 } PartCollision;
 
 
 typedef struct {
     int collisionIndex;
     byte mapID[4];
-    int unk08; Assert(unk08 == 0);
-    int unk0C; Assert(unk0C == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
 } PartConnectCollision;
 
 

@@ -17,6 +17,7 @@ enum <int> PartType {
     PartTypeEnemy = 2,
     PartTypePlayer = 4,
     PartTypeCollision = 5,
+    //PartTypeNPCWander = 6,
     PartTypeProtoboss = 7,
     PartTypeNavmesh = 8,
     PartTypeDummyObject = 9,
@@ -34,6 +35,8 @@ struct PartCollision;
 struct PartProtoboss;
 struct PartNavmesh;
 struct PartConnectCollision;
+
+//------------------------------------------------
 
 typedef struct {
     local quad start <hidden=true> = FTell();

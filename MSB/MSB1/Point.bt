@@ -4,7 +4,7 @@
 //      File: MSB1\Point.bt
 //   Authors: Meowmaritus, TKGP
 //   Version: 
-//   Purpose: DS1 map layout regions
+//   Purpose: DS1 MSB regions
 //  Category: 
 // File Mask: 
 //  ID Bytes: 
@@ -20,37 +20,38 @@ typedef struct {
     ShapeType shapeType;
     Vector3 position;
     Vector3 rotation;
-    int baseDataOffset1 <format=hex>;
-    int baseDataOffset2 <format=hex>;
+    int shortsAOffset <format=hex>;
+    int shortsBOffset <format=hex>;
     int shapeDataOffset <format=hex>;
     int entityDataOffset <format=hex>;
     int unk38 <hidden=true>; Assert(unk38 == 0);
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     string name;
     
-    FSeek(start + baseDataOffset1);
-    int unkA00 <hidden=true>; Assert(unkA00 == 0);
+    Assert(shortsAOffset > 0);
+    FSeek(start + shortsAOffset);
+    short shortCountA <hidden=true>; Assert(shortCountA == 0);
     
-    FSeek(start + baseDataOffset2);
-    int unkB00 <hidden=true>; Assert(unkB00 == 0);
+    Assert(shortsBOffset > 0);
+    FSeek(start + shortsBOffset);
+    short shortCountB <hidden=true>; Assert(shortCountB == 0);
     
+    Assert(entityDataOffset > 0);
     FSeek(start + entityDataOffset);
     int entityID;
     
     if (shapeType == ShapeTypePoint) {
         Assert(shapeDataOffset == 0);
     } else {
-        Assert(shapeDataOffset != 0);
-    }
-    
-    if (shapeDataOffset != 0) {
+        Assert(shapeDataOffset > 0);
         FSeek(start + shapeDataOffset);
         switch (shapeType) {
             case ShapeTypeCircle: ShapeCircle circle; break;
             case ShapeTypeSphere: ShapeSphere sphere; break;
             case ShapeTypeCylinder: ShapeCylinder cylinder; break;
-            case ShapeTypeSquare: ShapeSquare square; break;
+            case ShapeTypeRect: ShapeRect rect; break;
             case ShapeTypeBox: ShapeBox box; break;
             default: Assert(false);
         }
@@ -59,6 +60,6 @@ typedef struct {
 
 wstring ReadPoint(Point& point) {
     string str;
-    SPrintf(str, "%i ", point.shapeType);
-    return str + point.name;
+    SPrintf(str, "%2i ", point.shapeType);
+    return str + StringToWString(point.name, CHARSET_JAPANESE);
 }

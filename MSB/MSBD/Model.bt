@@ -22,6 +22,8 @@ enum <int> ModelType {
     ModelTypeDummyEnemy = 8,
 };
 
+//------------------------------------------------
+
 typedef struct {
     local quad start <hidden=true> = FTell();
 
@@ -57,6 +59,6 @@ typedef struct {
 
 wstring ReadModel(Model& model) {
     string str;
-    SPrintf(str, "%i ", model.type);
+    SPrintf(str, "%2i ", model.type);
     return str + StringToWString(model.name, CHARSET_JAPANESE);
 }

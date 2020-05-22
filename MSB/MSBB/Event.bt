@@ -12,10 +12,10 @@
 //------------------------------------------------
 
 enum <int> EventType {
-    EventTypeLight = 0,
+    //EventTypeLight = 0,
     EventTypeSound = 1,
     EventTypeSFX = 2,
-    EventTypeWindSFX = 3,
+    //EventTypeWind = 3,
     EventTypeTreasure = 4,
     EventTypeGenerator = 5,
     EventTypeMessage = 6,
@@ -24,11 +24,11 @@ enum <int> EventType {
     EventTypeMapOffset = 9,
     EventTypeNavmesh = 10,
     EventTypeEnvironment = 11,
-    EventTypePseudoMultiplayer = 12,
-    EventTypeWind = 13,
-    EventTypeWalkRoute = 14,
+    //EventTypePseudoMultiplayer = 12,
+    EventTypeWindSFX = 13,
+    EventTypePatrolInfo = 14,
     EventTypeDarkLock = 15,
-    EventTypeGroupTour = 16,
+    EventTypePlatoonInfo = 16,
     EventTypeMultiSummon = 17,
     EventTypeOther = -1,
 };
@@ -43,10 +43,10 @@ struct EventSpawnPoint;
 struct EventMapOffset;
 struct EventNavmesh;
 struct EventEnvironment;
-struct EventWind;
-struct EventWalkRoute;
+struct EventWindSFX;
+struct EventPatrolInfo;
 struct EventDarkLock;
-struct EventGroupTour;
+struct EventPlatoonInfo;
 struct EventMultiSummon;
 
 //------------------------------------------------
@@ -92,10 +92,10 @@ typedef struct {
             case EventTypeMapOffset: EventMapOffset mapOffset; break;
             case EventTypeNavmesh: EventNavmesh navmesh; break;
             case EventTypeEnvironment: EventEnvironment environment; break;
-            case EventTypeWind: EventWind wind; break;
-            case EventTypeWalkRoute: EventWalkRoute walkRoute; break;
+            case EventTypeWindSFX: EventWindSFX windSFX; break;
+            case EventTypePatrolInfo: EventPatrolInfo patrolInfo; break;
             case EventTypeDarkLock: EventDarkLock darkLock; break;
-            case EventTypeGroupTour: EventGroupTour groupTour; break;
+            case EventTypePlatoonInfo: EventPlatoonInfo platoonInfo; break;
             case EventTypeMultiSummon: EventMultiSummon multiSummon; break;
             default: Assert(false);
         }
@@ -155,7 +155,7 @@ typedef struct {
     short maxGenNum;
     float minInterval;
     float maxInterval;
-    byte unk10;
+    byte initialSpawnCount;
     byte unk11;
     byte unk12;
     byte unk13;
@@ -243,7 +243,7 @@ typedef struct {
     int windRegionIndex;
     float unk08;
     int unk0C <hidden=true>; Assert(unk0C == 0);
-} EventWind;
+} EventWindSFX;
 
 
 typedef struct {
@@ -252,7 +252,7 @@ typedef struct {
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     short walkPointIndices[32];
-} EventWalkRoute;
+} EventPatrolInfo;
 
 
 typedef struct {
@@ -269,7 +269,7 @@ typedef struct {
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int groupPartIndices[32];
-} EventGroupTour;
+} EventPlatoonInfo;
 
 
 typedef struct {

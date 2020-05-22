@@ -12,13 +12,23 @@
 //------------------------------------------------
 
 enum <int> EventType {
+    //EventTypeLight = 0,
+    //EventTypeSound = 1,
+    //EventTypeSFX = 2,
+    //EventTypeWind = 3,
     EventTypeTreasure = 4,
     EventTypeGenerator = 5,
+    //EventTypeMessage = 6,
     EventTypeObjAct = 7,
+    //EventTypeSpawnPoint = 8,
     EventTypeMapOffset = 9,
+    //EventTypeNavmesh = 10,
+    //EventTypeEnvironment = 11,
     EventTypePseudoMultiplayer = 12,
-    EventTypeWalkRoute = 14,
-    EventTypeGroupTour = 15,
+    //EventTypeWindSFX = 13,
+    EventTypePatrolInfo = 14,
+    EventTypePlatoonInfo = 15,
+    //EventTypeDarkSight = 16,
     EventTypeOther = -1,
 };
 
@@ -27,8 +37,8 @@ struct EventGenerator;
 struct EventObjAct;
 struct EventMapOffset;
 struct EventPseudoMultiplayer;
-struct EventWalkRoute;
-struct EventGroupTour;
+struct EventPatrolInfo;
+struct EventPlatoonInfo;
 struct EventOther;
 
 //------------------------------------------------
@@ -37,22 +47,25 @@ typedef struct {
     local quad start <hidden=true> = FTell();
     
     quad nameOffset <format=hex, hidden=true>;
-    int eventIndex;
+    int eventID;
     EventType type;
     int id;
     int unk14 <hidden=true>; Assert(unk14 == 0);
-    quad baseDataOffset <format=hex>;
+    quad entityDataOffset <format=hex>;
     quad typeDataOffset <format=hex>;
     
+    Assert(nameOffset > 0);
     FSeek(start + nameOffset);
     wstring name;
     
-    FSeek(start + baseDataOffset);
+    Assert(entityDataOffset > 0);
+    FSeek(start + entityDataOffset);
     int partIndex;
     int pointIndex;
     int entityID;
     int unkB0C <hidden=true>; Assert(unkB0C == 0);
     
+    Assert(typeDataOffset > 0);
     FSeek(start + typeDataOffset);
     switch (type) {
         case EventTypeTreasure: EventTreasure treasure; break;
@@ -60,9 +73,10 @@ typedef struct {
         case EventTypeObjAct: EventObjAct objAct; break;
         case EventTypeMapOffset: EventMapOffset mapOffset; break;
         case EventTypePseudoMultiplayer: EventPseudoMultiplayer pseudoMultiplayer; break;
-        case EventTypeWalkRoute: EventWalkRoute walkRoute; break;
-        case EventTypeGroupTour: EventGroupTour groupTour; break;
+        case EventTypePatrolInfo: EventPatrolInfo patrolInfo; break;
+        case EventTypeGroupTour: EventPlatoonInfo platoonInfo; break;
         case EventTypeOther: EventOther other; break;
+        default: Assert(false);
     }
 } Event <read=ReadEvent>;
 
@@ -107,7 +121,10 @@ typedef struct {
     short maxGenNum;
     float minInterval;
     float maxInterval;
-    int sessionCondition;
+    byte initialSpawnCount;
+    byte unk11 <hidden=true>; Assert(unk11 == 0);
+    byte unk12 <hidden=true>; Assert(unk12 == 0);
+    byte unk13 <hidden=true>; Assert(unk13 == 0);
     float unk14;
     float unk18;
     int unk1C <hidden=true>; Assert(unk1C == 0);
@@ -170,7 +187,7 @@ typedef struct {
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     short walkPointIndices[32];
-} EventWalkRoute;
+} EventPatrolInfo;
 
 
 typedef struct {
@@ -179,7 +196,7 @@ typedef struct {
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int groupPartIndices[32];
-} EventGroupTour;
+} EventPlatoonInfo;
 
 
 typedef struct {
