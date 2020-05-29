@@ -11,12 +11,10 @@
 //   History: 
 //------------------------------------------------
 
-#define MAP1_LIBRARY
-#include "MAP1.bt"
 #define MAP2_LIBRARY
 #include "MAP2.bt"
-#define MAP6_LIBRARY
-#include "MAP6.bt"
+#define MIX_LIBRARY
+#include "MIX.bt"
 #define OM2_LIBRARY
 #include "OM2.bt"
 #define OMD_LIBRARY
@@ -28,66 +26,192 @@ LittleEndian();
 
 //------------------------------------------------
 
+// General types and validation functions.
+
+typedef struct {
+    float x, y, z, w;
+} Vector4f <read=ReadVector4f>;
+
+string ReadVector4f(Vector4f &v) {
+    string str;
+    SPrintf(str, "< %f, %f, %f, %f >", v.x, v.y, v.z, v.w);
+    return str;
+}
+
+int InRange(float val, float min, float max) {
+    return val >= min && val <= max;
+}
+
+int V4fInRange(Vector4f &v, float min, float max) {
+    return (
+        InRange(v.x, min, max) &&
+        InRange(v.y, min, max) &&
+        InRange(v.z, min, max) &&
+        InRange(v.w, min, max)
+    );
+}
+
+int BoundingBoxesValid(Vector4f &min, Vector4f &max) {
+    return (
+        min.x <= max.x &&
+        min.y <= max.y &&
+        min.z <= max.z
+    );  // Do not compare w as the mantissa sometimes contain trash digits.
+}
+
+//------------------------------------------------
+
 typedef struct {
     int fileSize <format=hex>;
-    int offset1 <format=hex>;
-    int offset2 <format=hex>;
-    int offset3 <format=hex>;
-    int offset4 <format=hex>;
-    int offset5 <format=hex>;
-    int offset6 <format=hex>;
-    int offset7 <format=hex>; Assert(offset7 == 0);
-    int offset8 <format=hex>;
-    int offset9 <format=hex>;
-    int offset10 <format=hex>;
-    short count1;
-    short count2;
-    short count3;
-    short count4;
-    short count5;
-    short count6;
-    short count7; Assert(count7 == 0);
-    short count8;
-    short count9;
-    short count10;
+    int piecesOffset <format=hex>;
+    int pieceCollsOffset <format=hex>;
+    int objectsOffset <format=hex>;
+    int interactsOffset <format=hex>;
+    int objectCollsOffset <format=hex>;
+    int animsOffset <format=hex>;
+    int unkOffset <format=hex>; Assert(unkOffset == 0);
+    int itemsOffset <format=hex>;
+    int texturesOffset <format=hex>;
+    int soundsOffset <format=hex>;
+    short numPieces;
+    short numPieceColls;
+    short numObjects;
+    short numInteracts;
+    short numObjectColls;
+    short numAnims;
+    short numUnks; Assert(numUnks == 0);
+    short numItems;
+    short numStructPieces;
+    short numStructUnks;
+    short numStructObjects;
+    short numStructCreatures;
+    short numStructItems;
+    byte unk46[0x3A];
 } Header <bgcolor=cLtRed>;
 
+typedef struct {
+    byte unk[0x20];
+} StructA <optimize=false>;
+
+typedef struct {
+    Vector4f unk00; Assert(V4fInRange(unk00, -1.0, 1.0));
+    Vector4f unk10; Assert(V4fInRange(unk10, -1.0, 1.0));
+    Vector4f unk20; Assert(V4fInRange(unk20, -1.0, 1.0));
+    Vector4f unk30; Assert(V4fInRange(unk30, -1.0, 1.0));
+} StructB <optimize=false>;
+
+typedef struct {
+    byte unk[0x340];
+} DataA <optimize=false>;
+
+typedef struct {
+    Vector4f pos;
+    Vector4f rot;
+    Vector4f scale;
+    short mIndex;
+    short cIndex;
+    byte unk34[0xC];
+    Vector4f bbMin;
+    Vector4f bbMax;
+    Assert(BoundingBoxesValid(bbMin, bbMax));
+    Vector4f collBbMin;
+    Vector4f collBbMax;
+    Assert(BoundingBoxesValid(collBbMin, collBbMax));
+} PieceDef <optimize=false>;
+
+typedef struct {
+    byte unk[0x40];
+} StructC <optimize=false>;
+
+typedef struct {
+    byte unk[0x200];
+} DataB <optimize=false>;
+
+typedef struct {
+    Vector4f pos;
+    Vector4f rot;
+    Vector4f scale;
+    byte unk30[0x50];
+} ObjectDef <optimize=false>;
+
+typedef struct {
+    Vector4f pos;
+    Vector4f rot;
+    Vector4f scale;
+    byte unk30[0x30];
+} CreatureDef <optimize=false>;
+
+typedef struct {
+    Vector4f pos;
+    Vector4f rot;
+    Vector4f scale;
+    byte unk30[0x10];
+} ItemDef <optimize=false>;
 
 typedef struct {
     OMD omd;
     TX2 tx2;
-} Struct3 <optimize=false>;
+} Object <optimize=false>;
 
 typedef struct {
     OM2 om2;
     TX2 tx2;
-} Struct4 <optimize=false>;
+} Interactable <optimize=false>;
+
+typedef struct {
+    MIX mix;
+} Animation <optimize=false>;
 
 typedef struct {
     OMD omd;
     TX2 tx2;
-} Struct8 <optimize=false>;
+} Item <optimize=false>;
+
+typedef struct {
+    unsigned int unk00;
+    unsigned int offset1;
+} StructSound <optimize=false>;
 
 //------------------------------------------------
 
 Header header;
-FSeek(header.offset1);
-struct { MAP1 struct1s[header.count1]; } struct1s;
-FSeek(header.offset2);
-struct { MAP2 struct2s[header.count2]; } struct2s;
-FSeek(header.offset3);
-struct { Struct3 struct3s[header.count3]; } struct3s;
-FSeek(header.offset4);
-struct { Struct4 struct4s[header.count4]; } struct4s;
-FSeek(header.offset5);
-struct { MAP2 struct5s[header.count5]; } struct5s;
-FSeek(header.offset6);
-struct { MAP6 struct6s[header.count6]; } struct6s;
-FSeek(header.offset8);
-struct { Struct8 struct8s[header.count8]; } struct8s;
-FSeek(header.offset9);
-// Textures
-ubyte struct9s[header.offset10 - header.offset9] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
-FSeek(header.offset10);
-// Sounds
-ubyte struct10s[header.fileSize - header.offset10] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
+struct { StructA structAs[32]; } StructAs;
+struct { StructB structBs[64]; } StructBs;
+DataA dataA;
+struct { PieceDef pieceDefs[header.numStructPieces]; } PieceDefs;
+struct { StructC structCs[header.numStructUnks]; } StructUnks;
+DataB dataB;
+struct { ObjectDef objectDefs[header.numStructObjects]; } ObjectDefs;
+struct { CreatureDef creatureDefs[header.numStructCreatures]; } CreatureDefs;
+struct { ItemDef itemDefs[header.numStructItems]; } ItemDefs;
+
+// 1: Pieces
+FSeek(header.piecesOffset);
+struct { OMD pieces[header.numPieces]; } Pieces;
+// 2: Piece collisions
+FSeek(header.pieceCollsOffset);
+struct { MAP2 pieceColls[header.numPieceColls]; } PieceColls;
+// 3: Objects
+FSeek(header.objectsOffset);
+struct { Object objects[header.numObjects]; } Objects;
+// 4: Interactables
+FSeek(header.interactsOffset);
+struct { Interactable interactables[header.numInteracts]; } Interactables;
+// 5: Object collisions
+FSeek(header.objectCollsOffset);
+struct { MAP2 objectColls[header.numObjectColls]; } ObjectColls;
+// 6: Animations
+FSeek(header.animsOffset);
+struct { Animation animations[header.numAnims]; } Animations;
+// 7: unused?
+// 8: Items
+FSeek(header.itemsOffset);
+struct { Item items[header.numItems]; } Items;
+// 9: Textures
+FSeek(header.texturesOffset);
+local unsigned int texturesSize = header.soundsOffset - header.texturesOffset;
+ubyte textures[texturesSize] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
+// 10: Sounds
+local unsigned int soundsSize = header.fileSize - header.soundsOffset;
+FSeek(header.soundsOffset);
+ubyte sounds[soundsSize] <format=hex, bgcolor=cBlack, fgcolor=cSilver>;
