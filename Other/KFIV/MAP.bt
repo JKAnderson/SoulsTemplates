@@ -11,7 +11,7 @@
 //   History: 
 //------------------------------------------------
 
-#include "Vector4f.bt"
+#include "../../Util.bt"
 
 #define COLLISIONS_LIBRARY
 #include "Collisions.bt"
@@ -68,10 +68,10 @@ typedef struct {
 } StructA <optimize=false>;
 
 typedef struct {
-    Vector4f unk00; Assert(V4fInRange(unk00, -1.0, 1.0));
-    Vector4f unk10; Assert(V4fInRange(unk10, -1.0, 1.0));
-    Vector4f unk20; Assert(V4fInRange(unk20, -1.0, 1.0));
-    Vector4f unk30; Assert(V4fInRange(unk30, -1.0, 1.0));
+    Vector4 unk00; Assert(V4InRange(unk00, -1.0, 1.0));
+    Vector4 unk10; Assert(V4InRange(unk10, -1.0, 1.0));
+    Vector4 unk20; Assert(V4InRange(unk20, -1.0, 1.0));
+    Vector4 unk30; Assert(V4InRange(unk30, -1.0, 1.0));
 } StructB <optimize=false>;
 
 typedef struct {
@@ -79,18 +79,18 @@ typedef struct {
 } DataA <optimize=false>;
 
 typedef struct {
-    Vector4f pos;
-    Vector4f rot;
-    Vector4f scale;
+    Vector4 pos;
+    Vector4 rot;
+    Vector4 scale;
     short mIndex;
     short cIndex;
     byte unk34[0xC];
-    Vector4f bbMin;
-    Vector4f bbMax;
-    Assert(BoundingBoxesValid(bbMin, bbMax));
-    Vector4f collBbMin;
-    Vector4f collBbMax;
-    Assert(BoundingBoxesValid(collBbMin, collBbMax));
+    Vector4 bbMin;
+    Vector4 bbMax;
+    Assert(V4BBValid(bbMin, bbMax));
+    Vector4 collBbMin;
+    Vector4 collBbMax;
+    Assert(V4BBValid(collBbMin, collBbMax));
 } PieceDef <optimize=false>;
 
 typedef struct {
@@ -98,23 +98,23 @@ typedef struct {
 } StructC <optimize=false>;
 
 typedef struct {
-    Vector4f pos;
-    Vector4f rot;
-    Vector4f scale;
+    Vector4 pos;
+    Vector4 rot;
+    Vector4 scale;
     byte unk30[0x50];
 } ObjectDef <optimize=false>;
 
 typedef struct {
-    Vector4f pos;
-    Vector4f rot;
-    Vector4f scale;
+    Vector4 pos;
+    Vector4 rot;
+    Vector4 scale;
     byte unk30[0x30];
 } CreatureDef <optimize=false>;
 
 typedef struct {
-    Vector4f pos;
-    Vector4f rot;
-    Vector4f scale;
+    Vector4 pos;
+    Vector4 rot;
+    Vector4 scale;
     byte unk30[0x10];
 } ItemDef <optimize=false>;
 
@@ -150,7 +150,7 @@ struct { StructB structBs[64]; } StructBs;
 DataA dataA;
 struct { PieceDef pieceDefs[header.numStructPieces]; } PieceDefs;
 struct { StructC structCs[header.numStructUnks]; } StructUnks;
-struct { Vector4f vectors[32]; } DataB;
+struct { Vector4 vectors[32]; } DataB;
 struct { ObjectDef objectDefs[header.numStructObjects]; } ObjectDefs;
 struct { CreatureDef creatureDefs[header.numStructCreatures]; } CreatureDefs;
 struct { ItemDef itemDefs[header.numStructItems]; } ItemDefs;

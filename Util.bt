@@ -32,6 +32,10 @@ ubyte ReverseBits(ubyte value) {
         ((value & 0b10000000) >> 7);
 }
 
+int InRange(float val, float min, float max) {
+    return val >= min && val <= max;
+}
+
 typedef struct {
     float x;
     float y;
@@ -95,6 +99,36 @@ string ReadVector4Fmt(Vector4& vec, int width, int precision) {
     
     string str;
     return SPrintf(str, fmt, vec.x, vec.y, vec.z, vec.w);
+}
+
+// Return true if all components of v are in [min, max].
+int V4InRange(Vector4 &v, float min, float max) {
+    return (
+        InRange(v.x, min, max) &&
+        InRange(v.y, min, max) &&
+        InRange(v.z, min, max) &&
+        InRange(v.w, min, max)
+    );
+}
+
+// Return true of min and max represent valid corners of a bounding box,
+// i.e. all components of min <= components of max.
+int V4BBValid(Vector4 &min, Vector4 &max) {
+    return (
+        min.x <= max.x &&
+        min.y <= max.y &&
+        min.z <= max.z
+    );  // Do not compare w as the mantissa sometimes contain trash digits.
+}
+
+// Return true if v components are all more or less 0s, discarding trash floats.
+int V4ApproxZero(Vector4 &v) {
+    return (
+        InRange(v.x, -0.0000000000000001, 0.0000000000000001) &&
+        InRange(v.y, -0.0000000000000001, 0.0000000000000001) &&
+        InRange(v.z, -0.0000000000000001, 0.0000000000000001) &&
+        InRange(v.w, -0.0000000000000001, 0.0000000000000001)
+    );
 }
 
 

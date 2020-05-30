@@ -11,7 +11,7 @@
 //   History: 
 //------------------------------------------------
 
-#include "Vector4f.bt"
+#include "../../Util.bt"
 
 // To use this template from another template, define MAP2_LIBRARY before including,
 // then instantiate type MAP2.
@@ -58,11 +58,11 @@ typedef struct {
     int unk14; Assert(unk14 == 0);
     int unk18;
     int unk1C; Assert(unk1C == 0);
-    Vector4f vectors[count00] <bgcolor=cGreen>;  // All nulls.
+    Vector4 vectors[count00] <bgcolor=cGreen>;  // All nulls.
     
     local int i;
     for (i = 0; i < count00; ++i)
-        Assert(V4fApproxZero(vectors[i]));
+        Assert(V4ApproxZero(vectors[i]));
 } CollStruct1 <read=ReadCollStruct1, bgcolor=cLtGreen, optimize=false>;
 
 string ReadCollStruct1(CollStruct1 &s) {
@@ -96,7 +96,7 @@ if (header.count3E > 0) {
 if (header.count40 > 0) {
     struct { CollStruct1 struct1s5[header.count40]; } struct1s5;
 }
-Vector4f vectors[header.numVectors] <bgcolor=cAqua>;
+Vector4 vectors[header.numVectors] <bgcolor=cAqua>;
 
 Assert(FTell() - fileStart <= header.fileSize,
     "Collisions read past end of file.");
