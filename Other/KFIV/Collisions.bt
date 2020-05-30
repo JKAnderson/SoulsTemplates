@@ -1,0 +1,107 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: Collisions.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: Collisions found in King's Field IV .map containers
+//  Category: KFIV
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#include "Vector4f.bt"
+
+// To use this template from another template, define MAP2_LIBRARY before including,
+// then instantiate type MAP2.
+
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    int count00;
+    int unk04; Assert(unk04 == 80);
+    int unk08;
+    int numVectors;
+    float unk10;
+    int fileSize <format=hex>;
+    int unk18; Assert(unk18 == 80 || unk18 == 0);
+    int unk1C;
+    int unk20;
+    int unk24;
+    int unk28;
+    int unk2C; Assert(unk2C == 0);
+    int unk30; Assert(unk30 == 0);
+    int unk34; Assert(unk34 == 0);
+    short count38;
+    short count3A;
+    short count3C;
+    short count3E;
+    short count40;
+    Assert(count00 == count38 + count3A + count3C + count3E + count40);
+    short unk42; Assert(unk42 == 0);
+    int unk44; Assert(unk44 == 0);
+    int unk48; Assert(unk48 == 0);
+    int unk4C; Assert(unk4C == 0);
+} CollHeader <bgcolor=cLtRed>;
+
+typedef struct {
+    short count00;
+    short unk02; Assert(unk02 >= 1);
+    short unk04;
+    short unk06;
+    int unk08;
+    int unk0C;
+    int unk10; Assert(unk10 == 0);
+    int unk14; Assert(unk14 == 0);
+    int unk18;
+    int unk1C; Assert(unk1C == 0);
+    Vector4f vectors[count00] <bgcolor=cGreen>;  // All nulls.
+    
+    local int i;
+    for (i = 0; i < count00; ++i)
+        Assert(V4fApproxZero(vectors[i]));
+} CollStruct1 <read=ReadCollStruct1, bgcolor=cLtGreen, optimize=false>;
+
+string ReadCollStruct1(CollStruct1 &s) {
+    string str;
+    SPrintf(str, "[%u]", s.count00);
+    return str;
+}
+
+//------------------------------------------------
+
+#ifdef COLLISIONS_LIBRARY
+typedef struct {
+#endif
+
+local quad fileStart <hidden=true> = FTell();
+local int i;
+
+CollHeader header;
+if (header.count38 > 0) {
+    struct { CollStruct1 struct1s1[header.count38]; } struct1s1;
+}
+if (header.count3A > 0) {
+    struct { CollStruct1 struct1s2[header.count3A]; } struct1s2;
+}
+if (header.count3C > 0) {
+    struct { CollStruct1 struct1s3[header.count3C]; } struct1s3;
+}
+if (header.count3E > 0) {
+    struct { CollStruct1 struct1s4[header.count3E]; } struct1s4;
+}
+if (header.count40 > 0) {
+    struct { CollStruct1 struct1s5[header.count40]; } struct1s5;
+}
+Vector4f vectors[header.numVectors] <bgcolor=cAqua>;
+
+Assert(FTell() - fileStart <= header.fileSize,
+    "Collisions read past end of file.");
+FSeek(fileStart + header.fileSize);
+
+#ifdef COLLISIONS_LIBRARY
+} Collisions <optimize=false>;
+#endif
