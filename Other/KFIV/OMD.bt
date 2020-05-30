@@ -22,100 +22,56 @@ LittleEndian();
 
 typedef struct {
     int fileSize <format=hex>;
-    short boneCount;
-    short unk06;
-    int unk08;
+    short numMeshes;
+    short numTriangles;
+    int numVertices;
     int offset0C <format=hex>;
 } OMDHeader <bgcolor=cLtRed>;
 
+typedef struct {
+    VectorShort4 pos;
+    VectorShort4 normal;
+    VectorShort4 texCoords;
+    VectorShort4 color;
+} OMDVertex <bgcolor=cGreen>;
 
 typedef struct {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
-    int unk18;
-    int unk1C;
-} OMDStruct2Item <bgcolor=cGreen>;
-
-typedef struct {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
-    int unk10;
-    int unk14;
-    int unk18;
-    int unk1C;
-    int unk20;
-    int unk24;
-    int unk28;
-    int unk2C;
-    int unk30;
-    int unk34;
-    int unk38;
-    int unk3C;
-    int unk40;
-    int unk44;
-    int unk48;
-    int unk4C;
-    int unk50;
-    int unk54;
-    int unk58;
-    int unk5C;
-    int unk60;
-    int unk64;
-    int unk68;
-    int unk6C;
-    byte count70;
-    byte unk71;
-    short unk72;
-    int unk74;
-    int unk78;
-    int unk7C;
-    int unk80;
-    int unk84;
-    int unk88;
-    int unk8C;
-    
-    OMDStruct2Item items[count70];
-    
+    byte unk00[0x10];
+    byte unk10[0x60]; // DMA?
+    byte numVertices;
+    byte unk71[0xF];  // DMA?
+    byte unk80[0x10];
+    OMDVertex vertices[numVertices];
     int unkX00;
     int unkX04;
     int unkX08;
     int unkX0C;
-} OMDStruct2 <bgcolor=cLtGreen, optimize=false>;
-
+} OMDStrip <bgcolor=cLtGreen, optimize=false>;
 
 typedef struct {
     Vector3 translation;
     Vector3 rotation;
     Vector3 scale;
-    int struct2Offset <format=hex>;
-    int struct2Count;
+    int ofsStrips <format=hex>;
+    int numStrips;
     int unk2C <hidden=true>; Assert(unk2C == 0);
     
-    if (struct2Count > 0) {
+    if (numStrips > 0) {
         local quad pos <hidden=true> = FTell();
-        FSeek(fileStart + struct2Offset);
-        struct { OMDStruct2 struct2s[struct2Count]; } struct2s;
+        FSeek(fileStart + ofsStrips);
+        struct { OMDStrip strips[numStrips]; } strips;
         FSeek(pos);
     }
-} OMDBone <read=ReadOMDBone, bgcolor=cAqua, optimize=false>;
+} OMDMesh <read=ReadOMDMesh, bgcolor=cAqua, optimize=false>;
 
-string ReadOMDBone(OMDBone& bone) {
+string ReadOMDMesh(OMDMesh& mesh) {
     string str;
-    return SPrintf(str, "[%i]", bone.struct2Count);
+    return SPrintf(str, "[%i]", mesh.numStrips);
 }
 
-
 typedef struct {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
+    Vector3 vec00;
+    int unk0C;  // Sometimes NaN if parsed as float.
 } OMDStruct3 <bgcolor=cLtPurple>;
 
 //------------------------------------------------
@@ -127,7 +83,7 @@ typedef struct {
 local quad fileStart <hidden=true> = FTell();
 
 OMDHeader header;
-struct { OMDBone bones[header.boneCount]; } bones;
+struct { OMDMesh meshes[header.numMeshes]; } meshes;
 
 if (header.offset0C != 0) {
     FSeek(fileStart + header.offset0C);

@@ -132,6 +132,20 @@ int V4ApproxZero(Vector4 &v) {
 }
 
 
+typedef struct {
+    short x;
+    short y;
+    short z;
+    short w;
+} VectorShort4 <read=ReadVectorShort4>;
+
+string ReadVectorShort4(VectorShort4& vec) {
+    string str;
+    SPrintf(str, "<%i, %i, %i, %i>", vec.x, vec.y, vec.z, vec.w);
+    return str;
+}
+
+
 typedef struct (int longOffset, int unicode) {
     if (longOffset)
         quad offset <format=hex>;
