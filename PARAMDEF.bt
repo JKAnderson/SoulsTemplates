@@ -11,6 +11,8 @@
 //   History: 
 //------------------------------------------------
 
+#include "Util.bt"
+
 LittleEndian();
 if (ReadByte(0x2C) == -1)
     BigEndian();
@@ -18,32 +20,52 @@ if (ReadByte(0x2C) == -1)
 //------------------------------------------------
 
 typedef struct {
+    local short formatVer <hidden=true> = ReadShort(0x2E);
+    Assert(formatVer == 101 || formatVer == 102 || formatVer == 103
+        || formatVer == 104 || formatVer == 201 || formatVer == 202);
+
     int fileSize <format=hex>;
     // Header size, or just a short fields offset? Who knows.
     short headerSize <format=hex>; Assert(headerSize == 0x30 || headerSize == 0xFF);
     // Incremented when the actual param data structure changes
     short dataVersion;
     short fieldCount;
-    short fieldSize <format=hex>; Assert(fieldSize == 0x6C || fieldSize == 0x8C
-        || fieldSize == 0xAC || fieldSize == 0xB0 || fieldSize == 0xD0);
-
-    char paramID[0x20] <bgcolor=cRed>;
+    short fieldSize <format=hex>;
+    Assert(formatVer == 101 && fieldSize == 0x8C
+        || formatVer == 102 && fieldSize == 0xAC
+        || formatVer == 103 && fieldSize == 0x6C
+        || formatVer == 104 && fieldSize == 0xB0
+        || formatVer == 201 && fieldSize == 0xD0
+        || formatVer == 202 && fieldSize == 0x68);
+    
+    if (formatVer >= 202) {
+        int typePad1 <hidden=true>; Assert(typePad1 == 0);
+        OffsetString paramType(1, 0);
+        quad typePad2 <hidden=true>; Assert(typePad2 == 0);
+        quad typePad3 <hidden=true>; Assert(typePad3 == 0);
+        int typePad4 <hidden=true>; Assert(typePad4 == 0);
+    } else {
+        char paramID[0x20] <bgcolor=cRed>;
+    }
+    
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
     byte unicode; Assert(unicode == 0 || unicode == 1);
-    short formatVersion; Assert(formatVersion == 101 || formatVersion == 102
-        || formatVersion == 103 || formatVersion == 104 || formatVersion == 201);
+    short formatVersion;
 
-    if (formatVersion >= 201) {
+    if (formatVer >= 201) {
         quad fieldsOffset <format=hex>; Assert(fieldsOffset == 0x38);
     }
 } Header <bgcolor=cLtRed>;
 
 
 typedef struct {
-    if (header.unicode)
+    if (header.formatVersion >= 202) {
+        quad displayNameOffset <format=hex>;
+    } else if (header.unicode) {
         wchar_t displayName[0x20] <bgcolor=cGreen>;
-    else
+    } else {
         char displayName[0x40] <bgcolor=cGreen>;
+    }
 
     char displayType[0x8] <bgcolor=cGreen>;
     char displayFormat[0x8] <bgcolor=cGreen>;
@@ -54,40 +76,71 @@ typedef struct {
     enum <int> { EDIT_WRAP = 1, EDIT_LOCK = 4 } editFlags;
     int byteCount;
     
-    if (header.formatVersion < 201)
-        int descriptionOffset <format=hex>;
-    else
+    if (header.formatVersion >= 200) {
         quad descriptionOffset <format=hex>;
-
-    if (descriptionOffset != 0) {
-        local quad pos <hidden=true> = FTell();
-        FSeek(descriptionOffset);
-        if (header.unicode)
-            wstring description <bgcolor=cGreen>;
-        else
-            string description <bgcolor=cGreen>;
-        FSeek(pos);
+    } else {
+        int descriptionOffset <format=hex>;
     }
-
-    char internalType[0x20] <bgcolor=cGreen>;
     
-    if (header.formatVersion >= 102) {
+    if (header.formatVersion >= 202) {
+        quad internalTypeOffset <format=hex>;
+    } else {
+        char internalType[0x20] <bgcolor=cGreen>;
+    }
+    
+    if (header.formatVersion >= 202) {
+        quad internalNameOffset <format=hex>;
+    } else if (header.formatVersion >= 102) {
         char internalName[0x20] <bgcolor=cGreen>;
     }
 
     if (header.formatVersion >= 104) {
         int sortID;
     }
-
+    
+    // These offsets were never used in BB,
+    // so it was probably just padding at that point
     if (header.formatVersion >= 201) {
         int unkB4 <hidden=true>; Assert(unkB4 == 0);
-        int unkB8 <hidden=true>; Assert(unkB8 == 0);
-        int unkBC <hidden=true>; Assert(unkBC == 0);
-        int unkC0 <hidden=true>; Assert(unkC0 == 0);
-        int unkC4 <hidden=true>; Assert(unkC4 == 0);
-        int unkC8 <hidden=true>; Assert(unkC8 == 0);
-        int unkCC <hidden=true>; Assert(unkCC == 0);
+        quad offsetB8 <format=hex>;
+        quad offsetC0 <format=hex>;
+        quad offsetC8 <format=hex>;
     }
+    
+    local quad pos <hidden=true> = FTell();
+    if (descriptionOffset != 0) {
+        FSeek(descriptionOffset);
+        if (header.unicode) {
+            wstring description;
+        } else {
+            string description;
+        }
+    }
+    
+    if (header.formatVersion >= 201) {
+        if (offsetB8 != 0) {
+            FSeek(offsetB8);
+            string unkB8;
+        }
+        if (offsetC0 != 0) {
+            FSeek(offsetC0);
+            string unkC0;
+        }
+        if (offsetC8 != 0) {
+            FSeek(offsetC8);
+            wstring unkC8;
+        }
+    }
+
+    if (header.formatVersion >= 202) {
+        FSeek(displayNameOffset);
+        wstring displayName;
+        FSeek(internalTypeOffset);
+        string internalType;
+        FSeek(internalNameOffset);
+        string internalName;
+    }
+    FSeek(pos);
 } Field <read=ReadField, bgcolor=cLtGreen, optimize=false>;
 
 wstring ReadField(Field &field) {
