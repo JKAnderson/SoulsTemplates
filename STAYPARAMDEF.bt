@@ -20,12 +20,16 @@ typedef struct {
 
 Header header;
 
+local int counter = 0;
+
 typedef struct {
     enum <int> { TYPE_FLOAT = 6, TYPE_INT = 4, TYPE_SHORT = 2, TYPE_BYTE = 0} type;
     Assert(type == TYPE_FLOAT || type == TYPE_INT || type == TYPE_SHORT || type == TYPE_BYTE, "Unrecognized type");
 
     quad padding <hidden=true> ;
     Assert(padding == 0);
+
+    local int index = counter++;
 
     if (type == TYPE_BYTE) {
         byte defaultValue;
@@ -48,7 +52,12 @@ typedef struct {
         float minValue;
         float maxValue;
     }
-} Field <bgcolor=cLtGreen, optimize=false>;
+} Field <read=ReadField, bgcolor=cLtGreen, optimize=false> ;
+
+
+string ReadField(Field &field) {
+    return names[field.index].displayName;
+}
 
 FSkip(4 * header.fieldCount);
 
