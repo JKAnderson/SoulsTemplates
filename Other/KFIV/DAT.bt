@@ -27,7 +27,7 @@ typedef struct {
     FSeek(offset);
     char data[size];
     FSeek(pos);
-} FileEntry <bgcolor=cLtGreen>;
+} FileEntry <bgcolor=cLtGreen, optimize=false>;
 
 Header header;
 FSeek(0x40);
