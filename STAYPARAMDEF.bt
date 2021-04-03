@@ -1,0 +1,61 @@
+//------------------------------------------------
+//--- 010 Editor v11.0.1 Binary Template
+//
+//      File: STAYPARAMDEF.bt
+//   Authors: sfix
+//   Version:
+//   Purpose: Companion file that describes the structure of stayparam files.
+//  Category: Dantelion
+// File Mask: *.stayparamdef
+//  ID Bytes:
+//   History:
+//------------------------------------------------
+
+typedef struct {
+    uint fieldCount;
+    uint unk;
+    uint unk2;
+    uint unk3;
+} Header <bgcolor=cLtRed>;
+
+Header header;
+
+typedef struct {
+    enum <int> { TYPE_FLOAT = 6, TYPE_INT = 4, TYPE_SHORT = 2, TYPE_BYTE = 0} type;
+    Assert(type == TYPE_FLOAT || type == TYPE_INT || type == TYPE_SHORT || type == TYPE_BYTE, "Unrecognized type");
+
+    quad padding <hidden=true> ;
+    Assert(padding == 0);
+
+    if (type == TYPE_BYTE) {
+        byte defaultValue;
+        byte increment;
+        byte minValue;
+        byte maxValue;
+    } else if (type == TYPE_SHORT) {
+        short defaultValue;
+        short increment;
+        short minValue;
+        short maxValue;
+    } else if (type == TYPE_INT) {
+        int defaultValue;
+        int increment;
+        int minValue;
+        int maxValue;
+    } else if (type == TYPE_FLOAT) {
+        float defaultValue;
+        float increment;
+        float minValue;
+        float maxValue;
+    }
+} Field <bgcolor=cLtGreen, optimize=false>;
+
+FSkip(4 * header.fieldCount);
+
+typedef struct{
+    string displayName;
+    string displayFormat;
+} FieldName <optimize=false>;
+
+Field fields[header.fieldCount];
+FieldName names[header.fieldCount];
