@@ -4,7 +4,7 @@
 //      File: SIBCAM.bt
 //   Authors: horkrux, TKGP
 //   Version: 
-//   Purpose: 
+//   Purpose: Pre-Havok camera animations
 //  Category: Dantelion
 // File Mask: *.sibcam
 //  ID Bytes: 
@@ -13,6 +13,8 @@
 
 #include "Util.bt"
 LittleEndian();
+if (ReadInt() == 0x1000000)
+    BigEndian();
 
 //------------------------------------------------
 
@@ -20,7 +22,7 @@ typedef struct {
     int unk00; Assert(unk00 == 1);
     int unk04; Assert(unk04 == 8);
     int unk08; Assert(unk08 == 0xC);
-    int unk0C; Assert(unk0C == 0x20051014);
+    int unk0C <format=hex>; Assert(unk0C == 0x20051014);
     int unk10; Assert(unk10 == 0);
     int lastFrame;
     int camOffsetOffset <format=hex>; Assert(camOffsetOffset == 0x84);
@@ -33,7 +35,7 @@ typedef struct {
     
     local int i <hidden=true>;
     for (i = 0; i < 20; i++) {
-        int unused <hidden=true>; Assert(unused == 0);
+        int unused <fgcolor=cGray, hidden=true>; Assert(unused == 0);
     }
     
     int camOffset <format=hex>; Assert(camOffset == 0x178);
@@ -56,7 +58,7 @@ typedef struct {
     
     local int i <hidden=true>;
     for (i = 0; i < 43; i++) {
-        int unused <hidden=true>; Assert(unused == 0);
+        int unused <fgcolor=cGray, hidden=true>; Assert(unused == 0);
     }
     
     char camType[12];
@@ -99,8 +101,17 @@ typedef struct {
 
 typedef struct {
     FovHeader header;
-    FovData data[header.fovDataCount];
+    if (header.fovDataCount > 0) {
+        FovData data[header.fovDataCount];
+    }
 } Fov;
+
+
+typedef struct {
+    float unk00;
+    float unk04;
+    float unk08;
+} FrameData <bgcolor=cDkAqua>;
 
 //------------------------------------------------
 
@@ -108,3 +119,4 @@ Header header;
 CamSetup camSetup;
 FrameHeader frameHeaders[camSetup.frameCount];
 Fov fov;
+FrameData frameData[header.frameDataCount];

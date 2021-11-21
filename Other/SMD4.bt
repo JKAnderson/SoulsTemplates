@@ -19,23 +19,33 @@ BigEndian();
 
 typedef struct {
     char magic[4]; Assert(magic == "SMD4");
-    int version <format=hex>;
-    int dataStart <format=hex>; Assert(dataStart == 0x800);
+    int version <format=hex>; Assert(version == 0x40001);
+    int dataStart <format=hex>;
     int dataLength <format=hex>;
-    int unk10; Assert(unk10 == 1);
-    int entryCount;
-    int unk18; Assert(unk18 == 1);
-    int unk1C; Assert(unk1C == 1);
+    int countA;
+    int countB;
+    int unk18;
+    int unk1C;
     Vector3 unk20;
     Vector3 unk2C;
     int faceCount;
     int unk3C;
     
     local int i <hidden=true>;
-    for (i = 0; i < 17; i++) {
+    for (i = 0; i < 8; i++) {
         int unk40 <hidden=true>; Assert(unk40 == 0);
     }
 } Header <bgcolor=cLtRed>;
+
+
+typedef struct {
+    int unk00; // Index
+
+    local int i <hidden=true>;
+    for (i = 0; i < 8; i++) {
+        int unk04 <hidden=true>; Assert(unk04 == 0);
+    }
+} EntryA <bgcolor=cLtGreen, optimize=false>;
 
 
 typedef struct {
@@ -50,9 +60,10 @@ typedef struct {
     int unk68;
     int unk6C;
     int unk70[8];
-} Entry <bgcolor=cLtGreen>;
+} EntryB <bgcolor=cAqua, optimize=false>;
 
 //------------------------------------------------
 
 Header header;
-Entry entries[header.entryCount];
+struct{ EntryA entriesA[header.countA]; } entriesA;
+EntryB entriesB[header.countB];

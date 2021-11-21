@@ -244,8 +244,10 @@ typedef struct {
 
 typedef struct {
     int unk00;
-    short unk04;
-    short unk06;
+    byte unk04;
+    byte unk05;
+    byte unk06;
+    byte unk07;
     int unk08 <hidden=true>; Assert(unk08 == 0);
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int unk10 <hidden=true>; Assert(unk10 == 0);

@@ -94,7 +94,7 @@ typedef struct {
     int unk0C <hidden=true>; Assert(unk0C == 0);
     int itemLot1;
     int itemLot2;
-    int unk18 <hidden=true>; Assert(unk18 == -1);
+    int unk18;
     int unk1C <hidden=true>; Assert(unk1C == -1);
     int unk20 <hidden=true>; Assert(unk20 == -1);
     int unk24 <hidden=true>; Assert(unk24 == -1);

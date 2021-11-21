@@ -119,6 +119,24 @@ wstring ReadOffsetString(OffsetString& os) {
 
 
 typedef struct {
+    string str;
+} WrappedString <read=ReadWrappedString>;
+
+string ReadWrappedString(WrappedString& ws) {
+    return ws.str;
+}
+
+
+typedef struct {
+    wstring str;
+} WrappedWString <read=ReadWrappedWString>;
+
+string ReadWrappedWString(WrappedWString& wws) {
+    return wws.str;
+}
+
+
+typedef struct {
     if (VARINT_LONG)
         quad val;
     else

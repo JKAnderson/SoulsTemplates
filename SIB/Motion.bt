@@ -13,8 +13,8 @@
 
 typedef struct {
     Block block(0x3000003, 2, 0x35);
-    int unk00;
-    int unk04;
+    int entityIndex;
+    Marker marker(0xA3);
     PrefixString name;
 } Bone <read=ReadBone, bgcolor=cGreen, optimize=false>;
 
@@ -27,11 +27,11 @@ typedef struct {
     Block block(0x1010001, 4, 0xA3);
     MarkedString name(0x34);
     int unkA00;
-    int unkA04;
-    int unkA08;
+    Marker marker1(0x03);
+    int unkA08; Assert(unkA08 == unkA00);
     struct { Bone bones[unkA00]; } bones;
-    Marker marker(0x04);
-    int unkB00;
+    Marker marker2(0x04);
+    int unkB00; Assert(unkB00 == 0);
 } Skeleton <read=ReadSkeleton, bgcolor=cLtGreen, optimize=false>;
 
 string ReadSkeleton(Skeleton& skel) {

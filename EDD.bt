@@ -32,8 +32,8 @@ typedef struct {
     VARINT_LONG = magic == "fsSL";
 
     int unk04; Assert(unk04 == 1);
-    int unk08; Assert(unk08 == 1);
-    int unk0C; Assert(unk0C == 1);
+    int unk08; Assert(unk08 == 1 || unk08 == 2);
+    int unk0C; Assert(unk0C == 1 || unk0C == 2);
     int unk10 <format=hex>; Assert(unk10 == 0x7C);
     int dataSize <format=hex>;
     int blockCount; Assert(blockCount == 11);

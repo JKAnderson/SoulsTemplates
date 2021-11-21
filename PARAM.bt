@@ -82,6 +82,7 @@ typedef struct {
             string name;
         }
     }
+
     FSeek(dataOffset);
     ubyte data <bgcolor=cBlack, fgcolor=cWhite>;
     FSeek(pos);

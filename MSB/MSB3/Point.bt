@@ -162,7 +162,7 @@ typedef struct {
 
 typedef struct {
     int effectID;
-    int unk04; Assert(unk04 == -1);
+    int unk04; if (unk04 != -1) Printf("%i\n", unk04);
     int unk08; Assert(unk08 == -1);
     int unk0C; Assert(unk0C == -1);
     int unk10; Assert(unk10 == -1);

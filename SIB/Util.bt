@@ -59,8 +59,8 @@ typedef struct {
         local string str = "";
 } PrefixString <read=ReadPrefixString>;
 
-string ReadPrefixString(PrefixString& ps) {
-    return ps.str;
+wstring ReadPrefixString(PrefixString& ps) {
+    return StringToWString(ps.str, CHARSET_JAPANESE);
 }
 
 
@@ -73,6 +73,6 @@ typedef struct (byte assertMarker) {
     Marker marker(assertMarker);
 } MarkedString <read=ReadMarkedString>;
 
-string ReadMarkedString(MarkedString& ms) {
-    return ms.str;
+wstring ReadMarkedString(MarkedString& ms) {
+    return StringToWString(ms.str, CHARSET_JAPANESE);
 }

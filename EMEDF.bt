@@ -13,15 +13,15 @@
 
 #include "Util.bt"
 LittleEndian();
-local int VARINT_LONG = ReadByte(6) == -1;
+local int VARINT_LONG = ReadByte(5) == -1;
 
 //------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "EDF\0");
     byte unk04 <hidden=true>; Assert(unk04 == 0);
-    byte unk05 <hidden=true>; Assert(unk05 == 0);
     byte is64Bit; Assert(is64Bit == 0 || is64Bit == -1);
+    byte unk06 <hidden=true>; Assert(unk04 == 0);
     byte unk07 <hidden=true>; Assert(unk07 == 0);
     short unk08; Assert(unk08 == 101);
     short unk0A; Assert(unk0A == 204);

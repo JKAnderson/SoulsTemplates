@@ -4,38 +4,69 @@
 //      File: MQB.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: BB/DS3/SDT cutscene definitions
+//   Purpose: (MovieSequencer Binary) Post-DS1 cutscene definitions
 //  Category: Dantelion
 // File Mask: *.mqb
 //  ID Bytes: 4D 51 42 20
 //   History: 
 //------------------------------------------------
 
-LittleEndian();
+local int VARINT_LONG = ReadByte(6) == -1;
+
+#include "Util.bt"
+
+if (ReadByte(4))
+    BigEndian();
+else
+    LittleEndian();
 
 //------------------------------------------------
 
 typedef struct {
     char magic[4]; Assert(magic == "MQB ");
-    int unk04; Assert(unk04 == 0);
-    int version; Assert(version == 0xCB || version == 0xCC);
-    int unk0C; Assert(unk0C == (version == 0xCB ? 0x20 : 0x24)); // Name offset? Header size?
-    int resourceStringsOffset <format=hex>;
-    int unk14; Assert(unk14 == 1);
-    int unk18; Assert(unk18 == 0);
-    int unk1C; Assert(unk1C == 0);
-    if (version >= 0xCC) {
+    byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
+    byte unk05; Assert(unk05 == 0);
+    byte is64Bit; Assert(is64Bit == 0 || is64Bit == -1); // Speculative since there's no variance within a version
+    byte unk07; Assert(unk07 == 0);
+    int version;
+    int headerSize;
+    int resourcePathsOffset <format=hex>;
+
+    Assert(version == 0x91 && headerSize == 0x14 // ACER
+        || version == 0x93 && headerSize == 0x14 // ACV, ACVD, GUC, SB
+        || version == 0x94 && headerSize == 0x14 // DS2
+        || version == 0xCA && headerSize == 0x28 // SotFS
+        || version == 0xCB && headerSize == 0x20 // BB
+        || version == 0xCC && headerSize == 0x24); // DS3, SDT
+    Assert(is64Bit == (version == 0xCA ? -1 : 0));
+    
+    // The fact that this shrank after SotFS does not inspire confidence
+    // that they are the same fields, but who knows.
+    if (version == 0xCA) {
+        int unk14; Assert(unk14 == 0);
+        int unk18; Assert(unk18 == 0);
+        int unk1C; Assert(unk1C == 0);
         int unk20; Assert(unk20 == 0);
+        int unk24; Assert(unk24 == 0);
+    } else if (version == 0xCB || version == 0xCC) {
+        int unk14; Assert(unk14 == 1);
+        int unk18; Assert(unk18 == 0);
+        int unk1C; Assert(unk1C == 0);
+        if (version == 0xCC) {
+            int unk20; Assert(unk20 == 0);
+        }
     }
+    Assert(FTell() == headerSize);
+
     wchar_t name[0x20] <fgcolor=cGreen>;
     float framerate; // Framerate of event playback; always 30 in vanilla
     int resourceCount;
     int cutCount;
-    int unkX70 <hidden=true>; Assert(unkX70 == 0);
-    int unkX74 <hidden=true>; Assert(unkX74 == 0);
-    int unkX78 <hidden=true>; Assert(unkX78 == 0);
-    int unkX7C <hidden=true>; Assert(unkX7C == 0);
-    int unkX80 <hidden=true>; Assert(unkX80 == 0);
+    int unkX50 <hidden=true>; Assert(unkX50 == 0);
+    int unkX54 <hidden=true>; Assert(unkX54 == 0);
+    int unkX58 <hidden=true>; Assert(unkX58 == 0);
+    int unkX5C <hidden=true>; Assert(unkX5C == 0);
+    int unkX60 <hidden=true>; Assert(unkX60 == 0);
 } Header <read=ReadHeader>;
 
 wstring ReadHeader(Header& header) {
@@ -45,296 +76,400 @@ wstring ReadHeader(Header& header) {
 }
 
 
-typedef struct {
-    wchar_t str[0x20] <fgcolor=cGreen>;
-    int parentIndex; // Not really sure, but seems right; -1 for none
-    int index; // String index?
-    int unk48; // Not another index, probably type or jumptable; maybe 2 bytes
-    int unk4C <hidden=true>; Assert(unk4C == 0);
-} Resource <read=ReadResource>;
-
-wstring ReadResource(Resource& resource) {
-    string str;
-    SPrintf(str, "%3i %3i %3i ",
-        resource.parentIndex, resource.index, resource.unk48);
-    return str + resource.str;
-}
-
-typedef struct (int count) {
-    local int count <hidden=true> = count;
-    Resource resources[count] <optimize=false>;
-} Resources <read=ReadResources>;
-
-wstring ReadResources(Resources& resources) {
-    string str;
-    SPrintf(str, "[%i]", resources.count);
-    return str;
-}
- 
-
-// floats that are always 0 were sometimes -0
-// ints that are always 0 are probably floats too but always +0 so I can't tell
-typedef struct {
-    float unk00;
-    float unk04; // X
-    float unk08; // Y
-    float unk0C; // Z
-    float unk10; Assert(unk10 == 0);
-    float unk14; Assert(unk14 == 0);
-    float unk18; Assert(unk18 == 0);
-    int unk1C; Assert(unk1C == 0);
-    float unk20; Assert(unk20 == 0);
-    int unk24; Assert(unk24 == 0);
-    float unk28;
-    float unk2C;
-    float unk30;
-    float unk34; Assert(unk34 == 0);
-    float unk38; Assert(unk38 == 0);
-    float unk3C; Assert(unk3C == 0);
-    float unk40; Assert(unk40 == 0);
-    float unk44; Assert(unk44 == 0);
-    float unk48; Assert(unk48 == 0);
-    float unk4C; Assert(unk4C == 1);
-    float unk50; Assert(unk50 == 1);
-    float unk54; Assert(unk54 == 1);
-    float unk58; Assert(unk58 == 0);
-    float unk5C; Assert(unk5C == 0);
-    float unk60; Assert(unk60 == 0);
-    int unk64; Assert(unk64 == 0);
-    int unk68; Assert(unk68 == 0);
-    int unk6C; Assert(unk6C == 0);
-} UnkFloats <read=ReadUnkFloats>;
-
-wstring ReadUnkFloats(UnkFloats& floats) {
-    string str;
-    SPrintf(str, "%5.1f <%.3f, %.3f, %.3f> %f", floats.unk00,
-        floats.unk04, floats.unk08, floats.unk0C, floats.unk2C);
-    return str;
-}
-
-
-typedef struct {
-    float unk00;
+typedef struct (int valueType, int pointType) {
+    float value;
     int unk04; Assert(unk04 == 0);
     int unk08;
     int unk0C; Assert(unk0C == 0);
-} ParamUnk2_1;
+    if (pointType == 2) {
+        int unk10;
+        int unk14;
+        if (valueType == 3) Printf("%8Xh %8Xh\n", unk10, unk14);
+    }
+} SequencePoint <read=ReadSequencePoint, bgcolor=cPurple, optimize=false>;
+
+string ReadSequencePoint(SequencePoint& sp) {
+    string str;
+    return SPrintf(str, "%f", sp.value);
+}
+
 
 typedef struct {
-    int unk00 <format=hex>;
-    int unk04; Assert(unk04 == 0);
-    int unk08;
-    int unk0C; Assert(unk0C == 0);
-    float unk10;
-    float unk14;
-} ParamUnk2_2;
-
-
-typedef struct {
-    int unk00; Assert(unk00 == 0x1C);
-    int unk2Count;
-    int unk08; Assert(unk08 == 3 || unk08 == 8);
-    int unk0C; Assert(unk0C == 1 || unk0C == 2);
-    int unk10; Assert(unk10 == (unk0C == 1 ? 0x10 : 0x18));
-    int unk2Offset <format=hex>;
-    // An offset back to the value in the parent Param
-    // For colors, each ParamUnk1 points to a separate byte of the RGB value
-    int parentOffset <format=hex>;
+    int sequenceSize; Assert(sequenceSize == 0x1C);
+    int pointCount;
+    int valueType; Assert(valueType == 3 || valueType == 8);
+    int pointType; Assert(pointType == 1 || pointType == 2);
+    int pointSize; Assert(pointSize == (pointType == 1 ? 0x10 : 0x18));
+    int pointsOffset <format=hex>;
+    // An offset back to the value in the parent CustomData
+    // For colors, each Sequence points to a separate byte of the RGB value
+    int parentValueOffset <format=hex>;
     
     local quad pos <hidden=true> = FTell();
-    FSeek(unk2Offset);
-    if (unk0C == 1) {
-        ParamUnk2_1 paramUnk2s[unk2Count] <bgcolor=cPurple, optimize=false>;
-    } else if (unk0C == 2) {
-        ParamUnk2_2 paramUnk2s[unk2Count] <bgcolor=cPurple, optimize=false>;
-    }
+    FSeek(pointsOffset);
+    SequencePoint points(valueType, pointType)[pointCount];
     FSeek(pos);
-} ParamUnk1;
+} Sequence <optimize=false>;
 
 
 typedef struct {
     wchar_t name[0x20] <fgcolor=cGreen>;
-    //  1 - bool
-    //  3 - byte?
-    //  4 - short
-    //  6 - int
-    //  7 - 
-    //  8 - float
-    // 10 - string
-    // 13 - color
-    int type; Assert(type == 1 || type == 3 || type == 4 || type == 6
-        || type == 7 || type == 8 || type == 10 || type == 13);
-    int unk44; Assert(unk44 == (type == 13 ? 3 : 0));
-    int value <format=hex>;
-    int unk4C; Assert(unk4C == 0);
-    int unk1Offset <format=hex>;
-    int unk1Count;
-    if (type != 8 && type != 13)
-        Assert(unk1Offset == 0 && unk1Count == 0);
+    enum <int> {
+        CD_BOOL = 1,
+        CD_SBYTE = 2,
+        CD_UBYTE = 3,
+        CD_SSHORT = 4,
+        
+        CD_SINT = 6,
+        CD_UINT = 7,
+        CD_FLOAT = 8,
+        
+        CD_STRING = 10,
+        CD_BYTES = 11,
+    
+        CD_COLOR = 13,
+    } type;
+    Assert(type == CD_BOOL || type == CD_SBYTE || type == CD_UBYTE
+        || type == CD_SSHORT || type == CD_SINT || type == CD_UINT
+        || type == CD_FLOAT || type == CD_STRING || type == CD_BYTES
+        || type == CD_COLOR);
+
+    int unk44; Assert(unk44 == (type == CD_COLOR ? 3 : 0));
+    switch (type) {
+        case CD_BOOL: byte value; Assert(value == 0 || value == 1); break;
+        case CD_SBYTE: byte value; break;
+        case CD_UBYTE: ubyte value; break;
+        case CD_SSHORT: short value; break;
+        case CD_SINT: int value; break;
+        case CD_UINT: uint value; break;
+        case CD_FLOAT: float value; break;
+        case CD_STRING:
+        case CD_BYTES:
+        case CD_COLOR: int length; break;
+        default: Assert(false);
+    }
+    if (type == CD_BOOL || type == CD_SBYTE || type == CD_UBYTE) {
+        byte valuePad[3] <hidden=true>; Assert(!(valuePad[0] | valuePad[1] | valuePad[2]));
+    } else if (type == CD_SSHORT) {
+        byte valuePad[2] <hidden=true>; Assert(!(valuePad[0] | valuePad[1]));
+    }
+    int unk4C <hidden=true>; Assert(unk4C == 0);
+    int sequencesOffset <format=hex>;
+    int sequenceCount;
     int unk58 <hidden=true>; Assert(unk58 == 0);
     int unk5C <hidden=true>; Assert(unk5C == 0);
     
-    if (type == 10) {
-        wchar_t str[value / 2] <fgcolor=cLtGreen>;
-    } else if (type == 13) {
-        int unk60 <format=hex>;
+    if (type == CD_STRING) {
+        Assert(length > 0 && length % 16 == 0);
+        wchar_t value[length / 2] <fgcolor=cLtGreen>;
+    } else if (type == CD_BYTES && length > 0) {
+        ubyte value[length] <bgcolor=cBlack>;
+    } else if (type == CD_COLOR) {
+        Assert(length == 4);
+        ubyte value[3] <format=hex>;
+        byte colorPad <hidden=true>; Assert(colorPad == 0);
     }
+    
+    if (type == CD_FLOAT)
+        Assert(sequenceCount == 0 || sequenceCount == 1);
+    else if (type == CD_COLOR)
+        Assert(sequenceCount == 0 || sequenceCount == 3);
+    else
+        Assert(sequenceCount == 0);
 
-    if (unk1Count > 0) {
+    if (sequenceCount > 0) {
         local quad pos <hidden=true> = FTell();
-        FSeek(unk1Offset);
-        ParamUnk1 paramUnk1s[unk1Count] <optimize=false>;
+        FSeek(sequencesOffset);
+        Sequence sequences[sequenceCount];
         FSeek(pos);
     }
-} Param <read=ReadParam>;
+} CustomData <read=ReadCustomData, bgcolor=cLtBlue, optimize=false>;
 
-wstring ReadParam(Param& param) {
+wstring ReadCustomData(CustomData& customData) {
     string str;
-    SPrintf(str, "%2i %i %8X %i %5X %i ", param.type, param.unk44,
-        param.value, param.unk4C, param.unk1Offset, param.unk1Count);
-    return str + param.name;
-}
-
-
-typedef struct {
-        int camDispositionID;
-        int resourceIndex;
-        int groupIndex;
-            int unk0C;
-            int unk10;
-            int unk14; Assert(unk14 == 0);
-            int unk18;
-            int unk1C;
-            int unk20; Assert(unk20 == 0 || unk20 == 1);
-        int paramCount;
-        int unk28;
-        int unk2C; Assert(unk2C == 0);
-        
-        if (paramCount > 0) {
-            Param params[paramCount] <bgcolor=cLtBlue, optimize=false>;
-        }
-        
-        int unkX00; Assert(unkX00 == 0); // Unused flags
-        // 0x01 - cam something, uses unkX14
-        // 0x20 - 
-        // 0x40 - use cam correction, 4 floats at unkfloats 0x38
-        int unkFloatsCount;
-        int unkX08 <hidden=true>; Assert(unkX08 == 0);
-        int unkX0C <hidden=true>; Assert(unkX0C == 0);
-        int unkX10 <hidden=true>; Assert(unkX10 == 0);
-        int unkX14 <hidden=true>; Assert(unkX14 == 0);
-        int unkX18 <hidden=true>; Assert(unkX18 == 0);
-        int unkX1C <hidden=true>; Assert(unkX1C == 0);
-        
-        UnkFloats unkFloats[unkFloatsCount] <bgcolor=cDkAqua, optimize=false>;
-} Entry <read=ReadEntry>;
-
-wstring ReadEntry(Entry& entry) {
-    string str;
-    SPrintf(str, "[%2i][%i] %4i %3i %2i %3i %3i %3i %3i %2i", entry.paramCount, entry.unkFloatsCount,
-        entry.camDispositionID, entry.resourceIndex, entry.groupIndex, entry.unk0C,
-        entry.unk10, entry.unk18, entry.unk1C, entry.unk28);
-    return str;
-}
-
-
-typedef struct {
-    wchar_t str[0x20];
-    int unk40;
-    int unk44; Assert(unk44 == 0);
-    int unk48;
-    int unk4C <hidden=true>; Assert(unk4C == 0);
-    int unk50 <hidden=true>; Assert(unk50 == 0);
-    int unk54 <hidden=true>; Assert(unk54 == 0);
-    int unk58 <hidden=true>; Assert(unk58 == 0);
-    int unk5C <hidden=true>; Assert(unk5C == 0);
-} UnkGroupStr <read=ReadUnkGroupStr, optimize=false>;
-
-wstring ReadUnkGroupStr(UnkGroupStr& ugs) {
-    return ugs.str;
-}
-
-
-typedef struct {
-    int entryOffsetsOffset <format=hex>;
-    int entryCount;
-    int unkStrsOffset <format=hex>;
-    int unkStrCount;
-    int unk10;
-    
-    local quad pos <hidden=true> = FTell();
-    if (entryCount > 0) {
-        FSeek(entryOffsetsOffset);
-        int entryOffsets[entryCount] <format=hex>;
+    SPrintf(str, "%2i %i %i %5X[%i] ", customData.type, customData.unk44,
+        customData.unk4C, customData.sequencesOffset, customData.sequenceCount);
+    string val;
+    switch (customData.type) {
+        case CD_BOOL: val = customData.value ? "TRUE" : "FALSE"; break;
+        case CD_SBYTE:
+        case CD_UBYTE:
+        case CD_SSHORT:
+        case CD_SINT:
+        case CD_UINT: SPrintf(val, "%i", customData.value); break;
+        case CD_FLOAT: SPrintf(val, "%f", customData.value); break;
+        case CD_STRING: val = customData.value; break;
+        case CD_BYTES: SPrintf(val, "[%i]", customData.length); break;
+        case CD_COLOR: SPrintf(val, "{%02X %02X %02X}",
+            customData.value[0], customData.value[1], customData.value[2]); break;
+        default: Assert(false);
     }
-    if (unkStrCount > 0) {
-        FSeek(unkStrsOffset);
-        struct { UnkGroupStr unkStrs[unkStrCount]; } unkStrs;
-    }
-    FSeek(pos);
-} Group <read=ReadGroup>;
-
-wstring ReadGroup(Group& group) {
-    string str;
-    SPrintf(str, "%5X[%i] %5X[%2i] %2i", group.entryOffsetsOffset, group.entryCount,
-        group.unkStrsOffset, group.unkStrCount, group.unk10);
-    return str;
+    return str + customData.name + " = " + val;
 }
 
 
-typedef struct {
-    wchar_t str[0x20] <fgcolor=cGreen>;
-    int entryCount;
-    int unk44; // Usually 0, not always
-    int unk48; // Frame count?
-    int unk4C; Assert(unk4C == 0);
-    int groupCount;
-    int groupsOffset <format=hex>;
-    int unk58 <hidden=true>; Assert(unk58 == 0);
-    int unk5C <hidden=true>; Assert(unk5C == 0);
+typedef struct (int i) {
+    wchar_t name[0x20] <fgcolor=cGreen>;
+    int parentIndex; // Not really sure, but seems right; -1 for none
+    int index; Assert(index == i); // ID? Path index? Who cares.
+    int type;
+    int customDataCount;
     
-    struct Entries {
-        Entry entries[entryCount] <optimize=false>;
-    } entries <bgcolor=cLtYellow>;
+    if (customDataCount > 0) {
+        CustomData customData[customDataCount];
+    }
+} Resource <read=ReadResource, optimize=false>;
 
-    local quad pos <hidden=true> = FTell();
-    FSeek(groupsOffset);
-    struct Groups {
-        Group groups[groupCount] <optimize=false>;
-    } groups;
-    FSeek(pos);
-} Cut <read=ReadCut>;
-
-wstring ReadCut(Cut& cut) {
+wstring ReadResource(Resource& resource) {
     string str;
-    SPrintf(str, "%i %4i ", cut.unk44, cut.unk48);
-    return str + cut.str;
+    SPrintf(str, "[%i] %3i %3i ",
+        resource.customDataCount, resource.parentIndex, resource.type);
+    return str + resource.name;
 }
 
 typedef struct (int count) {
     local int count <hidden=true> = count;
-    Cut cuts[count] <optimize=false>;
-} Cuts <read=ReadCuts>;
+    local int i <hidden=true>;
+    for (i = 0; i < count; i++) {
+        Resource resources(i);
+    }
+} Resources <read=ReadResources>;
 
-wstring ReadCuts(Cuts& cuts) {
+wstring ReadResources(Resources& resources) {
     string str;
-    SPrintf(str, "[%i]", cuts.count);
+    SPrintf(str, "[%3i]", resources.count);
+    return str;
+}
+ 
+
+typedef struct {
+    float frame;
+    Vector3 translation;
+    Vector3 unk10;
+    Vector3 unk1C;
+    Vector3 rotation;
+    Vector3 unk34;
+    Vector3 unk40;
+    Vector3 scale;
+    Vector3 unk58; // Always 0 as far as I've seen
+    Vector3 unk64; // ""
+} Transform <read=ReadTransform, bgcolor=cDkAqua, optimize=false>;
+
+wstring ReadTransform(Transform& transform) {
+    string str;
+    SPrintf(str, "%5.1f %s %s %s", transform.frame,
+        ReadVector3(transform.translation), ReadVector3(transform.rotation), ReadVector3(transform.scale));
     return str;
 }
 
 
 typedef struct {
-    int offset <format=hex>;
-    if (offset != 0) {
+    int id;
+    int resourceIndex;
+    int groupIndex;
+        int startFrame;
+        int duration;
+        int unk14;
+        int unk18;
+        int unk1C;
+        int unk20; Assert(unk20 == 0 || unk20 == 1);
+    int customDataCount;
+    int unk28;
+    int unk2C; Assert(unk2C == 0);
+    
+    if (customDataCount > 0) {
+        struct { CustomData customData[customDataCount]; } customData;
+    }
+    
+    int flagsX00 <format=hex>;
+        // Notes from Pav
+        // 0x01 - cam something, uses unkX14
+        // 0x20 - 
+        // 0x40 - use cam correction, 4 floats at unkfloats 0x38
+    int transformCount1;
+    int countX08;
+    int unkX0C <hidden=true>; Assert(unkX0C == 0);
+    int unkX10;
+    int transformCount2;
+    int unkX18 <hidden=true>; Assert(unkX18 == 0);
+    int unkX1C <hidden=true>; Assert(unkX1C == 0);
+    
+    Assert(flagsX00 == 0x00 || flagsX00 == 0x01 || flagsX00 == 0x04 || flagsX00 == 0x29);
+    
+    if (flagsX00 & 4) {
+        struct {
+            int unk00; Assert(unk00 == 3);
+            int unk04; Assert(unk04 == 0);
+            float unk08;
+            float unk0C;
+            float unk10;
+            int unk14; Assert(unk14 == 0);
+            int unk18; Assert(unk18 == 0);
+            int unk1C; Assert(unk1C == 0);
+            float unk20;
+            float unk24;
+            float unk28;
+        } delete;
+    }
+    
+    // ^ order? v
+
+    if (flagsX00 & 0x20) {
+        struct {
+            int unk00; Assert(unk00 == 0);
+            int unk04; Assert(unk04 == 0);
+            int count08; Assert(count08 == 1);
+            int unk0C; Assert(unk0C == 0);
+            int unk10;
+            int unk14; Assert(unk14 == 0);
+            float unk18;
+            float unk1C;
+            float unk20;
+            int unk24; Assert(unk24 == 0);
+            int unk28; Assert(unk28 == 0);
+            int unk2C; Assert(unk2C == 0);
+            float unk30;
+            float unk34;
+            float unk38;
+            int fuckCount;
+        } help;
+    }
+    
+    struct { Transform transforms1[transformCount1]; } transforms1;
+    
+    if (countX08 > 0) {
+        struct {
+            float idk1;
+            float idk2;
+            float idk3;
+            float idk4;
+        } idk[countX08] <optimize=false>;
+    }
+
+    if (transformCount2 > 0) {
+        struct { Transform transforms2[transformCount2]; } transforms2;
+    }
+    
+    if (flagsX00 & 0x20) {
+        struct {
+            struct Fuck {
+                float unk00;
+                float unk04;
+                float unk08;
+                float unk0C;
+                float unk10;
+                float unk14;
+                float unk18;
+                float unk1C;
+                float unk20;
+                float unk24;
+            } fuck[help.fuckCount] <optimize=false>;
+        } fucks;
+    }
+    
+    // ^ order? v
+    
+    if (unkX10 > 0) {
+        Fuck fucks2[unkX10];
+    }
+} Disposition <read=ReadDisposition, bgcolor=cLtYellow, optimize=false>;
+
+wstring ReadDisposition(Disposition& dispos) {
+    string str;
+    SPrintf(str, "[%2i][%i] %4i %3i %3i {%3i %3i %i %3i %3i %i} %2i ",
+        dispos.customDataCount, dispos.transformCount1,
+        dispos.id, dispos.resourceIndex, dispos.groupIndex,
+        dispos.startFrame, dispos.duration, dispos.unk14, dispos.unk18, dispos.unk1C, dispos.unk20,
+        dispos.unk28);
+    return str + resources.resources[dispos.resourceIndex].name;
+}
+
+
+typedef struct {
+    Varint disposOffsetsOffset;
+    int disposCount;
+    if (header.is64Bit) {
+        int pad0C <hidden=true>; Assert(pad0C == 0);
+    }
+    Varint customDataOffset;
+    int customDataCount;
+    int unk10; // Parent timeline index?
+    
+    local quad pos <hidden=true> = FTell();
+    if (disposCount > 0) {
+        FSeek(disposOffsetsOffset.val);
+        Varint disposOffsets[disposCount] <optimize=true>;
+    }
+    if (customDataCount > 0) {
+        FSeek(customDataOffset.val);
+        struct { CustomData customData[customDataCount]; } customData;
+    }
+    FSeek(pos);
+} Timeline <read=ReadTimeline, optimize=false>;
+
+wstring ReadTimeline(Timeline& timeline) {
+    string str;
+    SPrintf(str, "%5X[%i] %5X[%2i] %2i", timeline.disposOffsetsOffset.val, timeline.disposCount,
+        timeline.customDataOffset.val, timeline.customDataCount, timeline.unk10);
+    return str;
+}
+
+
+typedef struct {
+    wchar_t name[0x20] <fgcolor=cGreen>;
+    int disposCount;
+    int unk44; // Usually 0, not always
+    int duration; // Frames
+    int unk4C <hidden=true>; Assert(unk4C == 0);
+    int timelineCount;
+    if (header.is64Bit) {
+        int pad54 <hidden=true>; Assert(pad54 == 0);
+    }
+    Varint timelinesOffset;
+    if (!header.is64Bit) {
+        int pad58 <hidden=true>; Assert(pad58 == 0);
+        int pad5C <hidden=true>; Assert(pad5C == 0);
+    }
+    
+    struct { Disposition dispositions[disposCount]; } dispositions;
+
+    local quad pos <hidden=true> = FTell();
+    FSeek(timelinesOffset.val);
+    struct { Timeline timelines[timelineCount]; } timelines;
+    FSeek(pos);
+} Cut <read=ReadCut, optimize=false>;
+
+wstring ReadCut(Cut& cut) {
+    string str;
+    SPrintf(str, "%i %4i ", cut.unk44, cut.duration);
+    return str + cut.name;
+}
+
+typedef struct (int count) {
+    local int count <hidden=true> = count;
+    Cut cuts[count];
+} Cuts <read=ReadCuts>;
+
+wstring ReadCuts(Cuts& cuts) {
+    string str;
+    SPrintf(str, "[%3i]", cuts.count);
+    return str;
+}
+
+
+typedef struct {
+    Varint offset;
+
+    if (offset.val != 0) {
         local quad pos <hidden=true> = FTell();
-        FSeek(offset);
+        FSeek(offset.val);
         wstring str <bgcolor=cLtGreen>;
         FSeek(pos);
     }
-} ResourceString <read=ReadResourceString>;
+} ResourcePath <read=ReadResourcePath, optimize=false>;
 
-wstring ReadResourceString(ResourceString& str) {
-    if (str.offset == 0)
+wstring ReadResourcePath(ResourcePath& str) {
+    if (str.offset.val == 0)
         return "<null>";
     else
         return str.str;
@@ -342,12 +477,12 @@ wstring ReadResourceString(ResourceString& str) {
 
 typedef struct (int count) {
     local int count <hidden=true> = count;
-    ResourceString resourceStrings[count] <optimize=false>;
-} ResourceStrings <read=ReadResourceStrings>;
+    ResourcePath resourcePaths[count];
+} ResourcePaths <read=ReadResourcePaths>;
 
-wstring ReadResourceStrings(ResourceStrings& resourceStrings) {
+wstring ReadResourcePaths(ResourcePaths& resourcePaths) {
     string str;
-    SPrintf(str, "[%i]", resourceStrings.count);
+    SPrintf(str, "[%3i]", resourcePaths.count);
     return str;
 }
 
@@ -357,5 +492,6 @@ Header header <bgcolor=cLtRed>;
 Resources resources(header.resourceCount) <bgcolor=cAqua>;
 Cuts cuts(header.cutCount) <bgcolor=cYellow>;
 
-FSeek(header.resourceStringsOffset);
-ResourceStrings resourceStrings(header.resourceCount) <bgcolor=cGreen>;
+FSeek(header.resourcePathsOffset);
+ResourcePaths resourcePaths(header.resourceCount) <bgcolor=cGreen>;
+wstring resourceDirectory <bgcolor=cDkGreen>;

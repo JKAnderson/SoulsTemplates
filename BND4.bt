@@ -68,8 +68,12 @@ typedef struct {
     if (header.format & 0b00000100 | header.format & 0b00001000)
         int nameOffset <format=hex>;
     
-    if (header.format & 0b01000000) {
-        quad zero <hidden=true>; Assert(zero == 0);
+    // This is a very strange case that (as far as I know) only appears in PC save files.
+    // I do not know how to handle it elegantly and this is definitely not actually an ID,
+    // but it is non-zero in some cases.
+    if (header.format == 0b00000100) {
+        int id;
+        int zero <hidden=true>; Assert(zero == 0);
     }
     
     local quad pos <hidden=true> = FTell();

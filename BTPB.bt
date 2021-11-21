@@ -102,7 +102,10 @@ typedef struct {
         int unk88 <hidden=true>; Assert(unk88 == 0);
         int unk8C <hidden=true>; Assert(unk8C == 0);
         int unk90 <hidden=true>; Assert(unk90 == 0);
-        int unk94; // Usually 0
+        byte unk94;
+        byte unk95;
+        byte unk96;
+        byte unk97 <hidden=true>; Assert(unk97 == 0);
     }
     
     local quad pos <hidden=true> = FTell();
