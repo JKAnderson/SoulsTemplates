@@ -20,6 +20,13 @@ void Align(int align) {
     }
 }
 
+void AlignRelative(int base, int align) {
+    local int offset = (FTell() - base) % align;
+    if (offset) {
+        FSkip(align - offset);
+    }
+}
+
 ubyte ReverseBits(ubyte value) {
     return
         ((value & 0b00000001) << 7) |
