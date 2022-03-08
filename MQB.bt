@@ -25,34 +25,34 @@ else
 typedef struct {
     char magic[4]; Assert(magic == "MQB ");
     byte bigEndian; Assert(bigEndian == 0 || bigEndian == -1);
-    byte unk05; Assert(unk05 == 0);
+    byte unk05 <hidden=true>; Assert(unk05 == 0);
     byte is64Bit; Assert(is64Bit == 0 || is64Bit == -1); // Speculative since there's no variance within a version
-    byte unk07; Assert(unk07 == 0);
+    byte unk07 <hidden=true>; Assert(unk07 == 0);
     int version;
-    int headerSize;
+    int headerSize <format=hex>;
     int resourcePathsOffset <format=hex>;
 
-    Assert(version == 0x91 && headerSize == 0x14 // ACER
-        || version == 0x93 && headerSize == 0x14 // ACV, ACVD, GUC, SB
-        || version == 0x94 && headerSize == 0x14 // DS2
-        || version == 0xCA && headerSize == 0x28 // SotFS
-        || version == 0xCB && headerSize == 0x20 // BB
-        || version == 0xCC && headerSize == 0x24); // DS3, SDT
-    Assert(is64Bit == (version == 0xCA ? -1 : 0));
+    Assert(version == 145 && headerSize == 0x14 // ACER
+        || version == 147 && headerSize == 0x14 // ACV, ACVD, GUC, SB
+        || version == 148 && headerSize == 0x14 // DS2
+        || version == 202 && headerSize == 0x28 // SotFS
+        || version == 203 && headerSize == 0x20 // BB
+        || version == 204 && headerSize == 0x24); // DS3, SDT
+    Assert(is64Bit == (version == 202 ? -1 : 0));
     
     // The fact that this shrank after SotFS does not inspire confidence
     // that they are the same fields, but who knows.
-    if (version == 0xCA) {
+    if (version == 202) {
         int unk14; Assert(unk14 == 0);
         int unk18; Assert(unk18 == 0);
         int unk1C; Assert(unk1C == 0);
         int unk20; Assert(unk20 == 0);
         int unk24; Assert(unk24 == 0);
-    } else if (version == 0xCB || version == 0xCC) {
+    } else if (version == 203 || version == 204) {
         int unk14; Assert(unk14 == 1);
         int unk18; Assert(unk18 == 0);
         int unk1C; Assert(unk1C == 0);
-        if (version == 0xCC) {
+        if (version == 204) {
             int unk20; Assert(unk20 == 0);
         }
     }
@@ -77,14 +77,22 @@ wstring ReadHeader(Header& header) {
 
 
 typedef struct (int valueType, int pointType) {
-    float value;
-    int unk04; Assert(unk04 == 0);
-    int unk08;
-    int unk0C; Assert(unk0C == 0);
+    switch (valueType) {
+        case 3: ubyte value; break;
+        case 8: float value; break;
+        
+        default: Assert(false);
+    }
+    if (type == 3) {
+        byte valuePad[3] <hidden=true>; Assert(!(valuePad[0] | valuePad[1] | valuePad[2]));
+    }
+    
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    int frame;
+    int unk0C <hidden=true>; Assert(unk0C == 0);
     if (pointType == 2) {
-        int unk10;
-        int unk14;
-        if (valueType == 3) Printf("%8Xh %8Xh\n", unk10, unk14);
+        float unk10;
+        float unk14; Assert(unk14 == unk10);
     }
 } SequencePoint <read=ReadSequencePoint, bgcolor=cPurple, optimize=false>;
 
@@ -95,11 +103,11 @@ string ReadSequencePoint(SequencePoint& sp) {
 
 
 typedef struct {
-    int sequenceSize; Assert(sequenceSize == 0x1C);
+    int sequenceSize <format=hex>; Assert(sequenceSize == 0x1C);
     int pointCount;
-    int valueType; Assert(valueType == 3 || valueType == 8);
+    int valueType;
     int pointType; Assert(pointType == 1 || pointType == 2);
-    int pointSize; Assert(pointSize == (pointType == 1 ? 0x10 : 0x18));
+    int pointSize <format=hex>; Assert(pointSize == (pointType == 1 ? 0x10 : 0x18));
     int pointsOffset <format=hex>;
     // An offset back to the value in the parent CustomData
     // For colors, each Sequence points to a separate byte of the RGB value
@@ -128,13 +136,11 @@ typedef struct {
         CD_BYTES = 11,
     
         CD_COLOR = 13,
-    } type;
-    Assert(type == CD_BOOL || type == CD_SBYTE || type == CD_UBYTE
-        || type == CD_SSHORT || type == CD_SINT || type == CD_UINT
-        || type == CD_FLOAT || type == CD_STRING || type == CD_BYTES
-        || type == CD_COLOR);
 
-    int unk44; Assert(unk44 == (type == CD_COLOR ? 3 : 0));
+        CD_VECTOR3 = 18,
+    } type;
+
+    int unk44; Assert(unk44 == (type == CD_COLOR || type == CD_VECTOR3 ? 3 : 0));
     switch (type) {
         case CD_BOOL: byte value; Assert(value == 0 || value == 1); break;
         case CD_SBYTE: byte value; break;
@@ -145,7 +151,9 @@ typedef struct {
         case CD_FLOAT: float value; break;
         case CD_STRING:
         case CD_BYTES:
-        case CD_COLOR: int length; break;
+        case CD_COLOR:
+        case CD_VECTOR3: int length; break;
+
         default: Assert(false);
     }
     if (type == CD_BOOL || type == CD_SBYTE || type == CD_UBYTE) {
@@ -168,9 +176,13 @@ typedef struct {
         Assert(length == 4);
         ubyte value[3] <format=hex>;
         byte colorPad <hidden=true>; Assert(colorPad == 0);
+    } else if (type == CD_VECTOR3) {
+        Assert(length == 0x10);
+        Vector3 value;
+        int vec3Pad <hidden=true>; Assert(vec3Pad == 0);
     }
     
-    if (type == CD_FLOAT)
+    if (type == CD_FLOAT || type == CD_UBYTE)
         Assert(sequenceCount == 0 || sequenceCount == 1);
     else if (type == CD_COLOR)
         Assert(sequenceCount == 0 || sequenceCount == 3);
@@ -202,6 +214,8 @@ wstring ReadCustomData(CustomData& customData) {
         case CD_BYTES: SPrintf(val, "[%i]", customData.length); break;
         case CD_COLOR: SPrintf(val, "{%02X %02X %02X}",
             customData.value[0], customData.value[1], customData.value[2]); break;
+        case CD_VECTOR3: val = ReadVector3(customData.value); break;
+        
         default: Assert(false);
     }
     return str + customData.name + " = " + val;
@@ -275,7 +289,7 @@ typedef struct {
         int unk20; Assert(unk20 == 0 || unk20 == 1);
     int customDataCount;
     int unk28;
-    int unk2C; Assert(unk2C == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
     
     if (customDataCount > 0) {
         struct { CustomData customData[customDataCount]; } customData;

@@ -1,0 +1,28 @@
+//------------------------------------------------
+//--- 010 Editor v12.0.1 Binary Template
+//
+//      File: FMB.bt
+//   Authors: TKGP
+//   Version: 
+//   Purpose: 
+//  Category: Dantelion
+// File Mask: *.expb
+//  ID Bytes: 46 4D 42 20
+//   History: 
+//------------------------------------------------
+
+#include "Util.bt"
+LittleEndian();
+
+//------------------------------------------------
+
+typedef struct {
+    char magic[4]; Assert(magic == "FMB ");
+    int unk04; Assert(unk04 == 1);
+    int unk08; Assert(unk08 == 1);
+    int unk0C; Assert(unk0C == 0);
+} Header <bgcolor=cLtRed>;
+
+//------------------------------------------------
+
+Header header;

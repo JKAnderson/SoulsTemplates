@@ -138,7 +138,7 @@ typedef struct {
     wstring str;
 } WrappedWString <read=ReadWrappedWString>;
 
-string ReadWrappedWString(WrappedWString& wws) {
+wstring ReadWrappedWString(WrappedWString& wws) {
     return wws.str;
 }
 
