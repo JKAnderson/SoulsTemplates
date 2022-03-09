@@ -13,7 +13,9 @@
 
 enum <int> EventType {
     EventTypeTreasure = 4,
+    EventTypeGenerator = 5,
     EventTypeObjAct = 7,
+    EventTypeNavmesh = 10,
     EventTypePseudoMultiplayer = 12,
     EventTypePlatoonInfo = 15,
     EventTypePatrolInfo = 20,
@@ -26,7 +28,9 @@ enum <int> EventType {
 struct EventUnk3;
 
 struct EventTreasure;
+struct EventGenerator;
 struct EventObjAct;
+struct EventNavmesh;
 struct EventPseudoMultiplayer;
 struct EventPlatoonInfo;
 struct EventPatrolInfo;
@@ -43,7 +47,7 @@ typedef struct {
     int eventIndex;
     EventType type;
     int id;
-    int unk14 <hidden=true>; Assert(unk14 == 0);
+    int unk14; Assert(IsBool(unk14));
     quad entityDataOffset <format=hex>;
     quad typeDataOffset <format=hex>;
     quad unkOffset3 <format=hex>;
@@ -69,7 +73,9 @@ typedef struct {
         FSeek(start + typeDataOffset);
         switch (type) {
             case EventTypeTreasure: EventTreasure treasure; break;
+            case EventTypeGenerator: EventGenerator generator; break;
             case EventTypeObjAct: EventObjAct objAct; break;
+            case EventTypeNavmesh: EventNavmesh navmesh; break;
             case EventTypePseudoMultiplayer: EventPseudoMultiplayer pseudoMultiplayer; break;
             case EventTypePlatoonInfo: EventPlatoonInfo platoonInfo; break;
             case EventTypePatrolInfo: EventPatrolInfo patrolInfo; break;
@@ -134,6 +140,42 @@ typedef struct {
 
 
 typedef struct {
+    byte maxNum;
+    byte genType;
+    short limitNum;
+    short minGenNum;
+    short maxGenNum;
+    float minInterval;
+    float maxInterval;
+    byte initialSpawnCount;
+    byte unk11 <hidden=true>; Assert(unk11 == 0);
+    byte unk12 <hidden=true>; Assert(unk12 == 0);
+    byte unk13 <hidden=true>; Assert(unk13 == 0);
+    float unk14;
+    float unk18;
+    int unk1C <hidden=true>; Assert(unk1C == 0);
+    int unk20 <hidden=true>; Assert(unk20 == 0);
+    int unk24 <hidden=true>; Assert(unk24 == 0);
+    int unk28 <hidden=true>; Assert(unk28 == 0);
+    int unk2C <hidden=true>; Assert(unk2C == 0);
+    int spawnPointIndices[8];
+    int unk50 <hidden=true>; Assert(unk50 == 0);
+    int unk54 <hidden=true>; Assert(unk54 == 0);
+    int unk58 <hidden=true>; Assert(unk58 == 0);
+    int unk5C <hidden=true>; Assert(unk5C == 0);
+    int spawnPartIndices[32];
+    int unkE0 <hidden=true>; Assert(unkE0 == 0);
+    int unkE4 <hidden=true>; Assert(unkE4 == 0);
+    int unkE8 <hidden=true>; Assert(unkE8 == 0);
+    int unkEC <hidden=true>; Assert(unkEC == 0);
+    int unkF0 <hidden=true>; Assert(unkF0 == 0);
+    int unkF4 <hidden=true>; Assert(unkF4 == 0);
+    int unkF8 <hidden=true>; Assert(unkF8 == 0);
+    int unkFC <hidden=true>; Assert(unkFC == 0);
+} EventGenerator;
+
+
+typedef struct {
     int entityID;
     int partIndex;
     int objActParamID;
@@ -146,6 +188,14 @@ typedef struct {
     int unk18 <hidden=true>; Assert(unk18 == 0);
     int unk1C <hidden=true>; Assert(unk1C == 0);
 } EventObjAct;
+
+
+typedef struct {
+    int pointIndex;
+    int unk04 <hidden=true>; Assert(unk04 == 0);
+    int unk08 <hidden=true>; Assert(unk08 == 0);
+    int unk0C <hidden=true>; Assert(unk0C == 0);
+} EventNavmesh;
 
 
 typedef struct {

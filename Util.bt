@@ -27,6 +27,10 @@ void AlignRelative(int base, int align) {
     }
 }
 
+int IsBool(int value) {
+    return value == 0 || value == 1;
+}
+
 ubyte ReverseBits(ubyte value) {
     return
         ((value & 0b00000001) << 7) |
