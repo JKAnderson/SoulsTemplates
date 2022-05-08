@@ -232,13 +232,13 @@ typedef struct {
 
 
 typedef struct {
-    int unk00;
-    int unk04;
+    int riderPartIndex;
+    int mountPartIndex;
 } EventMount;
 
 
 typedef struct {
-    int unk00;
+    int signPartIndex;
     int unk04;
     int unk08; Assert(unk08 == 0);
     int unk0C; Assert(unk0C == 0);
@@ -246,8 +246,8 @@ typedef struct {
 
 
 typedef struct {
-    int unk00;
+    int retryPartIndex;
     int unk04;
     float unk08;
-    int unk0C;
+    int retryRegionIndex;
 } EventRetryPoint;
