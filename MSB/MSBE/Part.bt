@@ -16,7 +16,7 @@ enum <int> PartType {
     PartTypeEnemy = 2,
     PartTypePlayer = 4,
     PartTypeCollision = 5,
-    PartTypeDummyAsset = 9, // Highly speculative
+    PartTypeDummyAsset = 9,
     PartTypeDummyEnemy = 10,
     PartTypeConnectCollision = 11,
     PartTypeAsset = 13,
@@ -177,7 +177,9 @@ wstring ReadPart(Part& part) {
 
 // Ridiculously speculative
 typedef struct {
-    uint collisionMask[48];
+    uint dispGroups[8];
+    uint drawGroups[8];
+    uint collisionMask[32];
     byte condition1; Assert(IsBool(condition1));
     byte condition2; Assert(IsBool(condition2));
     byte unkC2;
@@ -469,12 +471,7 @@ typedef struct {
     int unk2C; Assert(unk2C == 0);
     int unk30;
     int unk34;
-    int unk38;
-    int unk3C;
-    int unk40;
-    int unk44;
-    int unk48;
-    int unk4C;
+    int unkPartIndices[6];
     byte unk50; Assert(IsBool(unk50));
     byte unk51;
     byte unk52; Assert(unk52 == 0);
