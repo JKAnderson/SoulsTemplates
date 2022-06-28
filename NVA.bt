@@ -2,7 +2,7 @@
 //--- 010 Editor v7.0.2 Binary Template
 //
 //      File: NVA.bt
-//   Authors: katalash, TKGP
+//   Authors: katalash, TKGP, horkrux
 //   Version: 
 //   Purpose: BB/DS3/SDT navmesh configuration
 //  Category: Dantelion
@@ -19,7 +19,7 @@ typedef struct {
     char magic[4]; Assert(magic == "NVMA");
     int version; //Assert(version == 4 || version == 5);
     int fileSize <format=hex>;
-    int sectionCount; Assert(sectionCount == 8 || sectionCount == 9);
+    int sectionCount; Assert(sectionCount == 8 || sectionCount == 9 || sectionCount == 14);
 } Header <read=ReadHeader>;
 
 string ReadHeader(Header& header) {
@@ -46,34 +46,36 @@ string ReadSectionHeader(SectionHeader& header) {
 
 
 typedef struct (SectionHeader& header) {
-    Vector3 position; // Usually 0,0,0
-    float unk0C; Assert(unk0C == 1);
-    int unk10; // These are not floats
-    int unk14;
-    int unk18;
-    int unk1C; Assert(unk1C == 0);
-    float unk20; Assert(unk20 == 1);
-    float unk24; // The only file where these two aren't 1 is m50_00,
-    float unk28; // where a couple entries have 1.000001 or 1.000002 like lel
-    int unk2C; Assert(unk2C == 0);
+    Vector4 position; // Usually 0,0,0
+    Vector4 rotation;
+    Vector4 scaling;
+    //float unk0C; Assert(unk0C == 1);
+    //int unk10; // These are not floats
+    //int unk14;
+    //int unk18;
+    //int unk1C; Assert(unk1C == 0);
+    //float unk20; Assert(unk20 == 1);
+    //float unk24; // The only file where these two aren't 1 is m50_00,
+    //float unk28; // where a couple entries have 1.000001 or 1.000002 like lel
+    //int unk2C; Assert(unk2C == 0);
     int nvaNameID; // i.e. 350000110 in int form
     int navimeshModelID;
-    int unk38;
+    int faceDataIdx;
     int unk3C; Assert(unk3C == 0);
-    int condition;
-    int count44;
-    short unk48;
-    short count4A;
+    int faceCount;
+    int connectedNavmeshesCount;
+    short gateNodeIndex;
+    short subNodesCount;
     int unk4C;
     
     // Each array entry seems to either be a section reference or -1
     if (header.version == 2 || header.version == 3) {
-        if (count44 > 0) {
-            int mapSectionArray[count44];
+        if (connectedNavmeshesCount > 0) {
+            int connectedNavmeshesArray[connectedNavmeshesCount];
         }
 
         local int i <hidden=true>;
-        for (i = 0; i < 16 - count44; i++) {
+        for (i = 0; i < 16 - connectedNavmeshesCount; i++) {
             int null <fgcolor=cRed, hidden=true>; Assert(null == -1);
         }
     } else {
@@ -82,16 +84,16 @@ typedef struct (SectionHeader& header) {
         int unk58; Assert(unk54 == 0);
         int unk5C; Assert(unk54 == 0);
         
-        if (count44 > 0) {
+        if (connectedNavmeshesCount > 0) {
             local quad pos <hidden=true> = FTell();
             FSeek(unkOffset);
-            int mapSectionArray[count44];
+            int connectedNavmeshArray[connectedNavmeshesCount];
             FSeek(pos);
         }
     }
-} Entry0 <read=ReadEntry0>;
+} NavmeshInfo <read=ReadEntry0>;
 
-string ReadEntry0(Entry0& entry) {
+string ReadEntry0(NavmeshInfo& entry) {
     string str;
     SPrintf(str, "");
     return str;
@@ -100,12 +102,12 @@ string ReadEntry0(Entry0& entry) {
 typedef struct {
     SectionHeader header(0);
     if (header.entryCount > 0) {
-        Entry0 entries(header)[header.entryCount] <optimize=false>;
+        NavmeshInfo navmeshInfos(header)[header.entryCount] <optimize=false>;
     }
     FSeek(header.start + header.sectionSize);
-} Section0 <read=ReadSection0>;
+} NavmeshSection <read=ReadSection0>;
 
-string ReadSection0(Section0& section) {
+string ReadSection0(NavmeshSection& section) {
     return ReadSectionHeader(section.header);
 }
 
@@ -113,9 +115,9 @@ string ReadSection0(Section0& section) {
 typedef struct {
     int unk00 <fgcolor=cDkYellow>;
     int unk04 <fgcolor=cDkYellow>; Assert(unk04 == 0);
-} Entry1 <read=ReadEntry1>;
+} FaceData <read=ReadEntry1>;
 
-string ReadEntry1(Entry1& entry) {
+string ReadEntry1(FaceData& entry) {
     string str;
     SPrintf(str, "%i %i", entry.unk00, entry.unk04);
     return str;
@@ -123,40 +125,39 @@ string ReadEntry1(Entry1& entry) {
 
 typedef struct {
     SectionHeader header(1);
-    if (header.entryCount > 0) {
-        Entry1 entries[header.entryCount] <optimize=false>;
+    if (header.entryCount > 0) { //one for every face
+        FaceData faceData[header.entryCount] <optimize=false>;
     }
     
     if (FTell() % 0x10 != 0) {
         int pad1; Assert(pad1 == -1);
         int pad2; Assert(pad2 == -1);
     }
-} Section1 <read=ReadSection1>;
-
-string ReadSection1(Section1& section) {
+} FaceDataSection <read=ReadSection1>;
+string ReadSection1(FaceDataSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 typedef struct {
-    int someIndex; // Smallish ints
-    int mapSectionID; // map section in int form
-} MapSectionReference;
+    int faceIdx; // Smallish ints
+    int collisionId; // map section in int form
+} NodeBankFace;
 
 typedef struct {
-    int unk00; // Seems to increment for each entry
-    int referenceCount;
-    int unk08; // Another map number-y thing, always -1 in DS3, not always in BB
+    int bankIdx;
+    int faceNum;
+    int entityId; // Another map number-y thing, always -1 in DS3, not always in BB
     int unk0C; Assert(unk0C == 0);
-    MapSectionReference mapSect[referenceCount];
+    NodeBankFace nodeBankFaces[faceNum];
     
     local int i;
-    for (i = 0; i < 64 - referenceCount; i++) {
+    for (i = 0; i < 64 - faceNum; i++) {
         quad zero <fgcolor=cYellow, hidden=true>; Assert(zero == 0);
     }
-} Entry2 <read=ReadEntry2>;
+} NodeBank <read=ReadEntry2>;
 
-string ReadEntry2(Entry2& entry) {
+string ReadEntry2(NodeBank& entry) {
     string str;
     SPrintf(str, "");
     return str;
@@ -165,11 +166,11 @@ string ReadEntry2(Entry2& entry) {
 typedef struct {
     SectionHeader header(2);
     if (header.entryCount > 0) {
-        Entry2 entries[header.entryCount] <optimize=false>;
+        NodeBank nodeBanks[header.entryCount] <optimize=false>;
     }
-} Section2 <read=ReadSection2>;
+} NodeBankSection <read=ReadSection2>; //this is for loading different navmeshes when entering elevators i guess
 
-string ReadSection2(Section2& section) {
+string ReadSection2(NodeBankSection& section) {
     return ReadSectionHeader(section.header);
 }
 
@@ -187,90 +188,89 @@ string ReadSection3(Section3& section) {
 typedef struct {
     int nvaModelNameMain;
     int nvaModelNameConnectedPiece;
-    int section4Index;
-    int selfCompareCondition;
-    int section5Index;
+    int navMeshConnectionCount;
+    int graphConnectionCount;
+    int navMeshConnectionIdx;
     int unk14; Assert(unk14 == 0);
-    int section6Index;
+    int graphConnectionIdx;
     int unk1C; Assert(unk1C == 0);
 } Connector <read=ReadEntry4>;
 
 string ReadEntry4(Connector& entry) {
     string str;
-    SPrintf(str, "");
+    SPrintf(str, "%4i %4i", entry.navMeshConnectionCount, entry.graphConnectionCount);
     return str;
 }
 
 typedef struct {
     SectionHeader header(4);
     if (header.entryCount > 0) {
-        Connector entries[header.entryCount] <optimize=false>;
+        Connector connectors[header.entryCount] <optimize=false>;
     }
-} Section4 <read=ReadSection4>;
+} ConnectorSection <read=ReadSection4>;
 
-string ReadSection4(Section4& section) {
+string ReadSection4(ConnectorSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 typedef struct {
-    int unk00; // Too big to index anything besides Section1, but not big enough to be likely
-    int unk04;
-    int unk08;
-    int unk0C;
-} ConnectPoint <read=ReadEntry5>;
+    int faceIdx;
+    int edgeIdx;
+    int oppositeFaceIdx;
+    int oppositeEdgeIdx;
+} NavMeshConnection <read=ReadEntry5>; //this seems to contain keys, cuz the numbers dont appear to match
 
-string ReadEntry5(ConnectPoint& entry) {
+string ReadEntry5(NavMeshConnection& entry) {
     string str;
-    SPrintf(str, "%4i %4i %4i %4i", entry.unk00, entry.unk04, entry.unk08, entry.unk0C);
+    SPrintf(str, "%4i %4i %4i %4i", entry.faceIdx, entry.edgeIdx, entry.oppositeFaceIdx, entry.oppositeEdgeIdx);
     return str;
 }
 
 typedef struct {
     SectionHeader header(5);
     if (header.entryCount > 0) {
-        ConnectPoint entries[header.entryCount] <optimize=false>;
+        NavMeshConnection navMeshConnections[header.entryCount] <optimize=false>;
     }
-} Section5 <read=ReadSection5>;
+} NavMeshConnectionSection <read=ReadSection5>;
 
-string ReadSection5(Section5& section) {
+string ReadSection5(NavMeshConnectionSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 typedef struct {
-    int unk00; // Not Section0, 2, 3, or 7 indices
-    int unk04;
-} Entry6 <read=ReadEntry6>;
+    int nodeIdx;
+    int oppositeNodeIdx;
+} GraphConnection <read=ReadEntry6>;
 
-string ReadEntry6(Entry6& entry) {
+string ReadEntry6(GraphConnection& entry) {
     string str;
-    SPrintf(str, "%3i %3i", entry.unk00, entry.unk04);
+    SPrintf(str, "%3i %3i", entry.nodeIdx, entry.oppositeNodeIdx);
     return str;
 }
 
 typedef struct {
     SectionHeader header(6);
     if (header.entryCount > 0) {
-        Entry6 entries[header.entryCount] <optimize=false>;
+        GraphConnection graphConnections[header.entryCount] <optimize=false>;
     }
-} Section6 <read=ReadSection6>;
+} GraphConnectionSection <read=ReadSection6>;
 
-string ReadSection6(Section6& section) {
+string ReadSection6(GraphConnectionSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 typedef struct {
-    Vector3 unk00;
-    float unk0C; Assert(unk0C == 1);
-    int mapSectionID;
+    Vector4 position;
+    int navmeshId;
     int unk14; Assert(unk14 == 0);
     int unk18;
     int unk1C; Assert(unk1C == 0);
-} Entry7 <read=ReadEntry7>;
+} LevelConnector <read=ReadEntry7>;
 
-string ReadEntry7(Entry7& entry) {
+string ReadEntry7(LevelConnector& entry) {
     string str;
     SPrintf(str, "");
     return str;
@@ -279,64 +279,64 @@ string ReadEntry7(Entry7& entry) {
 typedef struct {
     SectionHeader header(7);
     if (header.entryCount > 0) {
-        Entry7 entries[header.entryCount] <optimize=false>;
+        LevelConnector levelConnectors[header.entryCount] <optimize=false>;
     }
-} Section7 <read=ReadSection7>;
+} LevelConnectorSection <read=ReadSection7>;
 
-string ReadSection7(Section7& section) {
+string ReadSection7(LevelConnectorSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 typedef struct (SectionHeader& header) {
     Vector3 position;
-    short section0Index;
-    short mainID;
+    short connectedNavmeshIdx;
+    short nodeSubId;
     
     if (header.version == 1) {
-        short subIDs[16];
+        short neighbourGateNodeCosts[16];
     } else if (header.version == 2) {
-        int subIDCount;
+        int neighbourGateNodeCostsCount;
         int unk14; Assert(unk14 == -1);
-        int subIDsOffset <format=hex>;
+        int neighbourGateNodeCostsOffset <format=hex>;
         int unk1C; Assert(unk1C == 0);
         
-        if (subIDCount > 0) {
+        if (neighbourGateNodeCostsCount > 0) {
             local quad pos <hidden=true> = FTell();
-            FSeek(subIDsOffset);
-            short subIDs[subIDCount];
+            FSeek(neighbourGateNodeCostsOffset);
+            short neighbourGateNodeCosts[neighbourGateNodeCostsCount];
             FSeek(pos);
         }
     }
-} Entry8 <read=ReadEntry8>;
+} GateNode <read=ReadEntry8>;
 
-string ReadEntry8(Entry8& entry) {
+string ReadEntry8(GateNode& entry) {
     string str;
     SPrintf(str, "%s %3i %2i",
-        ReadVector3(entry.position), entry.section0Index, entry.mainID);
+        ReadVector3(entry.position), entry.connectedNavmeshIdx, entry.nodeSubId);
     return str;
 }
 
 typedef struct {
     SectionHeader header(8);
     if (header.entryCount > 0) {
-        Entry8 entries(header)[header.entryCount] <optimize=false>;
+        GateNode gateNodes(header)[header.entryCount] <optimize=false>;
     }
-} Section8 <read=ReadSection8>;
+} GateNodeSection <read=ReadSection8>;
 
-string ReadSection8(Section8& section) {
+string ReadSection8(GateNodeSection& section) {
     return ReadSectionHeader(section.header);
 }
 
 
 Header header <bgcolor=cLtRed>;
-Section0 section0 <bgcolor=cRed>;
-Section1 section1 <bgcolor=cDkYellow>;
-Section2 section2 <bgcolor=cYellow>;
+NavmeshSection navmeshSection <bgcolor=cRed>;
+FaceDataSection faceDataSection <bgcolor=cDkYellow>;
+NodeBankSection nodeBankSection <bgcolor=cYellow>;
 Section3 section3 <bgcolor=cLtGreen>;
-Section4 section4 <bgcolor=cGreen>;
-Section5 section5 <bgcolor=cDkGreen>;
-Section6 section6 <bgcolor=cAqua>;
-Section7 section7 <bgcolor=cLtBlue>;
+ConnectorSection connectorSection <bgcolor=cGreen>;
+NavMeshConnectionSection navMeshConnectionSection <bgcolor=cDkGreen>;
+GraphConnectionSection graphConnectionSection <bgcolor=cAqua>;
+LevelConnectorSection levelConnectorSection <bgcolor=cLtBlue>;
 if (header.sectionCount == 9)
-Section8 section8 <bgcolor=cLtPurple>;
+GateNodeSection gateNodeSection <bgcolor=cLtPurple>;
