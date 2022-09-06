@@ -23,7 +23,7 @@ typedef struct {
     quad xmlPathOffset <format=hex>;
     // I speculate that this value and the others below are keys for some
     // form of documentation. They appear random, but they match for params
-    // or samplers  of matching names/types.
+    // or samplers of matching names/types.
     int key <format=hex>;
     int paramCount;
     int samplerCount;

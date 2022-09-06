@@ -101,6 +101,7 @@ typedef struct {
         FSeek(header.argumentsOffset.val + argumentsOffset.val);
         byte arguments[argumentsLength.val] <bgcolor=cBlack, fgcolor=cWhite>;
     }
+
     if (header.game >= DS3 && eventLayerOffset.val != -1) {
         FSeek(header.eventLayersOffset.val + eventLayerOffset.val);
         EventLayer eventLayer;
@@ -110,7 +111,7 @@ typedef struct {
 
 string ReadInstruction(Instruction& inst) {
     string str;
-    SPrintf(str, "%6i[%2i]", inst.instructionClass, inst.instructionIndex);
+    SPrintf(str, "%6i[%3i]", inst.instructionClass, inst.instructionIndex);
     return str;
 }
 
@@ -145,11 +146,12 @@ typedef struct {
     struct {
         Instruction instructions[instructionCount.val];
     } instructions;
+
     FSeek(header.parametersOffset.val + parametersOffset.val);
     if (parameterCount.val > 0) {
-    struct {
-        Parameter parameters[parameterCount.val];
-    } parameters;
+        struct {
+            Parameter parameters[parameterCount.val];
+        } parameters;
     }
     FSeek(pos);
 } Event <read=ReadEvent, bgcolor=cLtGreen, optimize=false>;
@@ -171,7 +173,11 @@ typedef struct {
         wstring path <bgcolor=cLtGreen>;
     }
     FSeek(pos);
-} LinkedFile <bgcolor=cRed, optimize=false>;
+} LinkedFile <read=ReadLinkedFile, bgcolor=cRed, optimize=false>;
+
+wstring ReadLinkedFile(LinkedFile& lf) {
+    return lf.path;
+}
 
 //------------------------------------------------
 
@@ -183,10 +189,10 @@ struct {
 } events;
 
 if (header.linkedFileCount.val > 0) {
-FSeek(header.linkedFilesOffset.val);
-struct {
-    LinkedFile linkedFiles[header.linkedFileCount.val];
-} linkedFiles;
+    FSeek(header.linkedFilesOffset.val);
+    struct {
+        LinkedFile linkedFiles[header.linkedFileCount.val];
+    } linkedFiles;
 }
 
 FSeek(header.instructionsOffset.val);

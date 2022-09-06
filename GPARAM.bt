@@ -44,7 +44,7 @@ typedef struct {
     int unk3Count;
     int unkOffset3 <format=hex>;
     int unkOffset4 <format=hex>;
-    int unk40; Assert(unk40 == 0);
+    float unk40;
     int commentOffsetsOffsetsOffset <format=hex>;
     int commentOffsetsOffset <format=hex>;
     int commentsOffset <format=hex>;
