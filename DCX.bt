@@ -40,7 +40,10 @@ typedef struct {
     byte unk32 <hidden=true>; Assert(unk32 == 0);
     byte unk33 <hidden=true>; Assert(unk33 == 0);
     int unk34; Assert(unk34 == 0 || unk34 == 0x10000); // Block size for EDGE?
-    int unk38; Assert(unk38 == 0);
+    byte unk38; Assert(unk38 == 0 || unk38 == 15);
+    byte unk39 <hidden=true>; Assert(unk39 == 0);
+    byte unk3A <hidden=true>; Assert(unk3A == 0);
+    byte unk3B <hidden=true>; Assert(unk3B == 0);
     int unk3C; Assert(unk3C == 0);
     int unk40;
     char dca[4]; Assert(dca == "DCA\0");

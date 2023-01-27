@@ -4,8 +4,8 @@
 //      File: BTL.bt
 //   Authors: TKGP
 //   Version: 
-//   Purpose: 
-//  Category: 
+//   Purpose: Dynamic light sources from DS2 onwards
+//  Category: Dantelion
 // File Mask: *.btl
 //  ID Bytes: 
 //   History: 
@@ -14,17 +14,20 @@
 LittleEndian();
 #include "Util.bt"
 
+//------------------------------------------------
+
 // Note to self:
 // Strings are padded to 0x10 /relative to the start of the string block/
 // That's why there's all that garbage in there.
 
 typedef struct {
     int unk00; Assert(unk00 == 2);
-    int version;
+    int version; Assert(version == 1 || version == 2 || version == 5 || version == 6
+        || version == 16 || version == 18);
     int lightCount;
     int namesLength <format=hex>;
     int unk10; Assert(unk10 == 0);
-    int lightSize <format=hex>;
+    int lightSize <format=hex>; Assert(lightSize == 0xC0 || lightSize == 0xC8 || lightSize == 0xE8);
     
     local int i <hidden=true>;
     for (i = 0; i < 9; i++) {
@@ -33,12 +36,9 @@ typedef struct {
 } Header <bgcolor=cLtRed>;
 
 
-typedef struct (int lightSize, quad namesStart) {
-    int unk00;
-    int unk04;
-    int unk08;
-    int unk0C;
-    if (lightSize == 0xC0) {
+typedef struct {
+    ubyte unk00[16];
+    if (header.lightSize == 0xC0) {
         int nameOffset <format=hex>;
     } else {
         quad nameOffset <format=hex>;
@@ -79,7 +79,7 @@ typedef struct (int lightSize, quad namesStart) {
     float unkA4;
     int unkA8; Assert(unkA8 == 0);
     float unkAC;
-    if (lightSize == 0xC0) {
+    if (header.lightSize == 0xC0) {
         int unkB0; Assert(unkB0 == 0);
     } else {
         quad unkB0; Assert(unkB0 == 0);
@@ -89,15 +89,15 @@ typedef struct (int lightSize, quad namesStart) {
     byte unkC0[4];
     float unkC4;
     
-    if (lightSize > 0xC8) {
+    if (header.lightSize > 0xC8) {
         float unkC8;
         float unkCC;
         float unkD0;
-        int unkD4; Assert(unkD4 == 0);
+        float unkD4;
         float unkD8;
         int unkDC;
         int unkE0; Assert(unkE0 == 0);
-        int unkE4; Assert(unkE4 == 0);
+        int unkE4;
     }
     
     local quad pos <hidden=true> = FTell();
@@ -110,8 +110,9 @@ wstring ReadLight(Light& light) {
     return light.name;
 }
 
+//------------------------------------------------
 
 Header header;
 local quad namesStart <hidden=true> = FTell();
 FSkip(header.namesLength);
-Light lights(header.lightSize, namesStart)[header.lightCount];
+Light lights[header.lightCount];

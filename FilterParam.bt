@@ -18,6 +18,13 @@
 // except the DS2 NT, which uses UTF8 for some reason.
 local int CHARSET8 <hidden=true> = CHARSET_JAPANESE;
 
+// Comment blocks are often completely empty;
+// it's nice to have them in the list anyways
+// so the indices line up with the params,
+// but I'm not aware of any way to do that without 010 complaining.
+// Turn this on to omit empty blocks if you don't like the warnings.
+local int AVOID_SECTION11_WARNINGS <hidden=true> = 1;
+
 LittleEndian();
 local int shortMagic <hidden=true> = ReadString(0, 4) == "filt";
 local int versionOffset <hidden=true> = shortMagic ? 4 : 8;
@@ -255,18 +262,20 @@ if (header.version >= 3 && header.section1Count > 0) {
             valueCount = section2.struct2s[i].section3Count == 0 ? 0
                 : section2.struct2s[i].section4.struct4s[0].valueCount;
             
-            struct {
-                if (valueCount > 0) {
-                    int section12Offsets[valueCount] <bgcolor=cYellow>;
-                
-                    local quad pos <hidden=true> = FTell();
-                    for (j = 0; j < valueCount; j++) {
-                        FSeek(header.section12Offset + section12Offsets[j]);
-                        WrappedWString comments <bgcolor=cDkYellow>;
+            if (AVOID_SECTION11_WARNINGS && valueCount > 0) {
+                struct {
+                    if (valueCount > 0) {
+                        int section12Offsets[valueCount] <bgcolor=cYellow>;
+                    
+                        local quad pos <hidden=true> = FTell();
+                        for (j = 0; j < valueCount; j++) {
+                            FSeek(header.section12Offset + section12Offsets[j]);
+                            WrappedWString comments <bgcolor=cDkYellow>;
+                        }
+                        FSeek(pos);
                     }
-                    FSeek(pos);
-                }
-            } struct11s;
+                } struct11s;
+            }
         }
     } section11;
 }
